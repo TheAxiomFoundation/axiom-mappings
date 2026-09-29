@@ -141,3 +141,9 @@ def test_readiness_counts_slot_kinds_and_supplied_parameters(m):
 
 def test_program_lookup_by_consumer_name(m):
     assert m.program_for("policyengine-axiom", "us-oasdi-wage-tax")["id"] == "us/oasdi-employee-tax"
+
+
+def test_findings_are_filed_once_and_looked_up(m):
+    assert m.cause_of("us/ctc", "ctc_refundable_maximum") == "axiom-encoding-wrong"
+    assert m.cause_of("us/ctc", "ctc_maximum") == "unclassified"
+    assert "1343" in m.known_finding("us/ctc", "ctc_refundable_maximum")["issue"]

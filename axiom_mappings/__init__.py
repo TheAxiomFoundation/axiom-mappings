@@ -18,7 +18,7 @@ import yaml
 ROOT = Path(__file__).resolve().parent.parent
 DATA = ROOT / "data"
 SCHEMA = ROOT / "schema"
-TABLES = ("concepts", "inputs", "outputs", "parameters", "presumptions", "supplied_parameters", "programs")
+TABLES = ("concepts", "inputs", "outputs", "parameters", "presumptions", "supplied_parameters", "programs", "findings")
 
 
 def _yaml(path: Path) -> Any:
@@ -59,6 +59,7 @@ class Mappings:
     presumptions: dict[str, dict[str, Any]] = field(default_factory=dict)
     supplied_parameters: tuple[dict[str, Any], ...] = ()
     programs: dict[str, dict[str, Any]] = field(default_factory=dict)
+    findings: tuple[dict[str, Any], ...] = ()
     taxonomy: dict[str, Any] = field(default_factory=dict)
     pins: dict[str, Any] = field(default_factory=dict)
 
@@ -92,6 +93,14 @@ class Mappings:
         """The shared program entry a consumer calls ``name`` (e.g. policyengine-axiom's manifest name)."""
         return next((p for p in self.programs.values() if p.get("consumers", {}).get(consumer) == name), None)
 
+    def known_finding(self, program: str, variable: str, counterpart: str = "policyengine") -> dict[str, Any] | None:
+        """The recorded classification of a disagreement, if it has been filed."""
+        return next((f for f in self.findings if (f["program"], f["variable"], f["counterpart"]) == (program, variable, counterpart)), None)
+
+    def cause_of(self, program: str, variable: str, counterpart: str = "policyengine") -> str:
+        found = self.known_finding(program, variable, counterpart)
+        return found["cause"] if found else "unclassified"
+
     @property
     def causes(self) -> set[str]:
         return {c["id"] for c in self.taxonomy.get("causes", [])}
@@ -113,6 +122,7 @@ def load(country: str = "us", root: Path | str | None = None) -> Mappings:
         presumptions={p["id"]: p for p in _read(country, "presumptions", root)},
         supplied_parameters=tuple(_read(country, "supplied_parameters", root)),
         programs={p["id"]: p for p in _read(country, "programs", root)},
+        findings=tuple(_read(country, "findings", root)),
         taxonomy=_yaml(root / "data" / "taxonomy.yaml") or {},
         pins=(_yaml(root / "pins.yaml") or {}).get(country, {}),
     )

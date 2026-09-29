@@ -93,6 +93,14 @@ def _integrity_findings(m: Mappings) -> list[Finding]:
     for s in m.supplied_parameters:
         if s["program"] not in m.programs:
             out.append(Finding("error", "unknown-program", s["name"], f"supplied for {s['program']!r}, not in programs.yaml"))
+    for f in m.findings:
+        key = f"{f['program']}:{f['variable']}:{f['counterpart']}"
+        if f["program"] not in m.programs:
+            out.append(Finding("error", "unknown-program", key, "finding for a program not in programs.yaml"))
+        if f["cause"] not in m.causes:
+            out.append(Finding("error", "unknown-cause", key, f"cause {f['cause']!r} is not defined"))
+    for v in _duplicates((f["program"], f["variable"], f["counterpart"]) for f in m.findings):
+        out.append(Finding("error", "duplicate-finding", ":".join(v), "recorded more than once"))
     for vocabulary, table in m.taxonomy.get("crosswalk", {}).items():
         for code, cause in table.items():
             if cause not in m.causes:

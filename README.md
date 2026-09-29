@@ -17,6 +17,7 @@ data/us/supplied_parameters.yaml  values a harness supplies because the encoding
 data/us/programs.yaml     tracked programs, with each consumer's own name for them
 data/taxonomy.yaml        why Axiom and a counterpart disagree (D48 causes), and crosswalks
                           from oracles' disposition kinds and axiom-api's known reasons
+data/us/findings.yaml     known disagreements, each recorded once with its cause and issue
 schema/finding.schema.json  the classified-disagreement record every consumer emits
 schema/*.schema.json      JSON Schema for each table (usable from Python and TypeScript)
 pins.yaml                 what a release is valid against: policyengine-us, corpus, future-years rule
