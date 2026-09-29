@@ -1,0 +1,69 @@
+# axiom-mappings
+
+The one shared map between Axiom RuleSpec concepts and PolicyEngine variables and parameters.
+axiom-oracles, policyengine-axiom and axiom-api read it instead of keeping their own copies.
+It lives in git so every change is reviewed and every run can pin the exact map it used; a
+database can serve it later as a read model built from a release.
+
+## Layout
+
+```
+data/us/concepts.yaml     shared input facts (age, wages, rent, ...) and their PolicyEngine input variable per entity
+data/us/inputs.yaml       Axiom input slot -> concept, constant, or derived value
+data/us/outputs.yaml      Axiom output -> PolicyEngine variable, or why it is not comparable
+data/us/parameters.yaml   Axiom parameter -> PolicyEngine parameter path
+schema/*.schema.json      JSON Schema for each table (usable from Python and TypeScript)
+pins.yaml                 what a release is valid against: policyengine-us, corpus, future-years rule
+axiom_mappings/           loader (load, rules_for_slot, policyengine_variable, ...) and validator
+```
+
+## Rules
+
+- **Precedence is explicit.** Several input rules can match one slot. The lowest `priority` wins,
+  and the validator lists every slot that more than one rule matches.
+- **Concepts are the edge.** A concept names the raw fact and the PolicyEngine input variable on
+  each entity (`rent_paid` is `pre_subsidy_rent` per person and `housing_cost` per SPM unit). A
+  concept mapped to a computed PolicyEngine variable is flagged: Axiom cannot replace that chain.
+- **Entity mismatches must be declared.** An output compared on another entity than
+  PolicyEngine's needs `entity_projection`.
+- **Bracket scales** are addressed as `<scale>.rates|thresholds|amounts` with the bracket index in
+  `parameter_key_path`.
+- **Constants are presumptions.** They should name the presumption policy they apply; today none
+  do, and the validator counts them.
+- **Future years** (`pins.yaml`): Axiom's values through its last encoded date, then PolicyEngine's
+  indexing, flagged in provenance.
+
+## Use
+
+```sh
+uv venv --python 3.13 .venv && uv pip install --python .venv/bin/python -e '.[policyengine,test]'
+.venv/bin/python -m axiom_mappings.validate --country us --policyengine --artifact compiled.json
+.venv/bin/python -m pytest
+```
+
+```python
+from axiom_mappings import load
+m = load("us")
+m.rule_for_slot("us-co:...#input.household_size")
+m.policyengine_variable("axiom:housing/household#rent_paid", "spm_unit")   # "housing_cost"
+```
+
+## Origin
+
+Seeded from axiom-oracles (commit in `pins.yaml`) by `scripts/seed_from_oracles.py`:
+`core/case.py` concepts, `adapters/policyengine/runner.py` concept tables,
+`data/populace_input_mapping.yaml` and `bridges/mappings/us.yaml`. Edit the data here from now on.
+
+## First validation (policyengine-us 1.808.0)
+
+No errors. Warnings to work through:
+- 12 concepts map to computed PolicyEngine variables;
+- 4 comparisons are per year where PolicyEngine defines the variable per month;
+- 6 use nonstandard `comparison` vocabulary;
+- 3 direct mappings lack an entity or period;
+- 2 rules scale self-employment income by 0.6;
+- 178 constants name no presumption;
+- 1 group note has no Axiom id.
+
+The generic rules cover 37 of the 681 input slots of the Colorado SNAP FY 2026 program; oracles
+covers the rest in program-specific Python, which should move here as data.

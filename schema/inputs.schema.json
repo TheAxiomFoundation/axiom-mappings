@@ -1,0 +1,145 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "axiom-mappings/inputs.schema.json",
+  "title": "Axiom input slot rules",
+  "type": "object",
+  "required": [
+    "inputs"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "inputs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "priority",
+          "match",
+          "scope",
+          "source"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z]+-in-[0-9]{4,}$"
+          },
+          "priority": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "lowest priority among matching rules wins"
+          },
+          "match": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "kind",
+              "value"
+            ],
+            "properties": {
+              "kind": {
+                "enum": [
+                  "exact",
+                  "suffix",
+                  "substring"
+                ]
+              },
+              "value": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "scope": {
+            "enum": [
+              "person",
+              "household"
+            ]
+          },
+          "source": {
+            "oneOf": [
+              {
+                "type": "object",
+                "required": [
+                  "kind",
+                  "concept"
+                ],
+                "properties": {
+                  "kind": {
+                    "const": "concept"
+                  },
+                  "concept": {
+                    "type": "string"
+                  },
+                  "default": {},
+                  "cast": {
+                    "type": "string"
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "required": [
+                  "kind",
+                  "value"
+                ],
+                "properties": {
+                  "kind": {
+                    "const": "constant"
+                  },
+                  "value": {},
+                  "presumption": {
+                    "type": "string"
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "required": [
+                  "kind",
+                  "transform"
+                ],
+                "properties": {
+                  "kind": {
+                    "const": "derived"
+                  },
+                  "transform": {
+                    "type": "string"
+                  },
+                  "from_concepts": {
+                    "type": "array",
+                    "items": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "object",
+                          "required": [
+                            "concept"
+                          ],
+                          "properties": {
+                            "concept": {
+                              "type": "string"
+                            },
+                            "scale": {
+                              "type": "number"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            ]
+          },
+          "note": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}
