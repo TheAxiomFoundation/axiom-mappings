@@ -100,3 +100,44 @@ def test_policyengine_checks_pass_and_flag_unprojected_entity_mismatch(tmp_path)
     root = copy_root(tmp_path)
     edit(root, "outputs", lambda rows: next(r for r in rows if r.get("entity_projection")).pop("entity_projection"))
     assert "pe-entity" in errors(validate("us", root, policyengine=True)[0])
+
+
+def test_release_is_a_stable_content_hash(m, tmp_path):
+    assert m.release.startswith("us-") and m.release == load("us").release
+    root = copy_root(tmp_path)
+    edit(root, "presumptions", lambda rows: rows[0].__setitem__("disclosure", "changed"))
+    assert load("us", root).release != m.release
+
+
+def test_crosswalk_maps_existing_vocabularies_onto_shared_causes(m):
+    assert m.classify("axiom-oracles-disposition-kind", "axiom_encoding_gap") == "axiom-encoding-wrong"
+    assert m.classify("axiom-api-known-reason", "allotment-rounding") == "convention"
+    assert m.classify("axiom-api-known-reason", "something-new") == "unclassified"
+
+
+def test_validator_rejects_unknown_presumption_and_cause(tmp_path):
+    root = copy_root(tmp_path)
+    edit(root, "inputs", lambda rows: next(r for r in rows if r["source"]["kind"] == "constant")["source"]
+         .__setitem__("presumption", "not-a-presumption"))
+    tax = root / "data" / "taxonomy.yaml"
+    data = yaml.safe_load(tax.read_text())
+    data["crosswalk"]["axiom-api-known-reason"]["allotment-rounding"] = "not-a-cause"
+    tax.write_text(yaml.safe_dump(data, sort_keys=False))
+    assert {"unknown-presumption", "unknown-cause"} <= errors(validate("us", root)[0])
+
+
+def test_readiness_counts_slot_kinds_and_supplied_parameters(m):
+    from axiom_mappings.readiness import readiness
+
+    compiled = {"metadata": {"input_catalog": [
+        {"slot": "household_size", "request_names": ["household_size"]},
+        {"slot": "no_rule_matches_this_slot_xyz", "request_names": []},
+    ]}}
+    snap = readiness(m, "us-co/snap-fy2026", compiled)
+    assert snap["inputs"]["slots"] == 2 and snap["inputs"]["missing"] == 1 and not snap["ready"]
+    tax = readiness(m, "us/federal-income-tax")
+    assert tax["supplied_parameters"] == 54 and tax["supplied_matching_a_counterpart"] > 0 and not tax["ready"]
+
+
+def test_program_lookup_by_consumer_name(m):
+    assert m.program_for("policyengine-axiom", "us-oasdi-wage-tax")["id"] == "us/oasdi-employee-tax"

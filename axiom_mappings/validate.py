@@ -50,6 +50,11 @@ def _schema_findings(country: str, root: Path) -> list[Finding]:
             out.append(Finding("error", "schema", f"{table}:{'/'.join(map(str, e.absolute_path))}", e.message[:300]))
         if len(errors) > 50:
             out.append(Finding("error", "schema", table, f"{len(errors) - 50} more schema errors"))
+    taxonomy = root / "data" / "taxonomy.yaml"
+    if taxonomy.exists():
+        schema = json.loads((root / "schema" / "taxonomy.schema.json").read_text())
+        for e in jsonschema.Draft202012Validator(schema).iter_errors(yaml.safe_load(taxonomy.read_text())):
+            out.append(Finding("error", "schema", f"taxonomy:{'/'.join(map(str, e.absolute_path))}", e.message[:300]))
     return out
 
 
@@ -77,6 +82,21 @@ def _integrity_findings(m: Mappings) -> list[Finding]:
             if isinstance(f, dict) and "scale" in f:
                 out.append(Finding("warning", "scaled-concept", r["id"],
                                    f"scales {f['concept']} by {f['scale']}: a modelling assumption, state it in a note"))
+    for r in m.inputs:
+        presumption = r["source"].get("presumption")
+        if presumption is None:
+            continue
+        if presumption not in m.presumptions:
+            out.append(Finding("error", "unknown-presumption", r["id"], f"names presumption {presumption!r}, which is not defined"))
+        elif m.presumptions[presumption].get("acceptable") is False:
+            out.append(Finding("warning", "unacceptable-presumption", r["id"], f"uses {presumption}: replace it"))
+    for s in m.supplied_parameters:
+        if s["program"] not in m.programs:
+            out.append(Finding("error", "unknown-program", s["name"], f"supplied for {s['program']!r}, not in programs.yaml"))
+    for vocabulary, table in m.taxonomy.get("crosswalk", {}).items():
+        for code, cause in table.items():
+            if cause not in m.causes:
+                out.append(Finding("error", "unknown-cause", f"{vocabulary}:{code}", f"maps to {cause!r}, not a defined cause"))
     constants = [r for r in m.inputs if r["source"]["kind"] == "constant" and "presumption" not in r["source"]]
     if constants:
         out.append(Finding("warning", "undeclared-constants", "inputs",

@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "axiom-mappings/presumptions.schema.json",
+  "title": "Presumptions for facts the data does not carry",
+  "type": "object",
+  "required": [
+    "presumptions"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "presumptions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "meaning",
+          "disclosure"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z0-9-]+$"
+          },
+          "meaning": {
+            "type": "string"
+          },
+          "disclosure": {
+            "type": "string"
+          },
+          "acceptable": {
+            "type": "boolean"
+          }
+        }
+      }
+    }
+  }
+}

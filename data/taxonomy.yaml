@@ -1,0 +1,32 @@
+# Why Axiom and a counterpart (PolicyEngine, TAXSIM, ...) disagree. Axiom is the truth (D48), so a
+# disagreement is not a failure until it is classified; each cause names who acts.
+causes:
+- id: counterpart-differs-from-law
+  meaning: The counterpart departs from the law Axiom encodes, including projecting values the law has not published.
+  action: Axiom answers; file a finding against the counterpart.
+- id: axiom-encoding-wrong
+  meaning: The Axiom encoding is missing or wrong.
+  action: Fix upstream through the signed re-encode pipeline.
+- id: mapping-wrong
+  meaning: The two engines were not given equivalent inputs, or an output is matched to the wrong counterpart variable.
+  action: Fix in axiom-mappings.
+- id: convention
+  meaning: Same law, different reporting convention (rounding, cents vs whole dollars, period).
+  action: None; record the convention.
+- id: unclassified
+  meaning: Not yet triaged.
+  action: Triage.
+
+# The existing vocabularies, mapped onto these causes, so every tracker reports the same thing.
+crosswalk:
+  axiom-oracles-disposition-kind:
+    upstream_engine_gap: counterpart-differs-from-law
+    axiom_encoding_gap: axiom-encoding-wrong
+    bridge_artifact: mapping-wrong
+    explained_residual: convention
+    unexplained: unclassified
+  axiom-api-known-reason:
+    fy2027-cola-projection: counterpart-differs-from-law
+    allotment-rounding: convention
+    pe-bbce-expanded-gross-limit: axiom-encoding-wrong
+    ny-utility-allowance-imputation: mapping-wrong

@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "axiom-mappings/finding.schema.json",
+  "title": "One classified disagreement between Axiom and a counterpart",
+  "type": "object",
+  "required": [
+    "program",
+    "counterpart",
+    "variable",
+    "cause",
+    "map_release",
+    "evidence"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "program": {
+      "type": "string"
+    },
+    "counterpart": {
+      "type": "string"
+    },
+    "variable": {
+      "type": "string"
+    },
+    "axiom": {
+      "type": "string"
+    },
+    "cause": {
+      "type": "string"
+    },
+    "map_release": {
+      "type": "string"
+    },
+    "evidence": {
+      "type": "object",
+      "required": [
+        "report"
+      ],
+      "properties": {
+        "report": {
+          "type": "string"
+        },
+        "rows": {
+          "type": "integer"
+        },
+        "max_abs_diff": {
+          "type": "number"
+        },
+        "mechanism": {
+          "type": "string"
+        }
+      }
+    },
+    "issue": {
+      "type": "string"
+    },
+    "note": {
+      "type": "string"
+    }
+  }
+}

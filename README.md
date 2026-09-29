@@ -12,6 +12,12 @@ data/us/concepts.yaml     shared input facts (age, wages, rent, ...) and their P
 data/us/inputs.yaml       Axiom input slot -> concept, constant, or derived value
 data/us/outputs.yaml      Axiom output -> PolicyEngine variable, or why it is not comparable
 data/us/parameters.yaml   Axiom parameter -> PolicyEngine parameter path
+data/us/presumptions.yaml what is presumed for facts the data lacks; constants name one
+data/us/supplied_parameters.yaml  values a harness supplies because the encoding lacks them
+data/us/programs.yaml     tracked programs, with each consumer's own name for them
+data/taxonomy.yaml        why Axiom and a counterpart disagree (D48 causes), and crosswalks
+                          from oracles' disposition kinds and axiom-api's known reasons
+schema/finding.schema.json  the classified-disagreement record every consumer emits
 schema/*.schema.json      JSON Schema for each table (usable from Python and TypeScript)
 pins.yaml                 what a release is valid against: policyengine-us, corpus, future-years rule
 axiom_mappings/           loader (load, rules_for_slot, policyengine_variable, ...) and validator
@@ -32,6 +38,16 @@ axiom_mappings/           loader (load, rules_for_slot, policyengine_variable, .
   do, and the validator counts them.
 - **Future years** (`pins.yaml`): Axiom's values through its last encoded date, then PolicyEngine's
   indexing, flagged in provenance.
+
+## Readiness, releases and findings
+
+- **Release:** `load(country).release` is `<country>-<sha12>` over every table, the taxonomy and
+  the pins. Every report from a consumer cites it, so a number can be traced to the exact map.
+- **Readiness** (`python -m axiom_mappings.readiness`): a program serves Axiom as the truth only
+  when every input slot is mapped, derived, or presumed under an acceptable presumption, and no
+  parameter is supplied by a harness. Readiness is shown next to parity wherever parity is shown.
+- **Findings:** a disagreement is recorded once, in `schema/finding.schema.json` form, with one
+  cause from `taxonomy.yaml`. `Mappings.classify()` turns a consumer's own reason code into it.
 
 ## Use
 

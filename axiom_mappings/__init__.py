@@ -1,12 +1,14 @@
 """The shared map between Axiom RuleSpec concepts and PolicyEngine variables and parameters.
 
-``load("us")`` returns the concepts (shared input facts), the input slot rules, the output
-registry and the parameter registry for one country, plus the pins they were checked against.
-Consumers (axiom-oracles, policyengine-axiom, axiom-api) read this instead of keeping their own copy.
+``load("us")`` returns every table for one country, the disagreement taxonomy, and the release id
+(a hash of all of it). Consumers (axiom-oracles, policyengine-axiom, axiom-api) read this instead of
+keeping their own copy, and cite ``release`` in every report.
 """
 
 from __future__ import annotations
 
+import hashlib
+import json
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -16,12 +18,15 @@ import yaml
 ROOT = Path(__file__).resolve().parent.parent
 DATA = ROOT / "data"
 SCHEMA = ROOT / "schema"
-TABLES = ("concepts", "inputs", "outputs", "parameters")
+TABLES = ("concepts", "inputs", "outputs", "parameters", "presumptions", "supplied_parameters", "programs")
+
+
+def _yaml(path: Path) -> Any:
+    return yaml.safe_load(path.read_text()) if path.exists() else None
 
 
 def _read(country: str, table: str, root: Path) -> list[dict[str, Any]]:
-    path = root / "data" / country / f"{table}.yaml"
-    return (yaml.safe_load(path.read_text()) or {}).get(table, []) if path.exists() else []
+    return (_yaml(root / "data" / country / f"{table}.yaml") or {}).get(table, [])
 
 
 def matches(rule: dict[str, Any], slot: str) -> bool:
@@ -33,13 +38,28 @@ def matches(rule: dict[str, Any], slot: str) -> bool:
     return value in slot
 
 
+def release_id(country: str, root: Path | None = None) -> str:
+    """``<country>-<sha12>`` over every table, the taxonomy and the pins: the map a report used."""
+    root = Path(root) if root is not None else ROOT
+    content = {t: _read(country, t, root) for t in TABLES}
+    content["taxonomy"] = _yaml(root / "data" / "taxonomy.yaml")
+    content["pins"] = (_yaml(root / "pins.yaml") or {}).get(country)
+    digest = hashlib.sha256(json.dumps(content, sort_keys=True, default=str).encode()).hexdigest()
+    return f"{country}-{digest[:12]}"
+
+
 @dataclass(frozen=True)
 class Mappings:
     country: str
+    release: str
     concepts: dict[str, dict[str, Any]]
     inputs: tuple[dict[str, Any], ...]  # sorted by priority, lowest first
     outputs: tuple[dict[str, Any], ...]
     parameters: tuple[dict[str, Any], ...]
+    presumptions: dict[str, dict[str, Any]] = field(default_factory=dict)
+    supplied_parameters: tuple[dict[str, Any], ...] = ()
+    programs: dict[str, dict[str, Any]] = field(default_factory=dict)
+    taxonomy: dict[str, Any] = field(default_factory=dict)
     pins: dict[str, Any] = field(default_factory=dict)
 
     def rules_for_slot(self, slot: str) -> list[dict[str, Any]]:
@@ -65,19 +85,37 @@ class Mappings:
     def outputs_for_policyengine(self, variable: str) -> list[dict[str, Any]]:
         return [o for o in self.outputs if o.get("policyengine_variable") == variable and o["type"] != "not_comparable"]
 
+    def supplied_for(self, program: str) -> list[dict[str, Any]]:
+        return [s for s in self.supplied_parameters if s["program"] == program]
+
+    def program_for(self, consumer: str, name: str) -> dict[str, Any] | None:
+        """The shared program entry a consumer calls ``name`` (e.g. policyengine-axiom's manifest name)."""
+        return next((p for p in self.programs.values() if p.get("consumers", {}).get(consumer) == name), None)
+
+    @property
+    def causes(self) -> set[str]:
+        return {c["id"] for c in self.taxonomy.get("causes", [])}
+
+    def classify(self, vocabulary: str, value: str) -> str:
+        """Map a consumer's own reason code onto a shared cause; unknown codes are unclassified."""
+        return self.taxonomy.get("crosswalk", {}).get(vocabulary, {}).get(value, "unclassified")
+
 
 def load(country: str = "us", root: Path | str | None = None) -> Mappings:
     root = Path(root) if root is not None else ROOT
-    pins_path = root / "pins.yaml"
-    pins = (yaml.safe_load(pins_path.read_text()) or {}).get(country, {}) if pins_path.exists() else {}
     return Mappings(
         country=country,
+        release=release_id(country, root),
         concepts={c["id"]: c for c in _read(country, "concepts", root)},
         inputs=tuple(sorted(_read(country, "inputs", root), key=lambda r: r["priority"])),
         outputs=tuple(_read(country, "outputs", root)),
         parameters=tuple(_read(country, "parameters", root)),
-        pins=pins,
+        presumptions={p["id"]: p for p in _read(country, "presumptions", root)},
+        supplied_parameters=tuple(_read(country, "supplied_parameters", root)),
+        programs={p["id"]: p for p in _read(country, "programs", root)},
+        taxonomy=_yaml(root / "data" / "taxonomy.yaml") or {},
+        pins=(_yaml(root / "pins.yaml") or {}).get(country, {}),
     )
 
 
-__all__ = ["Mappings", "load", "matches", "TABLES", "DATA", "SCHEMA"]
+__all__ = ["Mappings", "load", "matches", "release_id", "TABLES", "DATA", "SCHEMA"]
