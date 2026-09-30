@@ -1,0 +1,26 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - name: Install
+        run: |
+          uv venv --python 3.13 .venv
+          uv pip install --python .venv/bin/python -e '.[policyengine,test]'
+      - name: Validate the map against policyengine-us
+        run: .venv/bin/python -m axiom_mappings.validate --country us --policyengine
+      - name: Readiness report
+        run: .venv/bin/python -m axiom_mappings.readiness --all
+      - name: Tests
+        run: .venv/bin/python -m pytest -q

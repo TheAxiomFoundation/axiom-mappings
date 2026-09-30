@@ -5,6 +5,14 @@ axiom-oracles, policyengine-axiom and axiom-api read it instead of keeping their
 It lives in git so every change is reviewed and every run can pin the exact map it used; a
 database can serve it later as a read model built from a release.
 
+## Scope
+
+The Axiom side of every comparison lives here: concepts, Axiom input rules, presumptions,
+supplied parameters, the disagreement taxonomy, findings and readiness. So does the PolicyEngine
+side, because three repos consume it. Counterpart-specific mappings with a single consumer
+(TAXSIM, GETTSIM, EUROMOD, ACCESS NYC, ...) stay in axiom-oracles; a table moves here once a
+second consumer needs it.
+
 ## Layout
 
 ```

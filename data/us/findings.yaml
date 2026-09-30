@@ -25,4 +25,5 @@ findings:
   counterpart: policyengine
   cause: unclassified
   note: Axiom floors the deduction; PolicyEngine does not round it. Colorado's 7 CFR 273.10(e)(1)(ii) election is
-    unpublished (likely cents), so which side matches the law is open. See the vault note "Colorado SNAP income rounding".
+    unpublished (likely cents), so which side matches the law is open. CDHS removed nearest-dollar income rounding in rulemaking 2024-00206, effective 2024-08-30:
+    https://www.sos.state.co.us/CCR/eDocketDetails.do?trackingNum=2024-00206
