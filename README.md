@@ -16,20 +16,20 @@ second consumer needs it.
 ## Layout
 
 ```
-data/us/concepts.yaml     shared input facts (age, wages, rent, ...) and their PolicyEngine input variable per entity
-data/us/inputs.yaml       Axiom input slot -> concept, constant, or derived value
-data/us/outputs.yaml      Axiom output -> PolicyEngine variable, or why it is not comparable
-data/us/parameters.yaml   Axiom parameter -> PolicyEngine parameter path
-data/us/prefixes.yaml     Axiom id prefixes classified together
-data/us/presumptions.yaml what is presumed for facts the data lacks; constants name one
-data/us/supplied_parameters.yaml  values a harness supplies because the encoding lacks them
-data/us/programs.yaml     tracked programs, with each consumer's own name for them
-data/taxonomy.yaml        why Axiom and a counterpart disagree (D48 causes), and crosswalks
+axiom_mappings/data/us/concepts.yaml     shared input facts (age, wages, rent, ...) and their PolicyEngine input variable per entity
+axiom_mappings/data/us/inputs.yaml       Axiom input slot -> concept, constant, or derived value
+axiom_mappings/data/us/outputs.yaml      Axiom output -> PolicyEngine variable, or why it is not comparable
+axiom_mappings/data/us/parameters.yaml   Axiom parameter -> PolicyEngine parameter path
+axiom_mappings/data/us/prefixes.yaml     Axiom id prefixes classified together
+axiom_mappings/data/us/presumptions.yaml what is presumed for facts the data lacks; constants name one
+axiom_mappings/data/us/supplied_parameters.yaml  values a harness supplies because the encoding lacks them
+axiom_mappings/data/us/programs.yaml     tracked programs, with each consumer's own name for them
+axiom_mappings/data/taxonomy.yaml        why Axiom and a counterpart disagree (D48 causes), and crosswalks
                           from oracles' disposition kinds and axiom-api's known reasons
-data/us/findings.yaml     known disagreements, each recorded once with its cause and issue
-schema/finding.schema.json  the classified-disagreement record every consumer emits
-schema/*.schema.json      JSON Schema for each table (usable from Python and TypeScript)
-pins.yaml                 what a release is valid against: policyengine-us, corpus, future-years rule
+axiom_mappings/data/us/findings.yaml     known disagreements, each recorded once with its cause and issue
+axiom_mappings/schema/finding.schema.json  the classified-disagreement record every consumer emits
+axiom_mappings/schema/*.schema.json      JSON Schema for each table (usable from Python and TypeScript)
+axiom_mappings/pins.yaml  what a release is valid against: policyengine-us, corpus, future-years rule
 axiom_mappings/           loader (load, rules_for_slot, policyengine_variable, ...) and validator
 ```
 
@@ -82,7 +82,7 @@ m.policyengine_variable("axiom:housing/household#rent_paid", "spm_unit")   # "ho
 
 ## Origin
 
-Seeded from axiom-oracles (commit in `pins.yaml`) by `scripts/seed_from_oracles.py`:
+Seeded from axiom-oracles (commit in `axiom_mappings/pins.yaml`) by `scripts/seed_from_oracles.py`:
 `core/case.py` concepts, `adapters/policyengine/runner.py` concept tables,
 `data/populace_input_mapping.yaml` and `bridges/mappings/us.yaml`. Edit the data here from now on.
 

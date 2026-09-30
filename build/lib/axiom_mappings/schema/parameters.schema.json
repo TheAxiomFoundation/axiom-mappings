@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "axiom-mappings/parameters.schema.json",
+  "title": "Axiom parameters and their PolicyEngine parameter paths",
+  "type": "object",
+  "required": [
+    "parameters"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "parameters": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "axiom",
+          "program",
+          "policyengine_parameter",
+          "rationale"
+        ],
+        "properties": {
+          "axiom": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "program": {
+            "type": "string"
+          },
+          "policyengine_parameter": {
+            "type": "string"
+          },
+          "parameter_key": {},
+          "parameter_keys": {},
+          "parameter_key_path": {},
+          "parameter_key_input": {},
+          "parameter_key_map": {},
+          "period": {
+            "enum": [
+              "year",
+              "month"
+            ]
+          },
+          "unit": {
+            "type": "string"
+          },
+          "comparison": {
+            "type": "string"
+          },
+          "result_multiplier": {
+            "type": "number"
+          },
+          "candidate_priority": {
+            "type": "string"
+          },
+          "rationale": {
+            "type": "string"
+          },
+          "tested_by_legal_ids": {},
+          "parameter_calc_value": {},
+          "parameter_calc_input": {},
+          "aliases": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  }
+}

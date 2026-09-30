@@ -1,0 +1,112 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "axiom-mappings/outputs.schema.json",
+  "title": "Axiom outputs and their PolicyEngine counterparts",
+  "type": "object",
+  "required": [
+    "outputs"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "outputs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "axiom",
+          "program",
+          "type",
+          "rationale"
+        ],
+        "properties": {
+          "axiom": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "program": {
+            "type": "string"
+          },
+          "type": {
+            "enum": [
+              "direct_variable",
+              "derived_expression",
+              "not_comparable"
+            ]
+          },
+          "policyengine_variable": {
+            "type": "string"
+          },
+          "entity": {
+            "enum": [
+              "person",
+              "household",
+              "case",
+              "tax_unit",
+              "spm_unit",
+              "family",
+              "marital_unit"
+            ]
+          },
+          "period": {
+            "enum": [
+              "year",
+              "month"
+            ]
+          },
+          "comparison": {
+            "type": "string"
+          },
+          "unit": {
+            "type": "string"
+          },
+          "result_multiplier": {
+            "type": "number"
+          },
+          "expression": {
+            "type": "string"
+          },
+          "candidate_priority": {
+            "type": "string"
+          },
+          "tested_by_legal_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "rationale": {
+            "type": "string"
+          },
+          "entity_projection": {
+            "type": "string",
+            "description": "how an output compared on `entity` maps onto a PolicyEngine variable defined on another entity"
+          },
+          "policyengine_parameter": {},
+          "keyed_by_prefix_string": {
+            "type": "boolean"
+          },
+          "parameter_key": {}
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "type": {
+                  "const": "direct_variable"
+                }
+              }
+            },
+            "then": {
+              "required": [
+                "policyengine_variable"
+              ]
+            }
+          }
+        ]
+      }
+    }
+  }
+}

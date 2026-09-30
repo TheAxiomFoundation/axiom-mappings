@@ -17,4 +17,4 @@ build-backend = "setuptools.build_meta"
 packages = ["axiom_mappings"]
 
 [tool.setuptools.package-data]
-axiom_mappings = []
+axiom_mappings = ["data/*.yaml", "data/*/*.yaml", "schema/*.json", "pins.yaml"]

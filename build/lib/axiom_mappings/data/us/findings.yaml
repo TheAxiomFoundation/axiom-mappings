@@ -1,0 +1,30 @@
+# Known disagreements, each recorded once. A consumer that sees Axiom and a counterpart disagree on
+# (program, variable, counterpart) looks the cause up here; anything absent is `unclassified`.
+# Seeded with classifications established in policyengine-axiom's DECISIONS.md.
+findings:
+- program: us/ctc
+  variable: ctc_refundable_maximum
+  counterpart: policyengine
+  cause: axiom-encoding-wrong
+  issue: https://github.com/TheAxiomFoundation/rulespec-us/issues/1343
+  note: 26 USC 24(h)(5) refundable per-child cap is encoded as the 2018 literal, not indexed (policyengine-axiom Finding 7).
+- program: us-co/snap-fy2026
+  variable: snap_excess_shelter_expense_deduction
+  counterpart: policyengine
+  cause: axiom-encoding-wrong
+  issue: https://github.com/TheAxiomFoundation/rulespec-us/issues/1352
+  note: The shelter chain omits Colorado's standard medical deduction. The fix is on rulespec-us#1436 and #1430 (parked).
+- program: us-co/snap-fy2026
+  variable: snap_net_income
+  counterpart: policyengine
+  cause: axiom-encoding-wrong
+  issue: https://github.com/TheAxiomFoundation/rulespec-us/issues/1353
+  note: Child support is subtracted twice. The fix is on rulespec-us#1436 and #1430 (parked).
+- program: us-co/snap-fy2026
+  variable: snap_earned_income_deduction
+  counterpart: policyengine
+  cause: unclassified
+  note: >-
+    Axiom floors the deduction; PolicyEngine does not round it. Colorado's 7 CFR 273.10(e)(1)(ii) election is
+    unpublished (likely cents), so which side matches the law is open. CDHS removed nearest-dollar income rounding
+    in rulemaking 2024-00206, effective 2024-08-30 (https://www.sos.state.co.us/CCR/eDocketDetails.do?trackingNum=2024-00206).

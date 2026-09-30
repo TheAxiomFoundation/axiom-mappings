@@ -23,7 +23,7 @@ from pathlib import Path
 
 import yaml
 
-ROOT = Path(__file__).resolve().parent.parent
+ROOT = Path(__file__).resolve().parent.parent / "axiom_mappings"
 DATA = ROOT / "data" / "us"
 
 # Concepts are the shared input facts. Each carries its entity, measure and unit, and the
