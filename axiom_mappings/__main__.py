@@ -6,6 +6,7 @@
     python -m axiom_mappings readiness  ...   may a program serve Axiom's answer (D48)
     python -m axiom_mappings profiles   ...   slots the cut and facts profiles bind differently
     python -m axiom_mappings export policyengine-axiom --out DIR
+    python -m axiom_mappings bindings set-status --program ID --variable PE_VAR --status off|shadow|on [--profile cut]
 """
 
 from __future__ import annotations
@@ -58,6 +59,20 @@ def verify_parameters(argv: list[str]) -> int:
     return 0
 
 
+def bindings_set_status(argv: list[str]) -> int:
+    from .bindings import set_status
+
+    ap = argparse.ArgumentParser(prog="axiom_mappings bindings set-status")
+    ap.add_argument("--program", required=True, help="program id in programs.yaml, e.g. us/ctc")
+    ap.add_argument("--variable", required=True, help="the bound PolicyEngine variable")
+    ap.add_argument("--status", required=True, choices=["off", "shadow", "on"])
+    ap.add_argument("--profile", default="cut")
+    args = ap.parse_args(argv)
+    path = set_status(args.program, args.variable, args.status, profile=args.profile)
+    print(f"{args.program}.{args.profile} {args.variable} -> {args.status} in {path}")
+    return 0
+
+
 def main(argv=None) -> int:
     argv = list(sys.argv[1:] if argv is None else argv)
     if not argv or argv[0] in ("-h", "--help"):
@@ -66,6 +81,8 @@ def main(argv=None) -> int:
     command, rest = argv[0], argv[1:]
     if command == "verify" and rest[:1] == ["parameters"]:
         return verify_parameters(rest[1:])
+    if command == "bindings" and rest[:1] == ["set-status"]:
+        return bindings_set_status(rest[1:])
     if command == "export" and rest[:1] == ["policyengine-axiom"]:
         from .export.policyengine_axiom import main as run
         return run(rest[1:])

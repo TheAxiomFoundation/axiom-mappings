@@ -8,7 +8,7 @@ import pytest
 import yaml
 
 from axiom_mappings import load
-from axiom_mappings.bindings import canonical, findings, grammar_errors
+from axiom_mappings.bindings import canonical, findings, grammar_errors, set_status
 from axiom_mappings.export.policyengine_axiom import manifests, write
 from axiom_mappings.profiles import differences
 from axiom_mappings.readiness import readiness
@@ -258,3 +258,23 @@ def test_release_changes_when_a_binding_changes(m, tmp_path):
     path = root / "data/us/bindings/us/oasdi-employee-tax.cut.yaml"
     path.write_text(path.read_text().replace("status: 'on'", "status: shadow"))
     assert load("us", root).release != m.release
+
+
+def test_set_status_changes_one_line_and_the_export(m, tmp_path):
+    root = copy_root(tmp_path)
+    path = root / "data/us/bindings/us/ctc.cut.yaml"
+    before = path.read_text()
+    set_status("us/ctc", "ctc_refundable_maximum", "on", root=root)
+    after = path.read_text()
+    changed = [(a, b) for a, b in zip(before.splitlines(), after.splitlines()) if a != b]
+    assert changed == [("  status: shadow", "  status: 'on'")] and len(before.splitlines()) == len(after.splitlines())
+    exported = manifests(load("us", root))["us-ctc-subsection-h"]
+    assert {b["pe_variable"]: b["status"] for b in exported["bindings"]}["ctc_refundable_maximum"] == "on"
+    set_status("us/ctc", "ctc_refundable_maximum", "shadow", root=root)
+    assert path.read_text() == before
+    with pytest.raises(KeyError):
+        set_status("us/ctc", "no_such_variable", "on", root=root)
+    with pytest.raises(ValueError):
+        set_status("us/ctc", "ctc_maximum", "maybe", root=root)
+    with pytest.raises(FileNotFoundError):
+        set_status("us/ctc", "ctc_maximum", "on", profile="facts", root=root)

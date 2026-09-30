@@ -108,6 +108,43 @@ def canonical(doc: Any) -> str:
     return json.dumps(doc, sort_keys=True)
 
 
+def set_status(program: str, pe_variable: str, status: str, *, profile: str = "cut", country: str = "us",
+               root: Path | None = None) -> Path:
+    """Set one binding's rollout status in its file, changing that one line and nothing else.
+
+    The file is edited as text so comments and layout survive; the result is re-read and must differ
+    from the original only in that status.
+    """
+    from . import ROOT
+
+    if status not in STATUSES:
+        raise ValueError(f"status must be one of {STATUSES}, got {status!r}")
+    base = Path(root or ROOT) / "data" / country / "bindings"
+    path = base / f"{program}.{profile}.yaml"
+    if not path.exists():
+        raise FileNotFoundError(f"no {profile} bindings for {program} ({path})")
+    lines = path.read_text().splitlines(keepends=True)
+    start = next((i for i, line in enumerate(lines) if line.strip() in (f"- pe_variable: {pe_variable}",
+                                                                          f"- pe_variable: '{pe_variable}'")), None)
+    if start is None:
+        raise KeyError(f"{program}.{profile} binds no {pe_variable}")
+    indent = len(lines[start]) - len(lines[start].lstrip()) + 2  # the binding's keys sit under its "- "
+    end = next((i for i in range(start + 1, len(lines))
+                if lines[i].strip() and len(lines[i]) - len(lines[i].lstrip()) < indent), len(lines))
+    at = next((i for i in range(start + 1, end) if lines[i].startswith(" " * indent + "status:")), None)
+    if at is None:
+        raise KeyError(f"{program}.{profile} {pe_variable} has no status line")
+    before = yaml.safe_load("".join(lines))
+    lines[at] = " " * indent + f"status: {yaml.safe_dump(status).splitlines()[0]}\n"
+    after = yaml.safe_load("".join(lines))
+    expected = json.loads(json.dumps(before))
+    next(b for b in expected["bindings"] if b["pe_variable"] == pe_variable)["status"] = status
+    if canonical(after) != canonical(expected):
+        raise RuntimeError(f"editing {path} changed more than the status of {pe_variable}")
+    path.write_text("".join(lines))
+    return path
+
+
 # --------------------------------------------------------------------------
 # grammar
 # --------------------------------------------------------------------------

@@ -97,8 +97,10 @@ axiom_mappings/           loader (load, rules_for_slot, policyengine_variable, .
   (tested round trip), so oracles can read this map in place of `bridges/mappings/us.yaml`.
 - `python -m axiom_mappings.export.policyengine_axiom --out <policyengine-axiom>/manifests` writes
   policyengine-axiom's binding manifests from the `cut` bindings (tested equal to the files, types included);
-  policyengine-axiom runs either (`PE_AXIOM_MANIFESTS=files|axiom-mappings`) and reads the map for its
-  provenance report, findings and map release.
+  policyengine-axiom builds its manifests from the map by default (`PE_AXIOM_MANIFESTS=files` reads the
+  export instead) and reads the map for its provenance report, findings and map release. Its `promote` /
+  `revoke` set a binding's status here (`python -m axiom_mappings bindings set-status`, which changes that
+  one line) and regenerate its `manifests/`.
 
 ## Use
 
