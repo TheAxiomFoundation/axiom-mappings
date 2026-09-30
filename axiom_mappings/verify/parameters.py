@@ -216,6 +216,11 @@ def _pe_series(system, path: str, selector: tuple) -> list[tuple[str, float | No
                 v = v[i]
         except (IndexError, KeyError, TypeError):
             v = None  # a list value without this position at this date: no value then
+        if v is not None and not isinstance(v, (bool, int, float)):
+            try:
+                v = float(v)
+            except (TypeError, ValueError):
+                return f"PolicyEngine: {path}{list(selector)} holds {type(v).__name__} values; the mapping must pick an index"
         series.append((p.instant_str, None if v is None else float(v)))
     if index and all(v is None for _, v in series):
         return f"PolicyEngine: {path} has no value at index {index} on any date"

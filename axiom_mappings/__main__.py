@@ -7,6 +7,9 @@
     python -m axiom_mappings profiles   ...   slots the cut and facts profiles bind differently
     python -m axiom_mappings export policyengine-axiom --out DIR
     python -m axiom_mappings bindings set-status --program ID --variable PE_VAR --status off|shadow|on [--profile cut]
+    python -m axiom_mappings propose parameters|outputs --corpus <rulespec-us> [--module PREFIX] [--evaluate]
+    python -m axiom_mappings propose slots --program ID --catalog SLOTS.json [--profile cut] [--evaluate]
+    python -m axiom_mappings accept proposals/<kind>/<name>.yaml
 """
 
 from __future__ import annotations
@@ -73,6 +76,60 @@ def bindings_set_status(argv: list[str]) -> int:
     return 0
 
 
+def propose(argv: list[str]) -> int:
+    from . import load
+    from .propose import write
+    from .validate import policyengine_system
+
+    kind, rest = (argv[0], argv[1:]) if argv else ("", [])
+    ap = argparse.ArgumentParser(prog=f"axiom_mappings propose {kind}")
+    ap.add_argument("--country", default="us")
+    ap.add_argument("--evaluate", action="store_true", help="replay the reviewed map and report how often it is recovered")
+    ap.add_argument("--limit", type=int, default=3, help="candidates per proposal")
+    ap.add_argument("--name", help="proposal file name (default: from the module prefix or program)")
+    if kind in ("parameters", "outputs"):
+        ap.add_argument("--corpus", required=True, help="rulespec-us git checkout (read at the pin)")
+        ap.add_argument("--module", help="only Axiom modules whose id starts with this, e.g. us:statutes/26/24")
+        if kind == "outputs":
+            ap.add_argument("--include-prefixed", action="store_true",
+                            help="also propose exact overrides for rules a prefix row classifies in bulk")
+    elif kind == "slots":
+        ap.add_argument("--program", required=not ("--evaluate" in rest))
+        ap.add_argument("--catalog", type=Path, help="the program's slot catalog JSON")
+        ap.add_argument("--profile", default="cut", choices=["cut", "facts"])
+        ap.add_argument("--root-entity")
+        ap.add_argument("--entity-map", help="Axiom=pe pairs, comma-separated (for a program with no bindings yet)")
+    else:
+        print("propose parameters | outputs | slots", file=sys.stderr)
+        return 2
+    args = ap.parse_args(rest)
+    m, system = load(args.country), policyengine_system()
+    if kind == "parameters":
+        from .propose import parameters as mod
+    elif kind == "outputs":
+        from .propose import outputs as mod
+    else:
+        from .propose import slots as mod
+    if args.evaluate:
+        report = mod.evaluate(m, args.corpus, system) if kind != "slots" else mod.evaluate(m, system, profile=args.profile)
+        print(json.dumps(report["outcome"], indent=1))
+        return 0
+    if kind == "slots":
+        entity_map = dict(pair.split("=", 1) for pair in args.entity_map.split(",")) if args.entity_map else None
+        report = mod.propose(m, system, args.program, json.loads(args.catalog.read_text()), profile=args.profile,
+                             root_entity=args.root_entity, entity_map=entity_map, limit=args.limit)
+        name = args.name or f"{args.program.replace('/', '__')}.{args.profile}"
+    else:
+        extra_args = {"include_prefixed": args.include_prefixed} if kind == "outputs" else {}
+        report = mod.propose(m, args.corpus, system, modules=args.module, limit=args.limit, **extra_args)
+        name = args.name or (args.module or "all").replace(":", "__").replace("/", "__")
+    proposals = report.pop("proposals")
+    path = write(kind, name, report, proposals)
+    extra = {k: v for k, v in report.items() if k in ("skipped",)} | ({"unmatched": len(report["unmatched"])} if "unmatched" in report else {})
+    print(f"{len(proposals)} {kind} proposal(s) -> {path} {extra}")
+    return 0
+
+
 def main(argv=None) -> int:
     argv = list(sys.argv[1:] if argv is None else argv)
     if not argv or argv[0] in ("-h", "--help"):
@@ -81,6 +138,11 @@ def main(argv=None) -> int:
     command, rest = argv[0], argv[1:]
     if command == "verify" and rest[:1] == ["parameters"]:
         return verify_parameters(rest[1:])
+    if command == "propose":
+        return propose(rest)
+    if command == "accept":
+        from .accept import main as run
+        return run(rest)
     if command == "bindings" and rest[:1] == ["set-status"]:
         return bindings_set_status(rest[1:])
     if command == "export" and rest[:1] == ["policyengine-axiom"]:

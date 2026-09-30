@@ -3,3 +3,5 @@ __pycache__/
 *.egg-info/
 build/
 dist/
+# review artifacts: regenerate with `python -m axiom_mappings propose ...`
+proposals/

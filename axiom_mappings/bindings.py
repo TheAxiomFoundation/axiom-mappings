@@ -108,6 +108,39 @@ def canonical(doc: Any) -> str:
     return json.dumps(doc, sort_keys=True)
 
 
+class _Flow(dict):
+    """A spec, written inline."""
+
+
+class _Dumper(yaml.SafeDumper):
+    pass
+
+
+_Dumper.add_representer(_Flow, lambda d, v: d.represent_mapping("tag:yaml.org,2002:map", v, flow_style=True))
+
+
+def dump(doc: dict[str, Any]) -> str:
+    """A binding set as YAML in the house layout: specs inline, one slot per line."""
+    def flow(spec):
+        return _Flow(spec) if isinstance(spec, dict) else spec
+
+    def block(b: dict[str, Any]) -> dict[str, Any]:
+        out = dict(b)
+        if "inputs" in out:
+            out["inputs"] = {k: flow(v) for k, v in out["inputs"].items()}
+        for key in ("filter", "scope"):
+            if key in out:
+                out[key] = flow(out[key])
+        return out
+
+    doc = block(doc)
+    if "relations" in doc:
+        doc["relations"] = {k: block(v) for k, v in doc["relations"].items()}
+    if "bindings" in doc:
+        doc["bindings"] = [block(b) for b in doc["bindings"]]
+    return yaml.dump(doc, Dumper=_Dumper, sort_keys=False, allow_unicode=True, width=110)
+
+
 def set_status(program: str, pe_variable: str, status: str, *, profile: str = "cut", country: str = "us",
                root: Path | None = None) -> Path:
     """Set one binding's rollout status in its file, changing that one line and nothing else.

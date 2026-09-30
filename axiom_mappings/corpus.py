@@ -108,7 +108,8 @@ class Corpus:
         """Read and parse these modules in one pass (``module`` reads one at a time otherwise)."""
         wanted = sorted({m for m in module_ids if m not in self._modules})
         for path, body in self._read([module_path(m) for m in wanted]).items():
-            self._modules[module_id(path)] = yaml.load(body, Loader=_Loader) if body is not None else None
+            doc = yaml.load(body, Loader=_Loader) if body is not None else None
+            self._modules[module_id(path)] = doc if isinstance(doc, dict) else None  # a list is test data, not a module
 
     def module(self, module_id_: str) -> dict[str, Any] | None:
         if module_id_ not in self._modules:

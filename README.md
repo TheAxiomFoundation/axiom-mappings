@@ -76,6 +76,17 @@ axiom_mappings/           loader (load, rules_for_slot, policyengine_variable, .
   cells chosen at run time are listed as not checkable, with the reason. Every current difference is
   filed in findings.yaml (`kind: parameter`, unclassified until investigated, D48); the validator fails
   on an unfiled one and on a filed one that no longer differs.
+- **Proposals are reviewed before they enter the map** (`python -m axiom_mappings propose parameters|outputs|slots`,
+  then `accept`). Proposers write `proposals/<kind>/<name>.yaml` outside the package (gitignored), so nothing
+  proposed ships. Identity admits a candidate, strongest first: a reviewed binding already pairs them; the
+  two cite the same law (`citations.py`: USC, CFR and revenue procedures from Axiom module ids and rule
+  sources, and from PolicyEngine reference titles and links); a reviewed sibling rule maps into the same
+  PolicyEngine subtree (parameters); or the names match (outputs, slots). Units, shapes (a table needs a node
+  with its rows) and value types must fit. Name overlap and the value history (`verify`) only rank what
+  identity admitted, and every candidate carries its evidence. A reviewer sets `accept:` to a candidate's
+  index, fixes `program` / `rationale` / table keys, and `accept` writes that row or binding.
+  `--evaluate` replays the reviewed map: the proposers put the reviewer's choice first for 278 parameters
+  and 107 outputs (top three: 307 and 122); rules citing state codes, which are not read yet, get none.
 - **Future years** (`pins.yaml`): Axiom's values through its last encoded date, then PolicyEngine's
   indexing, flagged in provenance.
 

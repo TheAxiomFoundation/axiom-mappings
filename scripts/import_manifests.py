@@ -21,6 +21,7 @@ import yaml
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from axiom_mappings import ROOT, load  # noqa: E402
+from axiom_mappings.bindings import dump  # noqa: E402
 from axiom_mappings.corpus import module_path  # noqa: E402
 
 LAW_SUPPLIED = {"federal_minimum_wage", "federal_or_state_minimum_wage"}  # 29 USC 206: law, not a data gap
@@ -142,7 +143,7 @@ def main(argv=None) -> int:
         header = (f"# policyengine-axiom bindings for {program_id} (cut profile: read from a live PolicyEngine simulation).\n"
                   f"# Imported from policyengine-axiom manifests/{path.name} at {sha or 'unknown'}; edit here, then export with\n"
                   f"# python -m axiom_mappings.export.policyengine_axiom --out <policyengine-axiom>/manifests\n")
-        out.write_text(header + yaml.dump(doc, Dumper=Dumper, sort_keys=False, allow_unicode=True, width=110))
+        out.write_text(header + dump(doc))
         print(out.relative_to(ROOT))
     return 0
 
