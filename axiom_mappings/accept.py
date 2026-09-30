@@ -50,6 +50,12 @@ def _parameter_row(p: dict[str, Any], c: dict[str, Any]) -> dict[str, Any]:
 
 
 def _slot(doc: dict[str, Any], proposal: dict[str, Any], spec: Any) -> None:
+    if doc.get("profile") == "facts":  # axiom-api's grammar: flat inputs and ordered presumptions
+        if isinstance(spec, dict) and "presumed" in spec:
+            doc.setdefault("presumptions", {})[proposal["slot"]] = {"value": spec["value"], "presumption": spec["presumed"]}
+        else:
+            doc.setdefault("inputs", {})[proposal["slot"]] = spec
+        return
     where = proposal["block"]
     block = doc if where == "inputs" else doc.setdefault("relations", {}).setdefault(where.removeprefix("relation "), {})
     slot = proposal["slot"]
@@ -89,8 +95,10 @@ def accept(path: Path, *, country: str = "us", root: Path | None = None) -> list
         else:
             target.parent.mkdir(parents=True, exist_ok=True)
             file_header = f"# {doc['profile']} bindings for {doc['program']}, started from accepted slot proposals.\n"
-            binding = {"program": doc["program"], "profile": doc["profile"], "consumers": [],
-                       "root_entity": doc["root_entity"], "entity_map": doc["entity_map"], "bindings": []}
+            binding = ({"program": doc["program"], "profile": "facts", "consumers": [], "format": "axiom-pe-variable-mapping/1"}
+                       if doc["profile"] == "facts" else
+                       {"program": doc["program"], "profile": doc["profile"], "consumers": [],
+                        "root_entity": doc["root_entity"], "entity_map": doc["entity_map"], "bindings": []})
         for p, c in chosen:
             _slot(binding, p, c["spec"])
             written.append(f"{p['block']} {p['slot']}")

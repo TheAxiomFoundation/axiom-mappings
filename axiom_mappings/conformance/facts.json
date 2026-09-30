@@ -1,0 +1,1132 @@
+{
+ "format": "axiom-facts-conformance/1",
+ "about": "Cases for the facts-profile interpreter. `expected` is what axiom-api's src/household-compat.ts returns (extractFacts for kind unit, derivePersonInput for kind person); axiom_mappings.facts must return the same.",
+ "cases": [
+  {
+   "name": "monthly-from-annual-rounds-to-cents",
+   "kind": "unit",
+   "year": "2026",
+   "household": {
+    "people": {
+     "a": {
+      "age": {
+       "2026": 40
+      }
+     }
+    },
+    "spm_units": {
+     "s": {
+      "members": [
+       "a"
+      ],
+      "housing_cost": {
+       "2026": 1000
+      }
+     }
+    },
+    "tax_units": {
+     "t": {
+      "members": [
+       "a"
+      ]
+     }
+    },
+    "households": {
+     "h": {
+      "members": [
+       "a"
+      ]
+     }
+    }
+   },
+   "inputs": {
+    "shelter_costs": {
+     "from": "housing_cost",
+     "period": "monthly-from-annual",
+     "round": "cents"
+    }
+   },
+   "note": "1000 a year is 83.33 a month",
+   "expected": {
+    "shelter_costs": 83.33
+   }
+  },
+  {
+   "name": "monthly-passes-the-annual-value-through",
+   "kind": "unit",
+   "year": "2026",
+   "household": {
+    "people": {
+     "a": {
+      "age": {
+       "2026": 40
+      }
+     }
+    },
+    "spm_units": {
+     "s": {
+      "members": [
+       "a"
+      ],
+      "housing_cost": {
+       "2026": 1200
+      }
+     }
+    },
+    "tax_units": {
+     "t": {
+      "members": [
+       "a"
+      ]
+     }
+    },
+    "households": {
+     "h": {
+      "members": [
+       "a"
+      ]
+     }
+    }
+   },
+   "inputs": {
+    "x": {
+     "from": "housing_cost",
+     "period": "monthly"
+    }
+   },
+   "note": "gotcha: period monthly is not divided (the value stays annual)",
+   "expected": {
+    "x": 1200
+   }
+  },
+  {
+   "name": "one-monthly-value-is-a-steady-rate",
+   "kind": "unit",
+   "year": "2026",
+   "household": {
+    "people": {
+     "a": {
+      "age": {
+       "2026": 40
+      }
+     }
+    },
+    "spm_units": {
+     "s": {
+      "members": [
+       "a"
+      ],
+      "housing_cost": {
+       "2026-01": 100
+      }
+     }
+    },
+    "tax_units": {
+     "t": {
+      "members": [
+       "a"
+      ]
+     }
+    },
+    "households": {
+     "h": {
+      "members": [
+       "a"
+      ]
+     }
+    }
+   },
+   "inputs": {
+    "x": {
+     "from": "housing_cost",
+     "period": "annual"
+    }
+   },
+   "note": "a single month counts twelve times",
+   "expected": {
+    "x": 1200
+   }
+  },
+  {
+   "name": "several-monthly-values-are-summed",
+   "kind": "unit",
+   "year": "2026",
+   "household": {
+    "people": {
+     "a": {
+      "age": {
+       "2026": 40
+      }
+     }
+    },
+    "spm_units": {
+     "s": {
+      "members": [
+       "a"
+      ],
+      "housing_cost": {
+       "2026-01": 100,
+       "2026-02": 50
+      }
+     }
+    },
+    "tax_units": {
+     "t": {
+      "members": [
+       "a"
+      ]
+     }
+    },
+    "households": {
+     "h": {
+      "members": [
+       "a"
+      ]
+     }
+    }
+   },
+   "inputs": {
+    "x": {
+     "from": "housing_cost",
+     "period": "annual"
+    }
+   },
+   "note": "months present are summed, missing ones are zero",
+   "expected": {
+    "x": 150
+   }
+  },
+  {
+   "name": "first-unit-record-carrying-the-field",
+   "kind": "unit",
+   "year": "2026",
+   "household": {
+    "people": {
+     "a": {
+      "age": {
+       "2026": 40
+      }
+     }
+    },
+    "spm_units": {
+     "s": {
+      "members": [
+       "a"
+      ]
+     }
+    },
+    "tax_units": {
+     "t": {
+      "members": [
+       "a"
+      ]
+     }
+    },
+    "households": {
+     "h": {
+      "members": [
+       "a"
+      ],
+      "state_code": {
+       "2026": "CO"
+      }
+     }
+    }
+   },
+   "inputs": {
+    "state": {
+     "from": "state_code"
+    }
+   },
+   "note": "spm_units first, then households ...; non-numeric point values pass through",
+   "expected": {
+    "state": "CO"
+   }
+  },
+  {
+   "name": "map-and-map-default",
+   "kind": "unit",
+   "year": "2026",
+   "household": {
+    "people": {
+     "a": {
+      "age": {
+       "2026": 40
+      }
+     }
+    },
+    "spm_units": {
+     "s": {
+      "members": [
+       "a"
+      ]
+     }
+    },
+    "tax_units": {
+     "t": {
+      "members": [
+       "a"
+      ],
+      "filing_status": {
+       "2026": "JOINT"
+      }
+     }
+    },
+    "households": {
+     "h": {
+      "members": [
+       "a"
+      ]
+     }
+    }
+   },
+   "inputs": {
+    "joint": {
+     "from": "filing_status",
+     "map": {
+      "JOINT": 1
+     },
+     "map_default": 0
+    },
+    "other": {
+     "from": "filing_status",
+     "map": {
+      "SINGLE": 1
+     },
+     "map_default": 0
+    },
+    "missing": {
+     "from": "not_sent",
+     "map": {
+      "true": 1
+     },
+     "map_default": 7
+    }
+   },
+   "note": "unmapped and missing values take map_default",
+   "expected": {
+    "joint": 1,
+    "other": 0,
+    "missing": 7
+   }
+  },
+  {
+   "name": "booleans-map-as-true-false",
+   "kind": "unit",
+   "year": "2026",
+   "household": {
+    "people": {
+     "a": {
+      "age": {
+       "2026": 40
+      }
+     }
+    },
+    "spm_units": {
+     "s": {
+      "members": [
+       "a"
+      ],
+      "flag": {
+       "2026": true
+      }
+     }
+    },
+    "tax_units": {
+     "t": {
+      "members": [
+       "a"
+      ]
+     }
+    },
+    "households": {
+     "h": {
+      "members": [
+       "a"
+      ]
+     }
+    }
+   },
+   "inputs": {
+    "x": {
+     "from": "flag",
+     "map": {
+      "true": 1,
+      "false": 0
+     }
+    }
+   },
+   "note": "String(true) is 'true'",
+   "expected": {
+    "x": 1
+   }
+  },
+  {
+   "name": "sum-over-people-monthly",
+   "kind": "unit",
+   "year": "2026",
+   "household": {
+    "people": {
+     "a": {
+      "age": {
+       "2026": 40
+      },
+      "employment_income": {
+       "2026": 12000
+      }
+     },
+     "b": {
+      "age": {
+       "2026": 40
+      },
+      "employment_income": {
+       "2026": 6000
+      },
+      "ssi": {
+       "2026": 1200
+      }
+     }
+    },
+    "spm_units": {
+     "s": {
+      "members": [
+       "a",
+       "b"
+      ]
+     }
+    },
+    "tax_units": {
+     "t": {
+      "members": [
+       "a",
+       "b"
+      ]
+     }
+    },
+    "households": {
+     "h": {
+      "members": [
+       "a",
+       "b"
+      ]
+     }
+    }
+   },
+   "inputs": {
+    "gross": {
+     "from": {
+      "sum": [
+       "employment_income",
+       "ssi"
+      ],
+      "scope": "people"
+     },
+     "period": "monthly-from-annual",
+     "round": "cents"
+    }
+   },
+   "note": "(12000 + 6000 + 1200) / 12",
+   "expected": {
+    "gross": 1600
+   }
+  },
+  {
+   "name": "sum-over-tax-unit-members-only",
+   "kind": "unit",
+   "year": "2026",
+   "household": {
+    "people": {
+     "a": {
+      "age": {
+       "2026": 40
+      },
+      "employment_income": {
+       "2026": 50000
+      }
+     },
+     "b": {
+      "age": {
+       "2026": 40
+      },
+      "employment_income": {
+       "2026": 1
+      }
+     }
+    },
+    "spm_units": {
+     "s": {
+      "members": [
+       "a",
+       "b"
+      ]
+     }
+    },
+    "tax_units": {
+     "t": {
+      "members": [
+       "a"
+      ]
+     }
+    },
+    "households": {
+     "h": {
+      "members": [
+       "a",
+       "b"
+      ]
+     }
+    }
+   },
+   "inputs": {
+    "wages": {
+     "from": {
+      "sum": [
+       "employment_income"
+      ],
+      "scope": "tax_unit.members"
+     },
+     "period": "annual",
+     "round": "cents"
+    }
+   },
+   "note": "b is outside the tax unit",
+   "expected": {
+    "wages": 50000
+   }
+  },
+  {
+   "name": "sum-over-a-unit-record",
+   "kind": "unit",
+   "year": "2026",
+   "household": {
+    "people": {
+     "a": {
+      "age": {
+       "2026": 40
+      }
+     }
+    },
+    "spm_units": {
+     "s": {
+      "members": [
+       "a"
+      ],
+      "childcare_expenses": {
+       "2026": 2400
+      },
+      "spm_unit_pre_subsidy_childcare_expenses": {
+       "2026": 600
+      }
+     }
+    },
+    "tax_units": {
+     "t": {
+      "members": [
+       "a"
+      ]
+     }
+    },
+    "households": {
+     "h": {
+      "members": [
+       "a"
+      ]
+     }
+    }
+   },
+   "inputs": {
+    "care": {
+     "from": {
+      "sum": [
+       "spm_unit_pre_subsidy_childcare_expenses",
+       "childcare_expenses"
+      ],
+      "scope": "spm_unit"
+     },
+     "period": "monthly-from-annual",
+     "round": "cents"
+    }
+   },
+   "note": "250 a month",
+   "expected": {
+    "care": 250
+   }
+  },
+  {
+   "name": "counts",
+   "kind": "unit",
+   "year": "2026",
+   "household": {
+    "people": {
+     "a": {
+      "age": {
+       "2026": 40
+      }
+     },
+     "b": {
+      "age": {
+       "2026": 40
+      }
+     },
+     "c": {
+      "age": {
+       "2026": 40
+      }
+     }
+    },
+    "spm_units": {
+     "s": {
+      "members": [
+       "a",
+       "b"
+      ]
+     }
+    },
+    "tax_units": {
+     "t": {}
+    },
+    "households": {
+     "h": {
+      "members": [
+       "a",
+       "b",
+       "c"
+      ]
+     }
+    }
+   },
+   "inputs": {
+    "people": {
+     "from": {
+      "count": "people"
+     }
+    },
+    "spm": {
+     "from": {
+      "count": "spm_unit.members"
+     }
+    },
+    "tax": {
+     "from": {
+      "count": "tax_unit.members"
+     }
+    }
+   },
+   "note": "a unit without a members list counts everyone",
+   "expected": {
+    "people": 3,
+    "spm": 2,
+    "tax": 3
+   }
+  },
+  {
+   "name": "count-of-no-people-is-one",
+   "kind": "unit",
+   "year": "2026",
+   "household": {
+    "people": {}
+   },
+   "inputs": {
+    "n": {
+     "from": {
+      "count": "people"
+     }
+    }
+   },
+   "note": "never zero",
+   "expected": {
+    "n": 1
+   }
+  },
+  {
+   "name": "filing-status-explicit",
+   "kind": "unit",
+   "year": "2026",
+   "household": {
+    "people": {
+     "a": {
+      "age": {
+       "2026": 40
+      }
+     }
+    },
+    "spm_units": {
+     "s": {
+      "members": [
+       "a"
+      ]
+     }
+    },
+    "tax_units": {
+     "t": {
+      "members": [
+       "a"
+      ],
+      "filing_status": {
+       "2026": "separate"
+      }
+     }
+    },
+    "households": {
+     "h": {
+      "members": [
+       "a"
+      ]
+     }
+    }
+   },
+   "inputs": {
+    "fs": {
+     "from": {
+      "builtin": "pe_filing_status"
+     }
+    }
+   },
+   "note": "an explicit status wins, upper-cased",
+   "expected": {
+    "fs": "SEPARATE"
+   }
+  },
+  {
+   "name": "filing-status-joint-by-marital-unit",
+   "kind": "unit",
+   "year": "2026",
+   "household": {
+    "people": {
+     "a": {
+      "age": {
+       "2026": 40
+      }
+     },
+     "b": {
+      "age": {
+       "2026": 40
+      }
+     }
+    },
+    "spm_units": {
+     "s": {
+      "members": [
+       "a",
+       "b"
+      ]
+     }
+    },
+    "tax_units": {
+     "t": {
+      "members": [
+       "a",
+       "b"
+      ]
+     }
+    },
+    "households": {
+     "h": {
+      "members": [
+       "a",
+       "b"
+      ]
+     }
+    },
+    "marital_units": {
+     "m": {
+      "members": [
+       "a",
+       "b"
+      ]
+     }
+    }
+   },
+   "inputs": {
+    "fs": {
+     "from": {
+      "builtin": "pe_filing_status"
+     },
+     "map": {
+      "SINGLE": 0,
+      "JOINT": 1
+     },
+     "map_default": 0
+    }
+   },
+   "note": "two head/spouse adults sharing a marital unit file jointly",
+   "expected": {
+    "fs": 1
+   }
+  },
+  {
+   "name": "filing-status-head-of-household",
+   "kind": "unit",
+   "year": "2026",
+   "household": {
+    "people": {
+     "a": {
+      "age": {
+       "2026": 40
+      }
+     },
+     "c": {
+      "age": {
+       "2026": 7
+      }
+     }
+    },
+    "spm_units": {
+     "s": {
+      "members": [
+       "a",
+       "c"
+      ]
+     }
+    },
+    "tax_units": {
+     "t": {
+      "members": [
+       "a",
+       "c"
+      ]
+     }
+    },
+    "households": {
+     "h": {
+      "members": [
+       "a",
+       "c"
+      ]
+     }
+    }
+   },
+   "inputs": {
+    "fs": {
+     "from": {
+      "builtin": "pe_filing_status"
+     }
+    }
+   },
+   "note": "an unmarried adult with a child under 19",
+   "expected": {
+    "fs": "HEAD_OF_HOUSEHOLD"
+   }
+  },
+  {
+   "name": "filing-status-single",
+   "kind": "unit",
+   "year": "2026",
+   "household": {
+    "people": {
+     "a": {
+      "age": {
+       "2026": 40
+      }
+     }
+    },
+    "spm_units": {
+     "s": {
+      "members": [
+       "a"
+      ]
+     }
+    },
+    "tax_units": {
+     "t": {
+      "members": [
+       "a"
+      ]
+     }
+    },
+    "households": {
+     "h": {
+      "members": [
+       "a"
+      ]
+     }
+    }
+   },
+   "inputs": {
+    "fs": {
+     "from": {
+      "builtin": "pe_filing_status"
+     }
+    }
+   },
+   "note": "otherwise single",
+   "expected": {
+    "fs": "SINGLE"
+   }
+  },
+  {
+   "name": "aged-or-blind-count",
+   "kind": "unit",
+   "year": "2026",
+   "household": {
+    "people": {
+     "a": {
+      "age": {
+       "2026": 70
+      },
+      "is_blind": {
+       "2026": true
+      }
+     },
+     "b": {
+      "age": {
+       "2026": 66
+      }
+     }
+    },
+    "spm_units": {
+     "s": {
+      "members": [
+       "a",
+       "b"
+      ]
+     }
+    },
+    "tax_units": {
+     "t": {
+      "members": [
+       "a",
+       "b"
+      ]
+     }
+    },
+    "households": {
+     "h": {
+      "members": [
+       "a",
+       "b"
+      ]
+     }
+    },
+    "marital_units": {
+     "m": {
+      "members": [
+       "a",
+       "b"
+      ]
+     }
+    }
+   },
+   "inputs": {
+    "n": {
+     "from": {
+      "builtin": "aged_or_blind_count"
+     }
+    }
+   },
+   "note": "two aged plus one blind",
+   "expected": {
+    "n": 3
+   }
+  },
+  {
+   "name": "person-only-fields-are-not-unit-facts",
+   "kind": "unit",
+   "year": "2026",
+   "household": {
+    "people": {
+     "a": {
+      "age": {
+       "2026": 40
+      }
+     }
+    },
+    "spm_units": {
+     "s": {
+      "members": [
+       "a"
+      ]
+     }
+    },
+    "tax_units": {
+     "t": {
+      "members": [
+       "a"
+      ]
+     }
+    },
+    "households": {
+     "h": {
+      "members": [
+       "a"
+      ]
+     }
+    }
+   },
+   "inputs": {
+    "member_age": {
+     "from": "age",
+     "period": "annual"
+    }
+   },
+   "note": "age is per person: extractFacts skips it",
+   "expected": {}
+  },
+  {
+   "name": "absent-field-without-period-is-dropped",
+   "kind": "unit",
+   "year": "2026",
+   "household": {
+    "people": {
+     "a": {
+      "age": {
+       "2026": 40
+      }
+     }
+    },
+    "spm_units": {
+     "s": {
+      "members": [
+       "a"
+      ]
+     }
+    },
+    "tax_units": {
+     "t": {
+      "members": [
+       "a"
+      ]
+     }
+    },
+    "households": {
+     "h": {
+      "members": [
+       "a"
+      ]
+     }
+    }
+   },
+   "inputs": {
+    "x": {
+     "from": "never_sent"
+    }
+   },
+   "note": "no record carries it: the fact is not sent",
+   "expected": {}
+  },
+  {
+   "name": "person-age-annual",
+   "kind": "person",
+   "year": "2026",
+   "person": {
+    "age": {
+     "2026": 40
+    }
+   },
+   "inputs": {
+    "member_age": {
+     "from": "age",
+     "period": "annual"
+    }
+   },
+   "note": "a point value read annually",
+   "expected": {
+    "member_age": 40
+   }
+  },
+  {
+   "name": "person-age-as-is",
+   "kind": "person",
+   "year": "2026",
+   "person": {
+    "age": {
+     "2026": 40
+    }
+   },
+   "inputs": {
+    "member_age": {
+     "from": "age"
+    }
+   },
+   "note": "no period: the point value",
+   "expected": {
+    "member_age": 40
+   }
+  },
+  {
+   "name": "person-income-monthly",
+   "kind": "person",
+   "year": "2026",
+   "person": {
+    "age": {
+     "2026": 40
+    },
+    "employment_income": {
+     "2026": 3000
+    }
+   },
+   "inputs": {
+    "earned": {
+     "from": "employment_income",
+     "period": "monthly-from-annual",
+     "round": "cents"
+    }
+   },
+   "note": "250 a month",
+   "expected": {
+    "earned": 250
+   }
+  },
+  {
+   "name": "person-flag-mapped",
+   "kind": "person",
+   "year": "2026",
+   "person": {
+    "is_disabled": {
+     "2026": true
+    }
+   },
+   "inputs": {
+    "disabled": {
+     "from": "is_disabled",
+     "map": {
+      "true": 1
+     },
+     "map_default": 0
+    }
+   },
+   "note": "maps apply per person too",
+   "expected": {
+    "disabled": 1
+   }
+  },
+  {
+   "name": "person-missing-field",
+   "kind": "person",
+   "year": "2026",
+   "person": {},
+   "inputs": {
+    "x": {
+     "from": "is_pregnant"
+    }
+   },
+   "note": "absent: null",
+   "expected": {
+    "x": null
+   }
+  },
+  {
+   "name": "person-sum-is-not-per-person",
+   "kind": "person",
+   "year": "2026",
+   "person": {
+    "age": {
+     "2026": 40
+    }
+   },
+   "inputs": {
+    "x": {
+     "from": {
+      "sum": [
+       "employment_income"
+      ]
+     }
+    }
+   },
+   "note": "only a field is per person",
+   "expected": {
+    "x": null
+   }
+  }
+ ]
+}

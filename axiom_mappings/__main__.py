@@ -5,7 +5,7 @@
     python -m axiom_mappings verify parameters --corpus <rulespec-us> [--program P] [--as-of D] [--json] [--out F]
     python -m axiom_mappings readiness  ...   may a program serve Axiom's answer (D48)
     python -m axiom_mappings profiles   ...   slots the cut and facts profiles bind differently
-    python -m axiom_mappings export policyengine-axiom --out DIR
+    python -m axiom_mappings export policyengine-axiom|axiom-api --out DIR
     python -m axiom_mappings bindings set-status --program ID --variable PE_VAR --status off|shadow|on [--profile cut]
     python -m axiom_mappings propose parameters|outputs --corpus <rulespec-us> [--module PREFIX] [--evaluate]
     python -m axiom_mappings propose slots --program ID --catalog SLOTS.json [--profile cut] [--evaluate]
@@ -145,6 +145,9 @@ def main(argv=None) -> int:
         return run(rest)
     if command == "bindings" and rest[:1] == ["set-status"]:
         return bindings_set_status(rest[1:])
+    if command == "export" and rest[:1] == ["axiom-api"]:
+        from .export.axiom_api import main as run
+        return run(rest[1:])
     if command == "export" and rest[:1] == ["policyengine-axiom"]:
         from .export.policyengine_axiom import main as run
         return run(rest[1:])

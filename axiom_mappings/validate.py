@@ -243,10 +243,13 @@ def coverage(m: Mappings, compiled: dict[str, Any]) -> dict[str, Any]:
 def _bindings_schema_findings(country: str, root: Path) -> list[Finding]:
     import jsonschema
 
-    validator = jsonschema.Draft202012Validator(json.loads((root / "schema" / "bindings.schema.json").read_text()))
+    validators = {profile: jsonschema.Draft202012Validator(json.loads((root / "schema" / name).read_text()))
+                  for profile, name in (("cut", "bindings.schema.json"), ("facts", "bindings.facts.schema.json"))}
     out = []
     for path in sorted((root / "data" / country / "bindings").rglob("*.yaml")):
-        for e in validator.iter_errors(yaml.safe_load(path.read_text())):
+        doc = yaml.safe_load(path.read_text())
+        validator = validators["facts" if path.name.endswith(".facts.yaml") else "cut"]
+        for e in validator.iter_errors(doc):
             out.append(Finding("error", "schema", f"bindings/{path.name}:{'/'.join(map(str, e.absolute_path))}", e.message[:300]))
     return out
 

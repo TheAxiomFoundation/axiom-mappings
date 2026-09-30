@@ -51,6 +51,10 @@
           "assembled_by": {
             "type": "string",
             "description": "consumer code that assembles the program from many modules (then `axiom` is that consumer's id, not a RuleSpec module)"
+          },
+          "family": {
+            "type": "string",
+            "description": "the program id of the family this program belongs to (a consumer serving several programs as one, e.g. us/snap)"
           }
         }
       }

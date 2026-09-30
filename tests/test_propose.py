@@ -1,5 +1,6 @@
 """Proposals: identity by citation, reviewed bindings, neighbourhood or name; evidence attached; review to accept."""
 
+import json
 import os
 import subprocess
 from pathlib import Path
@@ -152,9 +153,10 @@ def test_slot_proposals_reuse_reviewed_bindings_and_surface_disagreements(world,
     assert "snap_gross_income_or_something" in {u["slot"] for u in report["unmatched"]}
     facts = slots.propose(m, world["system"], "us/snap-elderly-disabled-member", catalog, profile="facts",
                           root_entity="Household", entity_map={"Household": "spm_unit", "Person": "person"})
-    read = [c["spec"] for p in facts["proposals"] for c in p["candidates"] if isinstance(c["spec"], str)]
-    assert read and all(slots._is_input(world["system"], name) for name in read)  # facts read PolicyEngine inputs only
-    assert "is_snap_immigration_status_eligible" not in read  # computed: the cut binding's choice is not offered
+    specs = {p["slot"]: p["candidates"][0]["spec"] for p in facts["proposals"]}
+    assert specs["member_age"] == {"from": "age", "period": "annual"}  # the reviewed axiom-api read, in its grammar
+    assert specs["member_is_us_citizen"] == {"presumed": "procedural-eligibility", "value": True}  # axiom-api presumes
+    assert not any("per_month_of" in json.dumps(c["spec"]) for p in facts["proposals"] for c in p["candidates"])
     evaluation = slots.evaluate(m, world["system"])
     pregnant = [d for d in evaluation["disagreements"] if d["slot"] == "member_is_pregnant"]
     assert pregnant and pregnant[0]["reviewed"] == {"presumed": "not-in-data", "value": False}  # oracles maps it; CO presumes
@@ -205,14 +207,28 @@ def test_accepting_slots_builds_a_binding_set_the_validator_checks(tmp_path):
     root = copy_root(tmp_path / "map")
     path = proposals_file(tmp_path, "axiom_mappings.propose.slots", [
         {"block": "inputs", "slot": "wages", "candidates": [{"spec": "employment_income"}], "accept": 0},
-        {"block": "relation member_of_household", "slot": "member_is_pregnant",
-         "candidates": [{"spec": {"presumed": "not-in-data", "value": False}}], "accept": 0},
+        {"block": "inputs", "slot": "is_blind", "candidates": [{"spec": {"presumed": "not-in-data", "value": False}}], "accept": 0},
         {"block": "inputs", "slot": "later", "candidates": [{"spec": "age"}], "accept": None}],
-        program="us/federal-income-tax", profile="facts", root_entity="Person", entity_map={"Person": "person"})
-    assert accept(path, root=root) == ["inputs wages", "relation member_of_household member_is_pregnant"]
-    bs = load("us", root).binding_set("us/federal-income-tax", "facts")
+        program="us/federal-income-tax", profile="cut", root_entity="Person", entity_map={"Person": "person"})
+    assert accept(path, root=root) == ["inputs wages", "inputs is_blind"]
+    bs = load("us", root).binding_set("us/federal-income-tax", "cut")
     assert bs.doc["inputs"] == {"wages": "employment_income"}
-    assert bs.doc["relations"]["member_of_household"]["presumed"] == {"not-in-data": {"member_is_pregnant": False}}
+    assert bs.doc["presumed"] == {"not-in-data": {"is_blind": False}}
+    assert not [f for f in findings(load("us", root)) if f.level == "error" and "federal-income-tax" in f.where]
+
+
+def test_accepting_facts_slots_writes_axiom_apis_grammar(tmp_path):
+    from axiom_mappings.bindings import findings
+
+    root = copy_root(tmp_path / "map")
+    path = proposals_file(tmp_path, "axiom_mappings.propose.slots", [
+        {"block": "inputs", "slot": "wages", "candidates": [{"spec": {"from": "employment_income"}}], "accept": 0},
+        {"block": "inputs", "slot": "is_citizen", "candidates": [{"spec": {"presumed": "procedural-eligibility", "value": True}}],
+         "accept": 0}], program="us/federal-income-tax", profile="facts")
+    accept(path, root=root)
+    bs = load("us", root).binding_set("us/federal-income-tax", "facts")
+    assert bs.doc["inputs"] == {"wages": {"from": "employment_income"}}
+    assert bs.doc["presumptions"] == {"is_citizen": {"value": True, "presumption": "procedural-eligibility"}}
     assert not [f for f in findings(load("us", root)) if f.level == "error" and "federal-income-tax" in f.where]
 
 

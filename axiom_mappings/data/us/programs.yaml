@@ -9,6 +9,7 @@ programs:
   axiom: us-co:policies/cdhs/snap/fy-2026-benefit-calculation
   corpus_ref: d58cc0ce67ad891fde4c9061c86a2091bfdd524f
   window: ["2025-10-01", "2026-09-30"]
+  family: us/snap
   consumers: {policyengine-axiom: us-co-snap-fy2026, axiom-oracles: co-snap-populace}
 - id: us/oasdi-employee-tax
   jurisdiction: us
@@ -35,3 +36,18 @@ programs:
   axiom: us:tax/federal-income-tax
   assembled_by: axiom-oracles/axiom_oracles/adapters/axiom/tax_projection.py
   consumers: {axiom-oracles: us-federal-income-tax}
+- id: us/snap
+  jurisdiction: us
+  axiom: axiom-api:us/snap
+  assembled_by: axiom-api/data/serving-map/us-snap.json (the state registry packages *-snap, one per state)
+  consumers: {axiom-api: us/snap}
+- id: us/federal-tax
+  jurisdiction: us
+  axiom: axiom-api:us/federal-tax
+  assembled_by: axiom-api/data/serving-map/us-federal-tax.json (three roots, served on demand)
+  consumers: {axiom-api: us/federal-tax}
+- id: us/passthrough
+  jurisdiction: us
+  axiom: axiom-api:us/passthrough
+  assembled_by: axiom-api/data/serving-map/us-passthrough.json (echoes request fields; no Axiom rule runs)
+  consumers: {axiom-api: us/passthrough}

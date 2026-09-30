@@ -1,0 +1,37 @@
+# axiom-api bindings for us/passthrough (facts profile: read from a request, in axiom-api's serving-map
+# grammar). Imported from axiom-api data/serving-map/us-passthrough.json at c8e2d42; edit here, then export with
+# python -m axiom_mappings export axiom-api --out <axiom-api>/data/serving-map
+program: us/passthrough
+profile: facts
+consumers:
+- axiom-api
+format: axiom-pe-variable-mapping/1
+description: 'PolicyEngine ''outputs'' that are really inputs requested with null: PE echoes the input (or its model
+  default) or derives a string form. Answered from the household itself, no engine call. Kept in one file so the
+  list of what is echoed rather than computed is explicit.'
+targets: []
+variables:
+  state_code_str:
+    kind: echo
+    entity: household
+    echo:
+      source: state
+    notes: PE derives the two-letter string from state_code / state_name.
+  state_code:
+    kind: echo
+    entity: household
+    echo:
+      source: state
+  age:
+    kind: echo
+    entity: person
+    echo:
+      source: input
+      input: age
+      default: 40
+    notes: PE US default age is 40.
+evidence:
+  golden_cases:
+  - client-dq9pluou
+  notes:
+  - client-dq9pluou requests state_code_str and age as outputs; PE returns CA and 40.

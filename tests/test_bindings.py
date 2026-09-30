@@ -138,14 +138,6 @@ def test_a_binding_slot_must_agree_with_the_program_slot(tmp_path):
 
 # -------------------------------------------------------------------- PolicyEngine types and profiles
 
-def test_profiles_facts_reads_only_policyengine_inputs(tmp_path, system):
-    cut = snap(inputs={"household_size": "snap_unit_size"})
-    facts = snap(profile="facts", consumers=[], inputs={"household_size": "snap_unit_size"})
-    m = load("us", with_bindings(tmp_path, cut, facts))
-    found = findings(m, system=system)
-    assert {f.where for f in found if f.code == "facts-reads-computed"} == {"us-co/snap-fy2026.facts inputs household_size"}
-
-
 @pytest.mark.parametrize("spec,code", [
     ({"per_month_of": "spm_unit_assets"}, "per-month-of-stock"),       # assets are a stock: never divide by 12
     ("employment_income", "pe-entity"),                                 # a person variable on the spm_unit slot
@@ -218,17 +210,17 @@ def test_corpus_names_resolve_in_the_import_closure(tmp_path):
 
 # -------------------------------------------------------------------- profiles report, readiness, release
 
-def test_profiles_report_lists_slots_bound_differently(tmp_path, m):
-    cut = json.loads(json.dumps(m.binding_set("us-co/snap-fy2026").doc))
-    facts = {**snap(profile="facts", consumers=[]), "relations": {"member_of_household": {
-        "presumed": {"procedural-eligibility": {"member_is_us_citizen": True}},
-        "inputs": {"member_age": "age"}}}}
-    rows = differences(load("us", with_bindings(tmp_path, cut, facts)), "us-co/snap-fy2026")
-    citizen = next(r for r in rows if r["slot"] == "member_of_household/member_is_us_citizen")
-    assert citizen["cut"] == "is_snap_immigration_status_eligible"
-    assert citizen["facts"] == {"presumed": "procedural-eligibility", "value": True}
-    assert not any(r["slot"] == "member_of_household/member_age" for r in rows)  # same binding: not listed
-    assert differences(m, "us-co/snap-fy2026") == []  # one profile: nothing to compare
+def test_profiles_report_lists_slots_bound_differently(m):
+    """policyengine-axiom's Colorado cut bindings against axiom-api's SNAP family, by what each spec does."""
+    rows = {r["slot"]: r for r in differences(m, "us-co/snap-fy2026")}
+    assert rows["member_is_us_citizen"]["cut"] == "is_snap_immigration_status_eligible"
+    assert rows["member_is_us_citizen"]["facts"] == {"presumed": "procedural-eligibility", "value": True}
+    assert rows["member_is_us_citizen"]["facts_program"] == "us/snap"  # CO is served through its family
+    assert rows["household_size"]["facts"] == {"from": {"count": "spm_unit.members"}}
+    assert rows["dependent_care_expense_necessary_for_work_or_training"]["facts"]["presumed"] == "claimed-expense-qualifies"
+    assert "member_age" not in rows  # both read age as-is: the same, not listed
+    assert differences(m, "us/snap") == list(rows.values())  # the family reports its members
+    assert differences(m, "us/ctc") == []  # one profile: nothing to compare
 
 
 def test_readiness_counts_bindings_and_applies_the_d48_gate(m, tmp_path):

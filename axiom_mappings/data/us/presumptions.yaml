@@ -27,3 +27,13 @@ presumptions:
     the federal minimum wage). It belongs in RuleSpec; until it is there the program is not ready (D48).
   disclosure: Some values of law are supplied by the consumer, not encoded.
   acceptable: false
+- id: claimed-expense-qualifies
+  meaning: An expense the household reports is presumed to meet the program's qualifying conditions (dependent
+    care necessary for work or training). It switches a deduction on, which policyengine-axiom's D43 forbids a
+    presumption to do; there the fact follows PolicyEngine's own deduction instead.
+  disclosure: Reported expenses are presumed to qualify.
+  acceptable: false
+- id: population-scope
+  meaning: A fact that defines the population the calculation is for (an individual taxpayer, not an estate or
+    trust), true by construction of the request.
+  disclosure: The request describes an individual taxpayer.

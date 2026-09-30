@@ -106,6 +106,13 @@ axiom_mappings/           loader (load, rules_for_slot, policyengine_variable, .
 
 - `axiom_mappings.export.oracles_registry(m)` rebuilds axiom-oracles' registry payload exactly
   (tested round trip), so oracles can read this map in place of `bridges/mappings/us.yaml`.
+- `python -m axiom_mappings export axiom-api --out <axiom-api>/data/serving-map` writes axiom-api's serving
+  maps from the `facts` bindings, byte for byte. Facts bindings are in axiom-api's own grammar (`facts.py`):
+  a request carries fields and nothing is computed. `facts.py` also holds a Python port of axiom-api's
+  interpreter (`household-compat.ts`), and `conformance/facts.json` holds cases whose `expected` values come
+  from running the TypeScript. The Python must reproduce them, and axiom-api runs the same file, so one
+  grammar keeps one semantics. `programs.yaml` gives Colorado SNAP the family `us/snap` (axiom-api serves
+  every state's package through it), so `profiles` compares the two consumers slot by slot.
 - `python -m axiom_mappings.export.policyengine_axiom --out <policyengine-axiom>/manifests` writes
   policyengine-axiom's binding manifests from the `cut` bindings (tested equal to the files, types included);
   policyengine-axiom builds its manifests from the map by default (`PE_AXIOM_MANIFESTS=files` reads the

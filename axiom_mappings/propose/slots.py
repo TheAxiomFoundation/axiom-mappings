@@ -11,7 +11,8 @@ Three identities admit a candidate, strongest first:
     name       a PolicyEngine variable of the same name (for a relation slot, also without ``member_``)
                sits on the slot's entity
 
-A ``facts`` binding may only read PolicyEngine inputs. Slot rules that derive a value in harness code
+A ``facts`` candidate is written in axiom-api's grammar (``{from: field}`` or a presumption); a
+simulation-side adapter has no request-side equivalent and is not offered. Slot rules that derive a value in harness code
 (``derived``) are not proposed: that is law outside RuleSpec. ``--evaluate`` blanks every reviewed
 slot of every binding set in turn and reports how often the first candidate is what a reviewer bound.
 """
@@ -27,24 +28,30 @@ from ..bindings import BindingSet, canonical, expand
 PERSON = "person"
 
 
-def _reviewed_specs(m: Mappings, profile: str, exclude: str | None) -> dict[tuple[str, str], list[tuple[Any, str]]]:
-    """(block kind, slot) -> [(spec, the binding set it comes from)] across reviewed binding sets."""
-    out: dict[tuple[str, str], list[tuple[Any, str]]] = {}
+def _reviewed_specs(m: Mappings, profile: str, exclude: str | None) -> dict[tuple[str, str], list[tuple[Any, str, str]]]:
+    """(block kind, slot) -> [(spec, program, profile)] across reviewed binding sets, the same profile first.
+
+    A cut spec is offered to a facts slot only where it translates (a field read as-is, or a
+    presumption); facts slots are root slots (axiom-api routes per-person fields itself)."""
+    out: dict[tuple[str, str], list[tuple[Any, str, str]]] = {}
     for (program, prof), bs in m.bindings.items():
-        if prof != profile or program == exclude:
+        if program == exclude:
+            continue
+        presumed = {slot: (p, v) for _, slot, p, v in bs.presumed()}
+        if prof == "facts":
+            for slot, spec in (bs.doc.get("inputs") or {}).items():
+                for kind in ("root", "relation"):
+                    out.setdefault((kind, slot), []).append((spec, program, prof))
+            for slot, (p, v) in presumed.items():
+                for kind in ("root", "relation"):
+                    out.setdefault((kind, slot), []).append(({"presumed": p, "value": v}, program, prof))
             continue
         for where, block in bs.blocks:
             kind = "relation" if where.startswith("relation ") else "root"
             for slot, spec in expand(block).items():
-                presumption = next((p for p, s in (block.get("presumed") or {}).items() if slot in (s or {})), None)
-                out.setdefault((kind, slot), []).append(({"presumed": presumption, "value": spec["const"]}
-                                                         if presumption else spec, program))
+                entry = {"presumed": presumed[slot][0], "value": spec["const"]} if isinstance(spec, dict) and "const" in spec else spec
+                out.setdefault((kind, slot), []).append((entry, program, prof))
     return out
-
-
-def _is_input(system, name: str) -> bool:
-    v = system.variables[name]
-    return not (v.formulas or getattr(v, "adds", None) or getattr(v, "subtracts", None))
 
 
 def candidates(m: Mappings, system, slot: str, kind: str, entity: str, profile: str,
@@ -53,18 +60,28 @@ def candidates(m: Mappings, system, slot: str, kind: str, entity: str, profile: 
     seen: set[str] = set()
 
     def admit(spec: Any, identity: str, evidence: str) -> None:
+        if profile == "cut" and isinstance(spec, dict) and "from" in spec:  # a reviewed facts read, in cut grammar
+            src, period = spec["from"], spec.get("period")
+            if not isinstance(src, str) or period not in (None, "annual", "monthly-from-annual") or "map" in spec:
+                return
+            spec = {"per_month_of": src} if period == "monthly-from-annual" else src
+        if system is not None and isinstance(spec, str):
+            v = system.variables.get(spec)
+            if v is None or v.entity.key != entity:
+                return
+        if profile == "facts":  # axiom-api's grammar: a field it reads, or a presumption
+            if isinstance(spec, str):
+                spec = {"from": spec}
+            elif not (isinstance(spec, dict) and ("presumed" in spec or "from" in spec)):
+                return  # a simulation-side adapter has no request-side equivalent
         key = canonical(spec)
         if key in seen:
             return
-        if system is not None and isinstance(spec, str):
-            v = system.variables.get(spec)
-            if v is None or v.entity.key != entity or (profile == "facts" and not _is_input(system, spec)):
-                return
         seen.add(key)
         out.append({"spec": spec, "identity": identity, "evidence": evidence})
 
-    for spec, program in sorted(reviewed.get((kind, slot), []), key=lambda t: t[1]):
-        admit(spec, "binding", f"bound this way in {program}.{profile}")
+    for spec, program, prof in sorted(reviewed.get((kind, slot), []), key=lambda t: (t[2] != profile, t[1])):
+        admit(spec, "binding", f"bound this way in {program}.{prof}")
     for rule in m.rules_for_slot(slot):
         src = rule["source"]
         if src["kind"] == "concept":

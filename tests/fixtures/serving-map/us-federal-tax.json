@@ -1,0 +1,169 @@
+{
+  "format": "axiom-pe-variable-mapping/1",
+  "program": "us/federal-tax",
+  "description": "Federal individual income-tax components served from corpus roots (compile-on-demand): the standard deduction (Rev. Proc. 2025-32 \u00a7.14, 26 USC 63), the additional Medicare tax on wages (26 USC 3101(b)(2)), and the net investment income tax (26 USC 1411). Entities are tax units. Filing status uses PolicyEngine's default derivation when the partner does not send one.",
+  "targets": [
+    {
+      "kind": "root",
+      "root": "us:policies/irs/rev-proc-2025-32/standard-deduction"
+    },
+    {
+      "kind": "root",
+      "root": "us:statutes/26/3101/b/2"
+    },
+    {
+      "kind": "root",
+      "root": "us:statutes/26/1411"
+    }
+  ],
+  "variables": {
+    "standard_deduction": {
+      "symbol": "standard_deduction",
+      "entity": "tax_unit",
+      "period": "as-is",
+      "round": "cents",
+      "root": "us:policies/irs/rev-proc-2025-32/standard-deduction"
+    },
+    "additional_medicare_tax": {
+      "symbol": "additional_medicare_tax",
+      "entity": "tax_unit",
+      "period": "as-is",
+      "round": "cents",
+      "root": "us:statutes/26/3101/b/2"
+    },
+    "net_investment_income_tax": {
+      "symbol": "net_investment_income_tax",
+      "root": "us:statutes/26/1411",
+      "entity": "tax_unit",
+      "period": "as-is",
+      "round": "cents"
+    }
+  },
+  "inputs": {
+    "filing_status": {
+      "from": {
+        "builtin": "pe_filing_status"
+      },
+      "map": {
+        "SINGLE": 0,
+        "JOINT": 1,
+        "SEPARATE": 2,
+        "HEAD_OF_HOUSEHOLD": 3,
+        "SURVIVING_SPOUSE": 4,
+        "WIDOW": 4
+      },
+      "map_default": 0,
+      "notes": "Corpus encoding 0 single, 1 joint, 2 separate, 3 head of household, 4 surviving spouse (matches PolicyEngine US)."
+    },
+    "earned_income": {
+      "from": {
+        "sum": [
+          "employment_income",
+          "self_employment_income"
+        ],
+        "scope": "tax_unit.members"
+      },
+      "period": "annual",
+      "round": "cents",
+      "notes": "Dependent standard-deduction floor (26 USC 63(c)(5))."
+    },
+    "additional_standard_deduction_entitlement_count_under_subsection_f": {
+      "from": {
+        "builtin": "aged_or_blind_count"
+      },
+      "notes": "26 USC 63(f): one additional amount per head/spouse aged 65+, one more if blind."
+    },
+    "wages": {
+      "from": {
+        "sum": [
+          "employment_income"
+        ],
+        "scope": "tax_unit.members"
+      },
+      "period": "annual",
+      "round": "cents",
+      "notes": "Additional Medicare tax base: wages received in the taxable year (26 USC 3101(b)(2))."
+    },
+    "adjusted_gross_income": {
+      "from": {
+        "sum": [
+          "employment_income",
+          "self_employment_income",
+          "taxable_interest_income",
+          "qualified_dividend_income",
+          "non_qualified_dividend_income",
+          "rental_income",
+          "long_term_capital_gains",
+          "short_term_capital_gains",
+          "pension_income",
+          "taxable_pension_income",
+          "unemployment_compensation",
+          "taxable_social_security"
+        ],
+        "scope": "tax_unit.members"
+      },
+      "period": "annual",
+      "round": "cents",
+      "notes": "NIIT modified AGI, approximated as the sum of the PE income inputs partners send (no above-the-line adjustments, no \u00a7911 add-back). Exact for the contract goldens; a known-difference class (agi-approximation) for households with adjustments."
+    },
+    "taxable_interest_income": {
+      "from": {
+        "sum": [
+          "taxable_interest_income"
+        ],
+        "scope": "tax_unit.members"
+      },
+      "period": "annual",
+      "round": "cents"
+    },
+    "dividend_income": {
+      "from": {
+        "sum": [
+          "qualified_dividend_income",
+          "non_qualified_dividend_income"
+        ],
+        "scope": "tax_unit.members"
+      },
+      "period": "annual",
+      "round": "cents",
+      "notes": "PE's dividend_income is the sum of its qualified and non-qualified components."
+    },
+    "rental_income": {
+      "from": {
+        "sum": [
+          "rental_income"
+        ],
+        "scope": "tax_unit.members"
+      },
+      "period": "annual",
+      "round": "cents"
+    },
+    "taxable_net_gain_from_dispositions_after_active_partnership_s_corporation_exception": {
+      "from": {
+        "sum": [
+          "long_term_capital_gains",
+          "short_term_capital_gains"
+        ],
+        "scope": "tax_unit.members"
+      },
+      "period": "annual",
+      "round": "cents"
+    }
+  },
+  "presumptions": {
+    "is_individual": true
+  },
+  "evidence": {
+    "golden_cases": [
+      "contract-us-federal-tax-single",
+      "contract-us-federal-tax-joint-aged",
+      "contract-us-niit-single-dividends",
+      "contract-us-niit-joint-interest"
+    ],
+    "notes": [
+      "may_be_claimed_as_dependent_by_another_taxpayer is left at its default (false); PE's dependent-taxpayer standard deduction floor is therefore not modelled yet.",
+      "PolicyEngine's additional_medicare_tax includes the self-employment leg (26 USC 1401(b)(2)); this root covers wages only \u2014 expect a known difference for self-employed households until 26/1401 is mapped.",
+      "net_investment_income_tax: MAGI is approximated from PE income inputs (see adjusted_gross_income input notes); is_individual is presumed true (households, never estates/trusts)."
+    ]
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "axiom-mappings/bindings.facts.schema.json",
+  "title": "One program family's facts bindings, in axiom-api's serving-map grammar",
+  "description": "Inputs follow axiom_mappings/facts.py (the validator checks the grammar). Exported to axiom-api's data/serving-map.",
+  "type": "object",
+  "required": ["program", "profile", "format"],
+  "additionalProperties": false,
+  "properties": {
+    "program": {"type": "string"},
+    "profile": {"const": "facts"},
+    "consumers": {"type": "array", "items": {"type": "string"}},
+    "format": {"const": "axiom-pe-variable-mapping/1"},
+    "description": {"type": "string"},
+    "targets": {"type": "array", "items": {"type": "object"}},
+    "variables": {"type": "object", "additionalProperties": {"type": "object"}},
+    "inputs": {"type": "object", "additionalProperties": {"type": "object"}},
+    "presumptions": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object", "additionalProperties": false, "required": ["value", "presumption"],
+        "properties": {"value": {"type": ["boolean", "number", "string"]}, "presumption": {"type": "string"}}
+      }
+    },
+    "evidence": {"type": "object"},
+    "overrides": {"type": "object", "additionalProperties": {"type": "object"}},
+    "notes": {"type": "object"}
+  }
+}

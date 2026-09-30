@@ -1,0 +1,154 @@
+{
+  "format": "axiom-pe-variable-mapping/1",
+  "program": "us/snap",
+  "description": "SNAP via the state registry packages (us-az, us-ca, us-co, us-ny). Mirrors the behavior of src/household-compat.ts today; the compat endpoint will interpret this file directly once the bridge is data-driven (Phase 2).",
+  "targets": [
+    {
+      "kind": "package",
+      "jurisdiction_from_state": true,
+      "program_id": "*-snap",
+      "period_scope": "fiscal-year"
+    }
+  ],
+  "variables": {
+    "snap": {
+      "symbol": "snap_benefit_amount",
+      "entity": "spm_unit",
+      "period": "annualize-monthly",
+      "round": "cents"
+    },
+    "snap_gross_income": {
+      "symbol": "snap_gross_income",
+      "entity": "spm_unit",
+      "period": "annualize-monthly",
+      "round": "cents"
+    },
+    "snap_net_income": {
+      "symbol": "snap_net_income",
+      "entity": "spm_unit",
+      "period": "annualize-monthly",
+      "round": "cents"
+    }
+  },
+  "inputs": {
+    "household_size": {
+      "from": {
+        "count": "spm_unit.members"
+      }
+    },
+    "snap_gross_monthly_income": {
+      "from": {
+        "sum": [
+          "employment_income",
+          "self_employment_income",
+          "unemployment_compensation",
+          "social_security",
+          "ssi",
+          "pension_income"
+        ],
+        "scope": "people"
+      },
+      "period": "monthly-from-annual",
+      "round": "cents"
+    },
+    "shelter_costs": {
+      "from": "housing_cost",
+      "period": "monthly-from-annual",
+      "round": "cents"
+    },
+    "member_age": {
+      "from": "age",
+      "period": "annual"
+    },
+    "dependent_care_deduction": {
+      "from": {
+        "sum": [
+          "spm_unit_pre_subsidy_childcare_expenses",
+          "childcare_expenses"
+        ],
+        "scope": "spm_unit"
+      },
+      "period": "monthly-from-annual",
+      "round": "cents",
+      "notes": "NY declares the deduction itself as an input; other packages use the expense slots above."
+    },
+    "snap_allowable_monthly_dependent_care_expenses": {
+      "from": {
+        "sum": [
+          "spm_unit_pre_subsidy_childcare_expenses",
+          "childcare_expenses"
+        ],
+        "scope": "spm_unit"
+      },
+      "period": "monthly-from-annual",
+      "round": "cents",
+      "notes": "CA/NY/AZ packages' dependent-care input (monthly)."
+    },
+    "dependent_care_expenses_paid": {
+      "from": {
+        "sum": [
+          "spm_unit_pre_subsidy_childcare_expenses",
+          "childcare_expenses"
+        ],
+        "scope": "spm_unit"
+      },
+      "period": "monthly-from-annual",
+      "round": "cents",
+      "notes": "CO package's dependent-care input (monthly)."
+    }
+  },
+  "presumptions": {
+    "household_lives_in_application_state": true,
+    "member_is_us_citizen": true,
+    "member_registered_for_work_or_registered_by_state": true,
+    "member_provided_employment_status_or_availability_information": true,
+    "member_accepted_bona_fide_suitable_employment_offer_if_offered": true,
+    "member_participated_in_snap_et_if_assigned": true,
+    "member_participated_in_workfare_if_assigned": true,
+    "member_reported_to_referred_suitable_employer_if_referred": true,
+    "dependent_care_expense_necessary_for_work_or_training": true
+  },
+  "evidence": {
+    "golden_cases": [
+      "contract-az-snap-incomes",
+      "contract-ca-snap-incomes",
+      "contract-ca-snap-monthly",
+      "contract-co-snap-incomes",
+      "contract-co-snap-monthly",
+      "contract-ny-snap-incomes",
+      "client-2bvocxth",
+      "client-cxwdaxfi",
+      "client-dq9pluou"
+    ],
+    "known_differences": [
+      "fy2027-cola-projection",
+      "allotment-rounding"
+    ],
+    "notes": [
+      "Procedural-eligibility presumptions verified against us-ca: without them an income-eligible household receives 0.",
+      "dependent_care_deduction added 2026-08-23 after the first production triage (axiom-api#169): partner shapes carry childcare expenses PE deducts and Axiom previously ignored.",
+      "Dependent-care slots are package-specific (CO: dependent_care_expenses_paid + necessary-for-work gate; CA/NY/AZ: snap_allowable_monthly_dependent_care_expenses); PE deducts childcare without a work-necessity question, so the gate is presumed true and disclosed.",
+      "overrides added 2026-08-24 (#159): partners send PE intermediates as inputs; each maps to a package scalar-rule pin. Local executors apply the pin and name it in the runtime's warnings; the hosted package path does not apply it (axiom-api#243) and names each one it drops."
+    ]
+  },
+  "overrides": {
+    "snap_excess_shelter_expense_deduction": {
+      "pin": "snap_excess_shelter_deduction_for_net_income",
+      "period": "monthly-from-annual",
+      "round": "cents",
+      "notes": "PE honors a sent shelter-deduction value as an override; pin the packages' scalar rule to match (verified against contract-dq9pluou-parent-child on a local executor, which applies the pin; the hosted package path does not, axiom-api#243)."
+    },
+    "snap_earned_income": {
+      "pin": "snap_countable_earned_income",
+      "period": "monthly-from-annual",
+      "round": "cents",
+      "notes": "Partner-sent countable earned income override."
+    },
+    "snap_unearned_income": {
+      "pin": "snap_countable_unearned_income",
+      "period": "monthly-from-annual",
+      "round": "cents",
+      "notes": "Partner-sent countable unearned income override."
+    }
+  }
+}

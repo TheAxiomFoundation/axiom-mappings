@@ -4,8 +4,8 @@ One YAML file per program and profile, ``data/<country>/bindings/<program id>.<p
 
 - ``cut``: evaluated inside a live PolicyEngine simulation, so a slot may read any PE variable,
   computed ones included (policyengine-axiom).
-- ``facts``: evaluated from a request's facts alone, so a slot may read only PE input variables,
-  never one with a formula, ``adds`` or ``subtracts`` (axiom-api).
+- ``facts``: evaluated from a request's facts alone (axiom-api), in axiom-api's own serving-map grammar
+  (``facts.py``): a slot reads the fields a request carries and computes nothing.
 
 The same slot may be bound differently under the two profiles; ``profiles.py`` reports where.
 
@@ -61,8 +61,11 @@ class BindingSet:
 
     @property
     def blocks(self) -> Iterator[tuple[str, dict[str, Any]]]:
-        """(where, block) for every place slots are bound: the program, each relation, each binding."""
+        """(where, block) for every place slots are bound: the program, each relation, each binding.
+        A facts binding set has one block, its inputs (axiom-api's grammar, see ``facts.py``)."""
         yield "inputs", self.doc
+        if self.profile == "facts":
+            return
         for name, rel in (self.doc.get("relations") or {}).items():
             yield f"relation {name}", rel
         for b in self.doc.get("bindings") or []:
@@ -70,6 +73,10 @@ class BindingSet:
 
     def presumed(self) -> Iterator[tuple[str, str, str, Any]]:
         """(where, slot, presumption, value) for every constant."""
+        if self.profile == "facts":  # a flat, ordered map: axiom-api discloses presumptions in order
+            for slot, p in (self.doc.get("presumptions") or {}).items():
+                yield "inputs", slot, p.get("presumption"), p.get("value")
+            return
         for where, block in self.blocks:
             for presumption, slots in (block.get("presumed") or {}).items():
                 for slot, value in (slots or {}).items():
@@ -77,6 +84,8 @@ class BindingSet:
 
     def slots(self) -> dict[str, Any]:
         """Program-level slot -> spec, constants as ``{"const": value}``, merged with binding inputs."""
+        if self.profile == "facts":
+            return dict(self.doc.get("inputs") or {}) | {s: {"const": v} for _, s, _, v in self.presumed()}
         merged = expand(self.doc)
         for b in self.doc.get("bindings") or []:
             if b.get("status") != "off":
@@ -319,8 +328,6 @@ class _Typer:
         v = self.system.variables.get(name)
         if v is None:
             self.err("unknown-pe-variable", f"no PE variable {name}")
-        elif self.profile == "facts" and _computed(v):
-            self.err("facts-reads-computed", f"{name} has a formula, adds or subtracts; a facts binding reads PE inputs only")
         return v
 
     def group(self, key: str) -> bool:
@@ -489,8 +496,13 @@ def findings(m: Mappings, *, system=None, corpus: Path | None = None,
              catalogs: dict[str, dict[str, Any]] | None = None) -> list[Finding]:
     from .validate import Finding
 
+    from . import facts
+
     raw = []
     for bs in m.bindings.values():
+        if bs.profile == "facts":
+            raw += facts.checks(m, bs, system=system, corpus=corpus)
+            continue
         raw += _structure(m, bs)
         if system is not None:
             raw += _policyengine(bs, system)
