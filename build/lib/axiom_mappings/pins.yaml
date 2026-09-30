@@ -1,7 +1,0 @@
-us:
-  policyengine_us: 1.808.0
-  rulespec_us: null
-  future_years: axiom-then-policyengine-indexing
-  seeded_from:
-    repo: TheAxiomFoundation/axiom-oracles
-    commit: b2bf03c642f4c93090170fbed795bcf75e3fbae3
