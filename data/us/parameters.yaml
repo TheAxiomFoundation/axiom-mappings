@@ -612,6 +612,8 @@ parameters:
   period: month
   unit: USD
   comparison: money
+  tested_by_legal_ids:
+  - us-dc:policies/ssa/poms/si-01415-058/2026/dc-ossp-individual-state-supplement-levels#dc_ossp_individual_state_supplement_level
   rationale: Same DC OSSP monthly individual state supplement for State OS Code A, represented by PolicyEngine's
     individual OS_A payment cell.
 - axiom: us-dc:policies/ssa/poms/si-01415-058/2026/dc-ossp-individual-state-supplement-levels#adult_foster_care_large_individual_state_supplement_level
@@ -621,6 +623,8 @@ parameters:
   period: month
   unit: USD
   comparison: money
+  tested_by_legal_ids:
+  - us-dc:policies/ssa/poms/si-01415-058/2026/dc-ossp-individual-state-supplement-levels#dc_ossp_individual_state_supplement_level
   rationale: Same DC OSSP monthly individual state supplement for State OS Code B, represented by PolicyEngine's
     individual OS_B payment cell.
 - axiom: us-dc:policies/ssa/poms/si-01415-058/2026/dc-ossp-individual-state-supplement-levels#no_supplement_individual_state_supplement_level
@@ -630,6 +634,8 @@ parameters:
   period: month
   unit: USD
   comparison: money
+  tested_by_legal_ids:
+  - us-dc:policies/ssa/poms/si-01415-058/2026/dc-ossp-individual-state-supplement-levels#dc_ossp_individual_state_supplement_level
   rationale: Same zero DC OSSP monthly individual supplement for State OS Code Z/no qualifying facility,
     represented by PolicyEngine's individual NONE payment cell.
 - axiom: us-dc:policies/ssa/poms/si-01415-058/2026/dc-ossp-individual-state-supplement-levels#title_xix_individual_state_supplement_level
@@ -639,6 +645,8 @@ parameters:
   period: month
   unit: USD
   comparison: money
+  tested_by_legal_ids:
+  - us-dc:policies/ssa/poms/si-01415-058/2026/dc-ossp-individual-state-supplement-levels#dc_ossp_individual_state_supplement_level
   rationale: Same DC OSSP monthly individual state supplement for State OS Code G, represented by PolicyEngine's
     individual OS_G payment cell.
 - axiom: us-dc:policies/ssa/poms/si-01415-058/2026/dc-ossp-individual-state-supplement-levels#dc_ossp_individual_state_supplement_level
@@ -662,6 +670,8 @@ parameters:
   period: month
   unit: USD
   comparison: money
+  tested_by_legal_ids:
+  - us-dc:policies/ssa/poms/si-01415-058/2026/dc-ossp-couple-state-supplement-levels#dc_ossp_couple_state_supplement_level
   rationale: Same DC OSSP monthly couple state supplement for State OS Code A, represented by PolicyEngine's
     couple OS_A payment cell.
 - axiom: us-dc:policies/ssa/poms/si-01415-058/2026/dc-ossp-couple-state-supplement-levels#adult_foster_care_large_couple_state_supplement_level
@@ -671,6 +681,8 @@ parameters:
   period: month
   unit: USD
   comparison: money
+  tested_by_legal_ids:
+  - us-dc:policies/ssa/poms/si-01415-058/2026/dc-ossp-couple-state-supplement-levels#dc_ossp_couple_state_supplement_level
   rationale: Same DC OSSP monthly couple state supplement for State OS Code B, represented by PolicyEngine's
     couple OS_B payment cell.
 - axiom: us-dc:policies/ssa/poms/si-01415-058/2026/dc-ossp-couple-state-supplement-levels#no_supplement_couple_state_supplement_level
@@ -680,6 +692,8 @@ parameters:
   period: month
   unit: USD
   comparison: money
+  tested_by_legal_ids:
+  - us-dc:policies/ssa/poms/si-01415-058/2026/dc-ossp-couple-state-supplement-levels#dc_ossp_couple_state_supplement_level
   rationale: Same zero DC OSSP monthly couple supplement for State OS Code Z/no qualifying facility, represented
     by PolicyEngine's couple NONE payment cell.
 - axiom: us-dc:policies/ssa/poms/si-01415-058/2026/dc-ossp-couple-state-supplement-levels#title_xix_couple_state_supplement_level
@@ -689,6 +703,8 @@ parameters:
   period: month
   unit: USD
   comparison: money
+  tested_by_legal_ids:
+  - us-dc:policies/ssa/poms/si-01415-058/2026/dc-ossp-couple-state-supplement-levels#dc_ossp_couple_state_supplement_level
   rationale: Same DC OSSP monthly couple state supplement for State OS Code G, represented by PolicyEngine's
     couple OS_G payment cell.
 - axiom: us-dc:policies/ssa/poms/si-01415-058/2026/dc-ossp-couple-state-supplement-levels#dc_ossp_couple_state_supplement_level
@@ -711,6 +727,8 @@ parameters:
   period: month
   unit: USD
   comparison: money
+  tested_by_legal_ids:
+  - us-de:policies/ssa/poms/si-01415-058/2026/de-ssp-individual-state-supplement-levels#de_ssp
   rationale: Same Delaware monthly individual state supplement for POMS Federal Code A / State OS Code
     A certified-care cases, represented by PolicyEngine's Delaware individual SSP amount parameter.
 - axiom: us-de:policies/ssa/poms/si-01415-058/2026/de-ssp-couple-state-supplement-levels#certified_care_couple_state_supplement_level
@@ -725,6 +743,8 @@ parameters:
   program: ssi_state_supplement
   policyengine_parameter: gov.states.ks.kdhe.sspp.eligibility.age_threshold
   comparison: count
+  tested_by_legal_ids:
+  - us-ks:policies/khpa/policy-memo/2007-05-01/state-supplemental-payment-program#ks_sspp_eligible
   rationale: Both Axiom's KHPA Policy Memo 2007-05-01 Section III(4) minimum-age parameter and PolicyEngine's
     Kansas SSPP age threshold set 18 as the minimum age for State Supplemental Payment Program eligibility.
 - axiom: us-mn:policies/dhs/combined-manual/0020-21/msa-assistance-standards-2026#msa_person_living_alone_standard
@@ -1614,6 +1634,7 @@ parameters:
 - axiom: us-ak:regulations/aac/title-7/chapter-45/45-485-care-disregard#dependent_child_under_two_monthly_care_disregard_cap
   program: tanf
   policyengine_parameter: gov.states.ak.dpa.atap.income.deductions.childcare
+  parameter_calc_value: 0
   period: month
   unit: USD
   comparison: money
@@ -1622,6 +1643,7 @@ parameters:
 - axiom: us-ak:regulations/aac/title-7/chapter-45/45-485-care-disregard#dependent_child_two_or_older_monthly_care_disregard_cap
   program: tanf
   policyengine_parameter: gov.states.ak.dpa.atap.income.deductions.childcare
+  parameter_calc_value: 2
   period: month
   unit: USD
   comparison: money
@@ -2094,6 +2116,8 @@ parameters:
   period: year
   unit: USD
   comparison: money
+  tested_by_legal_ids:
+  - us:policies/income_tax/additional_medicare_tax_pipeline#pipeline_additional_medicare_self_employment_threshold
   rationale: Same statutory joint-return additional Medicare threshold, stored in PolicyEngine as the
     JOINT exclusion parameter.
 - axiom: us:policies/income_tax/additional_medicare_tax_pipeline#pipeline_additional_medicare_self_employment_other_threshold
@@ -2103,6 +2127,8 @@ parameters:
   period: year
   unit: USD
   comparison: money
+  tested_by_legal_ids:
+  - us:policies/income_tax/additional_medicare_tax_pipeline#pipeline_additional_medicare_self_employment_threshold
   rationale: Same statutory additional Medicare threshold for any other filing status; PolicyEngine's
     SINGLE exclusion stores the common $200,000 amount.
 - axiom: us:policies/income_tax/additional_medicare_tax_pipeline#pipeline_additional_medicare_self_employment_separate_threshold
@@ -4647,6 +4673,8 @@ parameters:
   period: year
   unit: USD
   comparison: money
+  tested_by_legal_ids:
+  - us:statutes/26/85#temporary_unemployment_compensation_exclusion
   rationale: Same section 85(c)(1) temporary unemployment-compensation exclusion AGI threshold; PolicyEngine
     stores the uniform statutory threshold as filing-status-keyed parameter cells.
 - axiom: us:statutes/26/85#temporary_unemployment_exclusion_cap_per_taxpayer_or_spouse
@@ -4655,6 +4683,8 @@ parameters:
   period: year
   unit: USD
   comparison: money
+  tested_by_legal_ids:
+  - us:statutes/26/85#temporary_unemployment_compensation_exclusion_for_recipient
   rationale: Same section 85(c)(1) $10,200 temporary unemployment-compensation exclusion cap per taxpayer
     or spouse.
 - axiom: us:statutes/26/86#social_security_one_half_rate
@@ -4944,6 +4974,7 @@ parameters:
 - axiom: us:policies/irs/rev-proc-2025-32/earned-income-credit#eitc_maximum_credit_amounts
   program: tax
   policyengine_parameter: gov.irs.credits.eitc.max
+  parameter_calc_input: qualifying_child_count
   period: year
   unit: USD
   comparison: money
@@ -4951,6 +4982,7 @@ parameters:
 - axiom: us:policies/irs/rev-proc-2025-32/earned-income-credit#eitc_threshold_phaseout_amounts_other
   program: tax
   policyengine_parameter: gov.irs.credits.eitc.phase_out.start
+  parameter_calc_input: qualifying_child_count
   period: year
   unit: USD
   comparison: money
@@ -4966,12 +4998,18 @@ parameters:
 - axiom: us:statutes/26/32#eitc_phase_in_rates
   program: tax
   policyengine_parameter: gov.irs.credits.eitc.phase_in_rate
+  parameter_calc_input: qualifying_child_count
+  aliases:
+  - us:statutes/26/32#eitc_phase_in_rate
   period: year
   comparison: rate
   rationale: Same statutory EITC phase-in rate by qualifying-child count.
 - axiom: us:statutes/26/32#eitc_phase_out_rates
   program: tax
   policyengine_parameter: gov.irs.credits.eitc.phase_out.rate
+  parameter_calc_input: qualifying_child_count
+  aliases:
+  - us:statutes/26/32#eitc_phase_out_rate
   period: year
   comparison: rate
   rationale: Same statutory EITC phase-out rate by qualifying-child count.
@@ -4984,6 +5022,7 @@ parameters:
 - axiom: us:policies/irs/rev-proc-2025-32/child-tax-credit#ctc_child_maximum_amount
   program: tax
   policyengine_parameter: gov.irs.credits.ctc.amount.base
+  parameter_calc_value: 0
   period: year
   unit: USD
   comparison: money

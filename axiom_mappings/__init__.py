@@ -18,7 +18,7 @@ import yaml
 ROOT = Path(__file__).resolve().parent.parent
 DATA = ROOT / "data"
 SCHEMA = ROOT / "schema"
-TABLES = ("concepts", "inputs", "outputs", "parameters", "presumptions", "supplied_parameters", "programs", "findings")
+TABLES = ("concepts", "inputs", "outputs", "parameters", "presumptions", "supplied_parameters", "programs", "findings", "prefixes")
 
 
 def _yaml(path: Path) -> Any:
@@ -60,6 +60,7 @@ class Mappings:
     supplied_parameters: tuple[dict[str, Any], ...] = ()
     programs: dict[str, dict[str, Any]] = field(default_factory=dict)
     findings: tuple[dict[str, Any], ...] = ()
+    prefixes: tuple[dict[str, Any], ...] = ()
     taxonomy: dict[str, Any] = field(default_factory=dict)
     pins: dict[str, Any] = field(default_factory=dict)
 
@@ -123,6 +124,7 @@ def load(country: str = "us", root: Path | str | None = None) -> Mappings:
         supplied_parameters=tuple(_read(country, "supplied_parameters", root)),
         programs={p["id"]: p for p in _read(country, "programs", root)},
         findings=tuple(_read(country, "findings", root)),
+        prefixes=tuple(_read(country, "prefixes", root)),
         taxonomy=_yaml(root / "data" / "taxonomy.yaml") or {},
         pins=(_yaml(root / "pins.yaml") or {}).get(country, {}),
     )

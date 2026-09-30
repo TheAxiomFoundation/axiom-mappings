@@ -152,24 +152,35 @@ def build_inputs(rules: list[dict], ids: dict[str, str]) -> list[dict]:
     return out
 
 
-OUTPUT_FIELDS = ["policyengine_variable", "entity", "period", "comparison", "unit", "result_multiplier",
-                 "expression", "candidate_priority", "tested_by_legal_ids"]
-PARAMETER_FIELDS = ["policyengine_parameter", "parameter_key", "parameter_keys", "parameter_key_path",
-                    "parameter_key_input", "parameter_key_map", "period", "unit", "comparison",
-                    "result_multiplier", "candidate_priority"]
+# Oracles field names -> ours. Every other field is kept as is (lossless), except `country`, which the
+# directory implies; scripts/../axiom_mappings/export.py reverses this exactly.
+RENAMES = {"legal_id": "axiom", "mapping_type": "type"}
+
+
+def _row(entry: dict) -> dict:
+    row = {RENAMES.get(k, k): v for k, v in entry.items() if k != "country"}
+    if "axiom" not in row and "legal_id_prefix" in row:
+        # Oracles keys an exact mapping that carries only legal_id_prefix by that prefix string.
+        row["axiom"] = row.pop("legal_id_prefix")
+        row["keyed_by_prefix_string"] = True
+    return row
 
 
 def build_registry(entries: list[dict]) -> tuple[list[dict], list[dict]]:
     outputs, parameters = [], []
     for e in entries:
-        base = {"axiom": e.get("legal_id"), "program": e["program"], "type": e["mapping_type"]}
-        if e["mapping_type"] == "parameter_value":
-            row = {**base, **{k: e[k] for k in PARAMETER_FIELDS if k in e}}
+        row = _row(e)
+        if row.get("type") == "parameter_value":
             row.pop("type")
-            parameters.append({**row, "rationale": e["rationale"]})
+            parameters.append(row)
         else:
-            outputs.append({**base, **{k: e[k] for k in OUTPUT_FIELDS if k in e}, "rationale": e["rationale"]})
+            outputs.append(row)
     return outputs, parameters
+
+
+def build_prefixes(entries: list[dict]) -> list[dict]:
+    return [{("axiom_prefix" if k == "legal_id_prefix" else RENAMES.get(k, k)): v for k, v in e.items() if k != "country"}
+            for e in entries]
 
 
 def dump(path: Path, header: str, key: str, rows: list[dict]) -> None:
@@ -188,7 +199,8 @@ def main() -> None:
     ids = concept_ids(git_show(repo, commit, "axiom_oracles/core/case.py"))
     tables = runner_tables(git_show(repo, commit, "axiom_oracles/adapters/policyengine/runner.py"))
     rules = yaml.safe_load(git_show(repo, commit, "axiom_oracles/data/populace_input_mapping.yaml"))["mappings"]
-    registry = yaml.safe_load(git_show(repo, commit, "axiom_oracles/bridges/mappings/us.yaml"))["mappings"]
+    registry_file = yaml.safe_load(git_show(repo, commit, "axiom_oracles/bridges/mappings/us.yaml"))
+    registry, prefixes = registry_file["mappings"], registry_file.get("prefixes", [])
 
     DATA.mkdir(parents=True, exist_ok=True)
     seeded = f"Seeded from axiom-oracles@{commit[:12]} by scripts/seed_from_oracles.py; edit here from now on."
@@ -200,13 +212,15 @@ def main() -> None:
     outputs, parameters = build_registry(registry)
     dump(DATA / "outputs.yaml", f"# Axiom output -> PolicyEngine variable (or why not comparable).\n# {seeded}", "outputs", outputs)
     dump(DATA / "parameters.yaml", f"# Axiom parameter -> PolicyEngine parameter path.\n# {seeded}", "parameters", parameters)
+    dump(DATA / "prefixes.yaml", "# Axiom id prefixes whose outputs are classified together (all not comparable today).\n"
+         f"# {seeded}", "prefixes", build_prefixes(prefixes))
 
     pins_path = ROOT / "pins.yaml"
     pins = yaml.safe_load(pins_path.read_text()) if pins_path.exists() else {}
     pins.setdefault("us", {})["seeded_from"] = {"repo": "TheAxiomFoundation/axiom-oracles", "commit": commit}
     pins_path.write_text(yaml.safe_dump(pins, sort_keys=False))
     print(f"seeded from {commit[:12]}: {len(ids)} concept ids, {len(rules)} input rules, "
-          f"{len(outputs)} outputs, {len(parameters)} parameters")
+          f"{len(outputs)} outputs, {len(parameters)} parameters, {len(prefixes)} prefixes")
 
 
 if __name__ == "__main__":

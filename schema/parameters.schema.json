@@ -57,6 +57,15 @@
           },
           "rationale": {
             "type": "string"
+          },
+          "tested_by_legal_ids": {},
+          "parameter_calc_value": {},
+          "parameter_calc_input": {},
+          "aliases": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         }
       }

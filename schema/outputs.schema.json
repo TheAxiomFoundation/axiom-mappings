@@ -83,7 +83,12 @@
           "entity_projection": {
             "type": "string",
             "description": "how an output compared on `entity` maps onto a PolicyEngine variable defined on another entity"
-          }
+          },
+          "policyengine_parameter": {},
+          "keyed_by_prefix_string": {
+            "type": "boolean"
+          },
+          "parameter_key": {}
         },
         "allOf": [
           {

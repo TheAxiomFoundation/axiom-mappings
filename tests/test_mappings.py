@@ -147,3 +147,28 @@ def test_findings_are_filed_once_and_looked_up(m):
     assert m.cause_of("us/ctc", "ctc_refundable_maximum") == "axiom-encoding-wrong"
     assert m.cause_of("us/ctc", "ctc_maximum") == "unclassified"
     assert "1343" in m.known_finding("us/ctc", "ctc_refundable_maximum")["issue"]
+
+
+ORACLES = Path.home() / "axiom-oracles"
+
+
+@pytest.mark.skipif(not (ORACLES / ".git").exists(), reason="needs a local axiom-oracles clone")
+def test_export_reproduces_the_oracles_registry_it_was_seeded_from(m):
+    """Lossless round trip: oracles can read the map instead of its own file with no change in behaviour."""
+    import subprocess
+
+    from axiom_mappings.export import oracles_registry
+
+    commit = m.pins["seeded_from"]["commit"]
+    raw = subprocess.check_output(["git", "-C", str(ORACLES), "show", f"{commit}:axiom_oracles/bridges/mappings/us.yaml"], text=True)
+    original = yaml.safe_load(raw)
+    exported = oracles_registry(m)
+
+    def key(e):
+        return e.get("legal_id") or e.get("legal_id_prefix")
+
+    def norm(rows):
+        return sorted((key(e), yaml.safe_dump(e, sort_keys=True)) for e in rows)
+
+    assert norm(exported["mappings"]) == norm(original["mappings"])
+    assert norm(exported["prefixes"]) == norm(original["prefixes"])
