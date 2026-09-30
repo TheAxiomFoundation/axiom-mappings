@@ -10,15 +10,18 @@ causes:
 - id: axiom-encoding-wrong
   meaning: The Axiom encoding is missing or wrong.
   action: Fix upstream through the signed re-encode pipeline.
+  blocks: true
 - id: mapping-wrong
   meaning: The two engines were not given equivalent inputs, or an output is matched to the wrong counterpart variable.
   action: Fix in axiom-mappings.
+  blocks: true
 - id: convention
   meaning: Same law, different reporting convention (rounding, cents vs whole dollars, period).
   action: None; record the convention.
 - id: unclassified
   meaning: Not yet investigated.
   action: Investigate; blocks serving until classified.
+  blocks: true
 
 # The existing vocabularies, mapped onto these causes, so every tracker reports the same thing.
 crosswalk:

@@ -1,13 +1,16 @@
 """Validate the map: schema, integrity, vocabulary, PolicyEngine metadata, and coverage of Axiom programs.
 
     python -m axiom_mappings.validate --country us [--policyengine] [--corpus RULESPEC [--ref SHA]]
-                                      [--artifact compiled.json ...] [--json]
+                                      [--artifact compiled.json ...] [--catalog slots.json ...] [--json]
 
 Errors fail the run (exit 1); warnings are reported. ``--policyengine`` checks every mapped
 PolicyEngine variable and parameter against the installed policyengine-us (pinned in pins.yaml).
 ``--artifact`` reads a compiled Axiom program and reports which of its input slots the rules
 cover, which they miss, and which more than one rule matches. ``--corpus`` resolves every Axiom id
-at the pinned rulespec-us commit (``identity.py``).
+at the pinned rulespec-us commit (``identity.py``). Bindings (``bindings.py``) are checked for
+structure always, for PE entity, period and type with ``--policyengine``, for Axiom names with
+``--corpus``, and for slot coverage with ``--catalog`` (a program's slots, from policyengine-axiom's
+``scripts/export_slot_catalog.py``).
 """
 
 from __future__ import annotations
@@ -95,10 +98,11 @@ def _integrity_findings(m: Mappings) -> list[Finding]:
     for s in m.supplied_parameters:
         if s["program"] not in m.programs:
             out.append(Finding("error", "unknown-program", s["name"], f"supplied for {s['program']!r}, not in programs.yaml"))
+    registry = m.registry_programs
     for f in m.findings:
         key = f"{f['program']}:{f['variable']}:{f['counterpart']}"
-        if f["program"] not in m.programs:
-            out.append(Finding("error", "unknown-program", key, "finding for a program not in programs.yaml"))
+        if f["program"] not in m.programs and f["program"] not in registry:
+            out.append(Finding("error", "unknown-program", key, "finding for a program in neither programs.yaml nor the registry"))
         if f["cause"] not in m.causes:
             out.append(Finding("error", "unknown-cause", key, f"cause {f['cause']!r} is not defined"))
     for v in _duplicates((f["program"], f["variable"], f["counterpart"]) for f in m.findings):
@@ -136,18 +140,22 @@ def _integrity_findings(m: Mappings) -> list[Finding]:
     return out
 
 
-def _policyengine_findings(m: Mappings) -> list[Finding]:
+def policyengine_system():
+    from policyengine_us import CountryTaxBenefitSystem
+
+    return CountryTaxBenefitSystem()
+
+
+def _policyengine_findings(m: Mappings, system) -> list[Finding]:
     import importlib.metadata
 
     from policyengine_core.parameters import get_parameter
-    from policyengine_us import CountryTaxBenefitSystem
 
     out: list[Finding] = []
     installed = importlib.metadata.version("policyengine-us")
     pinned = m.pins.get("policyengine_us")
     if pinned and installed != pinned:
         out.append(Finding("warning", "policyengine-version", "pins", f"installed {installed}, pinned {pinned}"))
-    system = CountryTaxBenefitSystem()
     variables = system.variables
 
     for c in m.concepts.values():
@@ -232,16 +240,44 @@ def coverage(m: Mappings, compiled: dict[str, Any]) -> dict[str, Any]:
             "missing": missing, "ambiguous": ambiguous}
 
 
-def validate(country: str = "us", root: Path | None = None, policyengine: bool = False,
-             artifacts: Iterable[Path] = (), corpus: Path | None = None,
-             ref: str | None = None) -> tuple[list[Finding], dict[str, Any]]:
+def _bindings_schema_findings(country: str, root: Path) -> list[Finding]:
+    import jsonschema
+
+    validator = jsonschema.Draft202012Validator(json.loads((root / "schema" / "bindings.schema.json").read_text()))
+    out = []
+    for path in sorted((root / "data" / country / "bindings").rglob("*.yaml")):
+        for e in validator.iter_errors(yaml.safe_load(path.read_text())):
+            out.append(Finding("error", "schema", f"bindings/{path.name}:{'/'.join(map(str, e.absolute_path))}", e.message[:300]))
+    return out
+
+
+def validate(country: str = "us", root: Path | None = None, policyengine: bool | Any = False,
+             artifacts: Iterable[Path] = (), corpus: Path | None = None, ref: str | None = None,
+             catalogs: Iterable[Path] = ()) -> tuple[list[Finding], dict[str, Any]]:
+    """``policyengine`` may be True (build the installed policyengine-us system) or a system to reuse."""
+    from . import bindings
+
     root = root or ROOT
-    findings = _schema_findings(country, root)
+    findings = _schema_findings(country, root) + _bindings_schema_findings(country, root)
     m = load(country, root)
     findings += _integrity_findings(m)
-    if policyengine:
-        findings += _policyengine_findings(m)
+    system = None
+    if policyengine is not False and policyengine is not None:
+        system = policyengine_system() if policyengine is True else policyengine
+        findings += _policyengine_findings(m, system)
+    catalog_docs = {}
+    for path in catalogs:
+        doc = json.loads(Path(path).read_text())
+        catalog_docs[doc["program"]] = doc
+    findings += bindings.findings(m, system=system, corpus=corpus, catalogs=catalog_docs)
     reports = {}
+    if corpus is not None and system is not None:  # both sides' values: every current difference must be filed
+        from .verify import parameters as verify_parameters
+
+        verified = verify_parameters.verify(m, corpus, system, ref=ref)
+        findings += verify_parameters.gate(m, verified)
+        reports["parameters"] = {"as_of": verified["as_of"], "targets": verified["targets"], "verdicts": verified["verdicts"],
+                                 "unchecked": len(verified["unchecked"])}
     if corpus is not None:
         from . import identity
 
@@ -263,10 +299,11 @@ def main(argv=None) -> int:
     ap.add_argument("--artifact", action="append", default=[], help="compiled Axiom program JSON (repeatable)")
     ap.add_argument("--corpus", type=Path, help="rulespec-us git checkout: resolve every Axiom id at the pin")
     ap.add_argument("--ref", help="with --corpus: check at this commit instead of the pin")
+    ap.add_argument("--catalog", action="append", default=[], help="a program's slot catalog JSON (repeatable)")
     ap.add_argument("--json", action="store_true")
     args = ap.parse_args(argv)
     findings, reports = validate(args.country, policyengine=args.policyengine, artifacts=[Path(a) for a in args.artifact],
-                                 corpus=args.corpus, ref=args.ref)
+                                 corpus=args.corpus, ref=args.ref, catalogs=[Path(c) for c in args.catalog])
     errors = [f for f in findings if f.level == "error"]
     if args.json:
         print(json.dumps({"findings": [asdict(f) for f in findings], "coverage": reports}, indent=2))
@@ -276,6 +313,10 @@ def main(argv=None) -> int:
             print(f"{level:7} {code:28} {n}")
         for f in errors[:40]:
             print(f"  ERROR {f.code}: {f.where}: {f.message}")
+        params = reports.pop("parameters", None)
+        if params:
+            print(f"\nparameters as of {params['as_of']}: {params['targets']} cells {params['verdicts']}, "
+                  f"{params['unchecked']} rows not checkable without a run")
         identity = reports.pop("identity", None)
         if identity:
             print(f"\nrulespec-us {identity['ref'][:9]}: {identity['ok']} ok, {identity['deferred']} deferred, "

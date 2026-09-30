@@ -3,13 +3,16 @@
 ``oracles_registry(m)`` rebuilds axiom-oracles' ``bridges/mappings/<country>.yaml`` payload exactly
 (field names, the ``country`` field, prefixes). Fields oracles does not know, such as
 ``entity_projection``, are left out.
+
+``policyengine_axiom.manifests(m)`` builds policyengine-axiom's binding manifests from the ``cut``
+bindings.
 """
 
 from __future__ import annotations
 
 from typing import Any
 
-from . import Mappings
+from .. import Mappings
 
 AXIOM_ONLY_FIELDS = {"entity_projection", "keyed_by_prefix_string", "comment"}
 

@@ -41,6 +41,17 @@
           },
           "note": {
             "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "variable",
+              "parameter"
+            ],
+            "description": "what disagrees: a variable's value (default) or a parameter's dated value"
+          },
+          "evidence": {
+            "type": "object",
+            "description": "where the disagreement was seen (a report, the dates and values)"
           }
         }
       }

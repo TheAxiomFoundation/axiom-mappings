@@ -25,8 +25,12 @@ jobs:
             $(.venv/bin/python -m axiom_mappings.identity --refs)
           echo "RULESPEC_US=$RUNNER_TEMP/rulespec-us" >> "$GITHUB_ENV"
       - name: Validate the map against policyengine-us and RuleSpec
-        run: .venv/bin/python -m axiom_mappings.validate --country us --policyengine --corpus "$RULESPEC_US"
+        run: >-
+          .venv/bin/python -m axiom_mappings.validate --country us --policyengine --corpus "$RULESPEC_US"
+          $(for f in tests/fixtures/catalogs/*.json; do echo --catalog "$f"; done)
       - name: Readiness report
-        run: .venv/bin/python -m axiom_mappings.readiness --all
+        run: .venv/bin/python -m axiom_mappings.readiness --all $(for f in tests/fixtures/catalogs/*.json; do echo --catalog "$f"; done)
+      - name: Slots bound differently across profiles
+        run: .venv/bin/python -m axiom_mappings.profiles
       - name: Tests
         run: .venv/bin/python -m pytest -q

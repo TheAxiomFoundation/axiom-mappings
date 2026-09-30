@@ -1,0 +1,24 @@
+{
+  "format": "policyengine-axiom-manifest/0",
+  "program": "us-oasdi-wage-tax",
+  "source": "us/statutes/26/3101/a.yaml",
+  "corpus_ref": "d58cc0ce6",
+  "root_entity": "Person",
+  "entity_map": {
+    "Person": "person"
+  },
+  "bindings": [
+    {
+      "pe_variable": "employee_social_security_tax",
+      "axiom_output": "oasdi_wage_tax",
+      "status": "on",
+      "inputs": {
+        "wages": "taxable_earnings_for_social_security"
+      },
+      "parameters": {
+        "oasdi_wage_tax_rate": "gov.irs.payroll.social_security.rate.employee"
+      },
+      "_note": "Axiom's 'wages' is the 26 USC 3121(a) concept, already net of remuneration above the contribution base; PE's capped-earnings variable is the matching input, not gross wages."
+    }
+  ]
+}

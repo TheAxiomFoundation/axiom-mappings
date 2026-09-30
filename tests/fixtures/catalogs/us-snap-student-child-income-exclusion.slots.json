@@ -1,0 +1,12 @@
+{
+  "program": "us/snap-student-child-income-exclusion",
+  "consumer_name": "us-snap-student-child-income-exclusion",
+  "corpus_ref": "d58cc0ce6",
+  "root_inputs": [
+    "child_earned_income_amount",
+    "person_age",
+    "person_is_child_member_of_household",
+    "person_is_elementary_or_secondary_school_student"
+  ],
+  "relations": {}
+}

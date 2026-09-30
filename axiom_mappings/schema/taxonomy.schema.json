@@ -29,6 +29,10 @@
           },
           "action": {
             "type": "string"
+          },
+          "blocks": {
+            "type": "boolean",
+            "description": "a disagreement with this cause keeps a program from serving Axiom's answer (D48)"
           }
         }
       }

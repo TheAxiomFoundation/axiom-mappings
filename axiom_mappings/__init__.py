@@ -48,6 +48,7 @@ def release_id(country: str, root: Path | None = None) -> str:
     root = Path(root) if root is not None else ROOT
     content = {t: _read(country, t, root) for t in TABLES}
     content["unresolved_ref"] = _unresolved_ref(country, root)
+    content["bindings"] = {str(p.relative_to(root)): _yaml(p) for p in sorted((root / "data" / country / "bindings").rglob("*.yaml"))}
     content["taxonomy"] = _yaml(root / "data" / "taxonomy.yaml")
     content["pins"] = (_yaml(root / "pins.yaml") or {}).get(country)
     digest = hashlib.sha256(json.dumps(content, sort_keys=True, default=str).encode()).hexdigest()
@@ -72,6 +73,10 @@ class Mappings:
     unresolved: dict[str, dict[str, Any]] = field(default_factory=dict)  # Axiom ids known not to resolve (a ratchet)
     unresolved_ref: str | None = None  # the rulespec-us commit that list was taken at
     renames: tuple[dict[str, Any], ...] = ()  # reviewed Axiom id renames, oldest first
+    bindings: dict[tuple[str, str], Any] = field(default_factory=dict)  # (program, profile) -> bindings.BindingSet
+
+    def binding_set(self, program: str, profile: str = "cut"):
+        return self.bindings.get((program, profile))
 
     def current_id(self, axiom_id: str) -> str:
         """The id the map uses now for ``axiom_id``, following reviewed renames."""
@@ -122,12 +127,27 @@ class Mappings:
     def causes(self) -> set[str]:
         return {c["id"] for c in self.taxonomy.get("causes", [])}
 
+    @property
+    def blocking_causes(self) -> set[str]:
+        """Causes that keep a program from serving Axiom's answer until resolved (D48)."""
+        return {c["id"] for c in self.taxonomy.get("causes", []) if c.get("blocks")}
+
+    @property
+    def registry_programs(self) -> set[str]:
+        """The program names the output and parameter registry groups rows by (oracles' names: snap, tax, ...)."""
+        return {r["program"] for r in self.outputs + self.parameters if r.get("program")}
+
+    def findings_for(self, program: str) -> list[dict[str, Any]]:
+        return [f for f in self.findings if f["program"] == program]
+
     def classify(self, vocabulary: str, value: str) -> str:
         """Map a consumer's own reason code onto a shared cause; unknown codes are unclassified."""
         return self.taxonomy.get("crosswalk", {}).get(vocabulary, {}).get(value, "unclassified")
 
 
 def load(country: str = "us", root: Path | str | None = None) -> Mappings:
+    from .bindings import load_bindings
+
     root = Path(root) if root is not None else ROOT
     return Mappings(
         country=country,
@@ -146,6 +166,7 @@ def load(country: str = "us", root: Path | str | None = None) -> Mappings:
         unresolved={u["axiom"]: u for u in _read(country, "unresolved", root)},
         unresolved_ref=_unresolved_ref(country, root),
         renames=tuple(_read(country, "renames", root)),
+        bindings=load_bindings(country, root),
     )
 
 

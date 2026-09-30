@@ -14,3 +14,16 @@ presumptions:
     should be replaced by a mapped concept or one of the presumptions above.
   disclosure: Some inputs use test-fixture defaults.
   acceptable: false
+- id: neutral-divisor
+  meaning: A count or period the rule divides by, where the data already carries the per-period amount. Set to 1
+    so the amount passes through unchanged (0 would divide by zero).
+  disclosure: Averaging periods and shares are taken as 1 where the data is already per period.
+- id: data-period
+  meaning: The period a rule averages or reports over, set to the data's own period (annual amounts over 12
+    months, monthly pay frequency).
+  disclosure: Averaging periods follow the data's reporting period.
+- id: law-supplied
+  meaning: A value of law the consumer supplies because the encoding does not read it from its own source (e.g.
+    the federal minimum wage). It belongs in RuleSpec; until it is there the program is not ready (D48).
+  disclosure: Some values of law are supplied by the consumer, not encoded.
+  acceptable: false

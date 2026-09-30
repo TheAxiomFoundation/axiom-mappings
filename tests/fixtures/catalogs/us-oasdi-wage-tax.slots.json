@@ -1,0 +1,9 @@
+{
+  "program": "us/oasdi-employee-tax",
+  "consumer_name": "us-oasdi-wage-tax",
+  "corpus_ref": "d58cc0ce6",
+  "root_inputs": [
+    "wages"
+  ],
+  "relations": {}
+}

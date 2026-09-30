@@ -29,6 +29,8 @@ axiom_mappings/data/taxonomy.yaml        why Axiom and a counterpart disagree (i
 axiom_mappings/data/us/findings.yaml     known disagreements, each recorded once with its cause and issue
 axiom_mappings/data/us/unresolved.yaml   Axiom ids that do not resolve in RuleSpec at the pin (a ratchet)
 axiom_mappings/data/us/renames.yaml      reviewed Axiom id renames, with evidence
+axiom_mappings/data/us/bindings/<program>.<profile>.yaml  how one consumer profile feeds a program and binds
+                          its outputs (cut: live PE simulation, policyengine-axiom; facts: request facts, axiom-api)
 axiom_mappings/schema/finding.schema.json  the classified-disagreement record every consumer emits
 axiom_mappings/schema/*.schema.json      JSON Schema for each table (usable from Python and TypeScript)
 axiom_mappings/pins.yaml  what a release is valid against: policyengine-us, corpus, future-years rule
@@ -55,6 +57,25 @@ axiom_mappings/           loader (load, rules_for_slot, policyengine_variable, .
   in its module). `unresolved.yaml` lists the known ones; a new one fails, and a listed one that
   resolves again fails until removed, so the list only shrinks. A rename is a claim about meaning,
   so it goes through review into `renames.yaml` with evidence, never automatically.
+- **Bindings are per program and profile.** A `cut` binding may read any PE variable (it runs inside a
+  PE simulation); a `facts` binding only PE inputs. Slots use policyengine-axiom's adapter grammar
+  (`bindings.py`), and every constant sits under a presumption (`presumed: {<presumption>: {slot: value}}`).
+  The validator type-checks each slot against policyengine-us (entity, period, enum values, stock vs
+  flow), resolves output and parameter names in the program's import closure at its `corpus_ref`, and
+  with a slot catalog checks that every slot the compiled program reads is bound and nothing else is.
+  `python -m axiom_mappings.profiles` lists slots two profiles bind differently.
+- **Parameters are verified over their whole history** (`python -m axiom_mappings verify parameters
+  --corpus <rulespec-us>`). The mapping row gives identity (Axiom id, PE path and cell); values are
+  only the check. Axiom's history for a PE cell is assembled from every id mapped to it (one module per
+  fiscal year), each version holding until its `effective_to` or the next version, and compared with
+  PE's `values_list` interval by interval: `match`, `disagree`, `stale-axiom` / `stale-pe` (one side's
+  value is newer: the other has not encoded a change), `uncovered-axiom` / `uncovered-pe` (a gap after a
+  side began: incomplete, never "disagrees"). History before a side began is not a gap, and intervals
+  after `verify_as_of` (pins.yaml) are PE's projections, reported apart. Hints flag patterns worth
+  checking (a ratio of 12 or 100, sub-cent or rounded rates). Derived rules, non-literal formulas and
+  cells chosen at run time are listed as not checkable, with the reason. Every current difference is
+  filed in findings.yaml (`kind: parameter`, unclassified until investigated, D48); the validator fails
+  on an unfiled one and on a filed one that no longer differs.
 - **Future years** (`pins.yaml`): Axiom's values through its last encoded date, then PolicyEngine's
   indexing, flagged in provenance.
 
@@ -62,9 +83,11 @@ axiom_mappings/           loader (load, rules_for_slot, policyengine_variable, .
 
 - **Release:** `load(country).release` is `<country>-<sha12>` over every table, the taxonomy and
   the pins. Every report from a consumer cites it, so a number can be traced to the exact map.
-- **Readiness** (`python -m axiom_mappings.readiness`): a program serves Axiom as the truth only
-  when every input slot is mapped, derived, or presumed under an acceptable presumption, and no
-  parameter is supplied by a harness. Readiness is shown next to parity wherever parity is shown.
+- **Readiness** (`python -m axiom_mappings.readiness --all --catalog ...`): a program serves Axiom's
+  answer only when every input slot is bound or presumed under an acceptable presumption (verified
+  against its slot catalog), no parameter or value of law is supplied by a consumer, and no filed
+  disagreement has a blocking cause (`blocks: true` in the taxonomy: unclassified,
+  axiom-encoding-wrong, mapping-wrong). Readiness is shown next to parity wherever parity is shown.
 - **Findings:** every disagreement is investigated; neither side is presumed right. It is recorded once, in `schema/finding.schema.json` form, with one
   cause from `taxonomy.yaml`. `Mappings.classify()` turns a consumer's own reason code into it.
 
@@ -72,7 +95,10 @@ axiom_mappings/           loader (load, rules_for_slot, policyengine_variable, .
 
 - `axiom_mappings.export.oracles_registry(m)` rebuilds axiom-oracles' registry payload exactly
   (tested round trip), so oracles can read this map in place of `bridges/mappings/us.yaml`.
-- policyengine-axiom reads it for its provenance report, findings and map release.
+- `python -m axiom_mappings.export.policyengine_axiom --out <policyengine-axiom>/manifests` writes
+  policyengine-axiom's binding manifests from the `cut` bindings (tested equal to the files, types included);
+  policyengine-axiom runs either (`PE_AXIOM_MANIFESTS=files|axiom-mappings`) and reads the map for its
+  provenance report, findings and map release.
 
 ## Use
 
@@ -80,6 +106,7 @@ axiom_mappings/           loader (load, rules_for_slot, policyengine_variable, .
 uv venv --python 3.13 .venv && uv pip install --python .venv/bin/python -e '.[policyengine,test]'
 .venv/bin/python -m axiom_mappings.validate --country us --policyengine --corpus ~/rulespec-us --artifact compiled.json
 .venv/bin/python -m axiom_mappings.identity --corpus ~/rulespec-us --ref origin/main   # drift since the pin
+.venv/bin/python -m axiom_mappings verify parameters --corpus ~/rulespec-us [--program snap] [--file-findings]
 .venv/bin/python -m pytest
 ```
 

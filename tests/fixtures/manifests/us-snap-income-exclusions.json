@@ -1,0 +1,21 @@
+{
+  "format": "policyengine-axiom-manifest/0",
+  "program": "us-snap-student-child-income-exclusion",
+  "source": "us/statutes/7/2014/d.yaml",
+  "corpus_ref": "d58cc0ce6",
+  "root_entity": "Person",
+  "entity_map": {"Person": "person", "Household": "spm_unit"},
+  "_note": "Tier 2 only: PE has no variable for the 7 USC 2014(d)(7) student-child earned income exclusion. Exposes the monthly person-level amount. The household-level (d)(2) irregular-income rule is not a root-entity output when the root is Person, so it is not exposed.",
+  "inputs": {
+    "person_is_child_member_of_household": "is_child",
+    "person_is_elementary_or_secondary_school_student": "is_full_time_student",
+    "person_age": "age",
+    "child_earned_income_amount": {"per_month_of": "employment_income"}
+  },
+  "_input_notes": {
+    "person_is_elementary_or_secondary_school_student": "PE has no K-12 flag; full-time student is the closest PE concept and is a presumption for adults.",
+    "child_earned_income_amount": "yearly PE employment income divided by 12 for the monthly rule."
+  },
+  "bindings": [],
+  "expose": ["student_child_earned_income_excluded_from_snap_income"]
+}

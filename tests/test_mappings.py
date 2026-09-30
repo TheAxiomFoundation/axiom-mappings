@@ -133,10 +133,10 @@ def test_readiness_counts_slot_kinds_and_supplied_parameters(m):
         {"slot": "household_size", "request_names": ["household_size"]},
         {"slot": "no_rule_matches_this_slot_xyz", "request_names": []},
     ]}}
-    snap = readiness(m, "us-co/snap-fy2026", compiled)
-    assert snap["inputs"]["slots"] == 2 and snap["inputs"]["missing"] == 1 and not snap["ready"]
-    tax = readiness(m, "us/federal-income-tax")
-    assert tax["supplied_parameters"] == 54 and tax["supplied_matching_a_counterpart"] > 0 and not tax["ready"]
+    tax = readiness(m, "us/federal-income-tax", compiled)  # no bindings: the global slot rules are read
+    assert tax["inputs"]["slots"] == 2 and tax["inputs"]["missing"] == 1 and not tax["ready"]
+    assert tax["supplied_parameters"] == 54 and tax["supplied_matching_a_counterpart"] > 0
+    assert readiness(m, "us-co/snap-fy2026", compiled)["inputs"] is None  # bindings take precedence
 
 
 def test_program_lookup_by_consumer_name(m):
@@ -150,6 +150,9 @@ def test_findings_are_filed_once_and_looked_up(m):
 
 
 ORACLES = Path.home() / "axiom-oracles"
+# Rows the map gained after it was seeded from oracles, each reviewed (its rationale says why). With
+# renames.yaml, these are the whole difference between the export and the seeded registry.
+ADDED_SINCE_SEED = {"us:statutes/26/24/h#ctc_refundable_per_child_cap_under_subsection_h"}
 
 
 @pytest.mark.skipif(not (ORACLES / ".git").exists(), reason="needs a local axiom-oracles clone")
@@ -173,5 +176,7 @@ def test_export_reproduces_the_oracles_registry_it_was_seeded_from(m):
     def norm(rows):
         return sorted((key(e), yaml.safe_dump(e, sort_keys=True)) for e in rows)
 
-    assert norm(exported["mappings"]) == norm(original["mappings"])
+    added = [e for e in exported["mappings"] if key(e) in ADDED_SINCE_SEED]
+    assert len(added) == len(ADDED_SINCE_SEED)
+    assert norm([e for e in exported["mappings"] if key(e) not in ADDED_SINCE_SEED]) == norm(original["mappings"])
     assert norm(exported["prefixes"]) == norm(original["prefixes"])

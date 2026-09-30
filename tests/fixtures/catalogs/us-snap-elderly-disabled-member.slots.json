@@ -1,0 +1,11 @@
+{
+  "program": "us/snap-elderly-disabled-member",
+  "consumer_name": "us-snap-elderly-disabled-member",
+  "corpus_ref": "d58cc0ce6",
+  "root_inputs": [],
+  "relations": {
+    "member_of_household": [
+      "snap_member_is_elderly_or_disabled"
+    ]
+  }
+}

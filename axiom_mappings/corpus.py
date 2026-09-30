@@ -121,6 +121,26 @@ class Corpus:
             return None
         return {r["name"]: r for r in doc.get("rules") or [] if isinstance(r, dict) and r.get("name")}
 
+    def closure(self, module_id_: str) -> list[str]:
+        """The module and every module it imports, transitively, in first-seen order."""
+        seen: dict[str, None] = {}
+        todo = [module_id_]
+        while todo:
+            mid = todo.pop(0)
+            if mid in seen:
+                continue
+            seen[mid] = None
+            doc = self.module(mid) or {}
+            todo += [i if isinstance(i, str) else i.get("module", "") for i in doc.get("imports") or []]
+        return list(seen)
+
+    def closure_names(self, module_id_: str) -> set[str]:
+        """Every rule name a program can read: its module's and its imports'."""
+        names: set[str] = set()
+        for mid in self.closure(module_id_):
+            names |= set(self.rules(mid) or {})
+        return names
+
     def deferred(self, module_id_: str) -> set[str]:
         doc = self.module(module_id_) or {}
         return {split_id(d["output"])[1] for d in (doc.get("module") or {}).get("deferred_outputs") or []

@@ -13,8 +13,8 @@ test = ["pytest>=8"]
 requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
-[tool.setuptools]
-packages = ["axiom_mappings"]
+[tool.setuptools.packages.find]
+include = ["axiom_mappings*"]
 
 [tool.setuptools.package-data]
-axiom_mappings = ["data/*.yaml", "data/*/*.yaml", "schema/*.json", "pins.yaml"]
+axiom_mappings = ["data/*.yaml", "data/*/*.yaml", "data/*/bindings/**/*.yaml", "schema/*.json", "pins.yaml"]

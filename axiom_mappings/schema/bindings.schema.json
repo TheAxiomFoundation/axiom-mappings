@@ -1,0 +1,189 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "axiom-mappings/bindings.schema.json",
+  "title": "One program's bindings for one consumer profile",
+  "description": "Slot specs follow the adapter grammar in axiom_mappings/bindings.py; the validator checks it.",
+  "type": "object",
+  "required": [
+    "program",
+    "profile",
+    "root_entity",
+    "entity_map",
+    "bindings"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "slots": {
+      "type": "object",
+      "additionalProperties": {
+        "type": [
+          "string",
+          "object"
+        ]
+      }
+    },
+    "presumed": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": {
+          "type": [
+            "boolean",
+            "number",
+            "string"
+          ]
+        }
+      }
+    },
+    "notes": {
+      "type": "object"
+    }
+  },
+  "properties": {
+    "program": {
+      "type": "string"
+    },
+    "profile": {
+      "enum": [
+        "cut",
+        "facts"
+      ]
+    },
+    "consumers": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "source_path": {
+      "type": "string"
+    },
+    "composed": {
+      "type": "boolean"
+    },
+    "root_entity": {
+      "type": "string"
+    },
+    "entity_map": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "parameters": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "project": {
+          "type": "boolean"
+        },
+        "alias": {
+          "type": "boolean"
+        }
+      }
+    },
+    "scope": {
+      "type": [
+        "string",
+        "object"
+      ]
+    },
+    "notes": {
+      "$ref": "#/$defs/notes"
+    },
+    "inputs": {
+      "$ref": "#/$defs/slots"
+    },
+    "presumed": {
+      "$ref": "#/$defs/presumed"
+    },
+    "relations": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "filter": {
+            "type": [
+              "string",
+              "object"
+            ]
+          },
+          "inputs": {
+            "$ref": "#/$defs/slots"
+          },
+          "presumed": {
+            "$ref": "#/$defs/presumed"
+          },
+          "slot_notes": {
+            "$ref": "#/$defs/notes"
+          }
+        }
+      }
+    },
+    "bindings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "pe_variable",
+          "axiom_output",
+          "status"
+        ],
+        "properties": {
+          "pe_variable": {
+            "type": "string"
+          },
+          "axiom_output": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "off",
+              "shadow",
+              "on"
+            ]
+          },
+          "inputs": {
+            "$ref": "#/$defs/slots"
+          },
+          "presumed": {
+            "$ref": "#/$defs/presumed"
+          },
+          "parameters": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "reduce": {
+            "enum": [
+              "any",
+              "all",
+              "sum",
+              "first",
+              "max",
+              "min"
+            ]
+          },
+          "notes": {
+            "$ref": "#/$defs/notes"
+          },
+          "slot_notes": {
+            "$ref": "#/$defs/notes"
+          }
+        }
+      }
+    },
+    "expose": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "slot_notes": {
+      "$ref": "#/$defs/notes"
+    }
+  }
+}

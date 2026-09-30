@@ -1,0 +1,19 @@
+{
+  "program": "us/ctc",
+  "consumer_name": "us-ctc-subsection-h",
+  "corpus_ref": "d58cc0ce6",
+  "root_inputs": [
+    "filing_status"
+  ],
+  "relations": {
+    "dependent_of_tax_unit": [
+      "ctc_child_satisfies_subsection_c",
+      "ctc_person_satisfies_dependency_rules",
+      "noncitizen_exception_to_other_dependent_credit_under_subsection_h",
+      "qualifying_child_ssn_included_on_return",
+      "qualifying_child_ssn_is_valid_for_subsection_h",
+      "taxpayer_or_spouse_ssn_included_on_return",
+      "taxpayer_or_spouse_ssn_is_valid_for_subsection_h"
+    ]
+  }
+}

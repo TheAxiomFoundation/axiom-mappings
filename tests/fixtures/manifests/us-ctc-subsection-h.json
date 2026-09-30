@@ -1,0 +1,72 @@
+{
+  "format": "policyengine-axiom-manifest/0",
+  "program": "us-ctc-subsection-h",
+  "source": "us/statutes/26/24/h.yaml",
+  "corpus_ref": "d58cc0ce6",
+  "root_entity": "TaxUnit",
+  "entity_map": {
+    "TaxUnit": "tax_unit",
+    "Person": "person"
+  },
+  "alias_parameters": false,
+  "_alias_note": "D23: not aliased. PE's child amount is an age scale, not a scalar, and the refundable cap is indexed in PE (1,700 for 2026) but a 2018 literal (1,400) in the module. Aliasing would hide that disagreement from shadow.",
+  "inputs": {
+    "filing_status": {
+      "map_of": {
+        "variable": "filing_status",
+        "values": {
+          "JOINT": 1,
+          "SURVIVING_SPOUSE": 1
+        },
+        "default": 0
+      }
+    }
+  },
+  "relations": {
+    "dependent_of_tax_unit": {
+      "filter": "is_tax_unit_dependent",
+      "inputs": {
+        "ctc_child_satisfies_subsection_c": "ctc_qualifying_child",
+        "taxpayer_or_spouse_ssn_included_on_return": {
+          "project_of": "filer_meets_child_ctc_identification_requirements"
+        },
+        "taxpayer_or_spouse_ssn_is_valid_for_subsection_h": {
+          "project_of": "filer_meets_child_ctc_identification_requirements"
+        },
+        "qualifying_child_ssn_included_on_return": "meets_ctc_child_identification_requirements",
+        "qualifying_child_ssn_is_valid_for_subsection_h": "meets_ctc_child_identification_requirements",
+        "ctc_person_satisfies_dependency_rules": "is_tax_unit_dependent",
+        "noncitizen_exception_to_other_dependent_credit_under_subsection_h": {
+          "not_of": "has_tin"
+        }
+      }
+    }
+  },
+  "bindings": [
+    {
+      "pe_variable": "ctc_qualifying_children",
+      "axiom_output": "ctc_qualifying_children_under_subsection_h",
+      "status": "off",
+      "_note": "Finding 10, definitional: PE counts a qualifying child even when the filer fails the identification requirement and zeroes the amount instead; 24(h)(7) as encoded excludes the child from the count. Population shadow: 299 of 87,519 tax units differ, all with the filer failing. Per design 3.10a this is not aliased; the Axiom concept is exposed under its own name."
+    },
+    {
+      "pe_variable": "ctc_maximum",
+      "axiom_output": "ctc_maximum_before_phase_out_under_subsection_h",
+      "status": "on"
+    },
+    {
+      "pe_variable": "ctc_phase_out_threshold",
+      "axiom_output": "ctc_phase_out_threshold_under_subsection_h",
+      "status": "on"
+    },
+    {
+      "pe_variable": "ctc_refundable_maximum",
+      "axiom_output": "ctc_refundable_maximum_under_subsection_h",
+      "status": "shadow",
+      "_note": "Expected shadow diff: PE indexes the per-child refundable cap (1,700 in 2026); the module encodes the 2018 literal 1,400. Finding 7."
+    }
+  ],
+  "expose": [
+    "ctc_qualifying_children_under_subsection_h"
+  ]
+}

@@ -1,0 +1,21 @@
+# policyengine-axiom bindings for us/oasdi-employee-tax (cut profile: read from a live PolicyEngine simulation).
+# Imported from policyengine-axiom manifests/us-oasdi-wage-tax.json at 3a9222d; edit here, then export with
+# python -m axiom_mappings.export.policyengine_axiom --out <policyengine-axiom>/manifests
+program: us/oasdi-employee-tax
+profile: cut
+consumers:
+- policyengine-axiom
+root_entity: Person
+entity_map:
+  Person: person
+bindings:
+- pe_variable: employee_social_security_tax
+  axiom_output: oasdi_wage_tax
+  status: 'on'
+  inputs:
+    wages: taxable_earnings_for_social_security
+  parameters:
+    oasdi_wage_tax_rate: gov.irs.payroll.social_security.rate.employee
+  notes:
+    note: Axiom's 'wages' is the 26 USC 3121(a) concept, already net of remuneration above the contribution base;
+      PE's capped-earnings variable is the matching input, not gross wages.

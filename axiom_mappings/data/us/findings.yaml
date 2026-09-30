@@ -28,3 +28,2360 @@ findings:
     Axiom floors the deduction; PolicyEngine does not round it. Colorado's 7 CFR 273.10(e)(1)(ii) election is
     unpublished (likely cents), so which side matches the law is open. CDHS removed nearest-dollar income rounding
     in rulemaking 2024-00206, effective 2024-08-30 (https://www.sos.state.co.us/CCR/eDocketDetails.do?trackingNum=2024-00206).
+# Parameter differences filed by `python -m axiom_mappings verify parameters --file-findings` (rulespec-us
+# 36f72ea42, verify_as_of 2026-09-30). Each stays unclassified until investigated (D48); `note` says where the
+# difference starts and what each side holds.
+- program: doe_efficiency_rebate
+  variable: gov.doe.residential_efficiency_electrification_rebate.cap.low[amounts][0]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2023-01-01: Axiom 4000.0 (since 2022-08-16, us:statutes/42/18795/c/2#low_or_moderate_income_measured_payment_amount_for_twenty_percent_reduction),
+    PolicyEngine 200.0 (since 2023-01-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      stale-pe: 1
+      stale-axiom: 1
+    axiom_ids:
+    - us:statutes/42/18795/c/2#low_or_moderate_income_measured_payment_amount_for_twenty_percent_reduction
+- program: doe_efficiency_rebate
+  variable: gov.doe.residential_efficiency_electrification_rebate.cap.low[amounts][1]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2023-01-01: Axiom 2000.0 (since 2022-08-16, us:statutes/42/18795/c/2#standard_measured_payment_amount_for_twenty_percent_reduction),
+    PolicyEngine 100.0 (since 2023-01-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      stale-pe: 1
+      stale-axiom: 1
+    axiom_ids:
+    - us:statutes/42/18795/c/2#standard_measured_payment_amount_for_twenty_percent_reduction
+- program: snap
+  variable: gov.hhs.tanf.non_cash.income_limit.gross[AZ]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2026-03-01: Axiom 1.85 (since 0001-01-01, us-az:policies/des/faa5/na-categorical-eligibility/expanded-categorical-eligibility#expanded_categorical_eligibility_fpl_limit_rate),
+    PolicyEngine 2.0 (since 2026-03-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 1
+      stale-axiom: 1
+    axiom_ids:
+    - us-az:policies/des/faa5/na-categorical-eligibility/expanded-categorical-eligibility#expanded_categorical_eligibility_fpl_limit_rate
+- program: tax
+  variable: gov.irs.credits.ctc.refundable.individual_max
+  counterpart: policyengine
+  cause: axiom-encoding-wrong
+  issue: https://github.com/TheAxiomFoundation/rulespec-us/issues/1343
+  kind: parameter
+  note: 'stale-axiom from 2022-01-01: Axiom 1400.0 (since 2018-01-01, us:statutes/26/24/h#ctc_refundable_per_child_cap_under_subsection_h),
+    PolicyEngine 1500.0 (since 2022-01-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 2
+      stale-axiom: 3
+    axiom_ids:
+    - us:policies/irs/rev-proc-2025-32/child-tax-credit#ctc_refundable_child_amount
+    - us:statutes/26/24/h#ctc_refundable_per_child_cap_under_subsection_h
+- program: tax
+  variable: gov.irs.payroll.social_security.cap
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2025-01-01: Axiom 168600.0 (since 2024-01-01, us:policies/ssa/contribution-and-benefit-base/2024#contribution_and_benefit_base),
+    PolicyEngine 176100.0 (since 2025-01-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 1
+      stale-axiom: 2
+    axiom_ids:
+    - us:policies/ssa/contribution-and-benefit-base/2024#contribution_and_benefit_base
+- program: tax
+  variable: gov.irs.unemployment_compensation.exemption.amount
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2021-01-01: Axiom 10200.0 (since 2020-01-01, us:statutes/26/85#temporary_unemployment_exclusion_cap_per_taxpayer_or_spouse),
+    PolicyEngine 0.0 (since 2021-01-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 1
+      stale-axiom: 1
+    axiom_ids:
+    - us:statutes/26/85#temporary_unemployment_exclusion_cap_per_taxpayer_or_spouse
+- program: tax
+  variable: gov.irs.unemployment_compensation.exemption.cutoff[HEAD_OF_HOUSEHOLD]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2021-01-01: Axiom 150000.0 (since 2020-01-01, us:statutes/26/85#temporary_unemployment_exclusion_adjusted_gross_income_threshold),
+    PolicyEngine 0.0 (since 2021-01-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 1
+      stale-axiom: 1
+    axiom_ids:
+    - us:statutes/26/85#temporary_unemployment_exclusion_adjusted_gross_income_threshold
+- program: tax
+  variable: gov.irs.unemployment_compensation.exemption.cutoff[JOINT]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2021-01-01: Axiom 150000.0 (since 2020-01-01, us:statutes/26/85#temporary_unemployment_exclusion_adjusted_gross_income_threshold),
+    PolicyEngine 0.0 (since 2021-01-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 1
+      stale-axiom: 1
+    axiom_ids:
+    - us:statutes/26/85#temporary_unemployment_exclusion_adjusted_gross_income_threshold
+- program: tax
+  variable: gov.irs.unemployment_compensation.exemption.cutoff[SEPARATE]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2021-01-01: Axiom 150000.0 (since 2020-01-01, us:statutes/26/85#temporary_unemployment_exclusion_adjusted_gross_income_threshold),
+    PolicyEngine 0.0 (since 2021-01-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 1
+      stale-axiom: 1
+    axiom_ids:
+    - us:statutes/26/85#temporary_unemployment_exclusion_adjusted_gross_income_threshold
+- program: tax
+  variable: gov.irs.unemployment_compensation.exemption.cutoff[SINGLE]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2021-01-01: Axiom 150000.0 (since 2020-01-01, us:statutes/26/85#temporary_unemployment_exclusion_adjusted_gross_income_threshold),
+    PolicyEngine 0.0 (since 2021-01-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 1
+      stale-axiom: 1
+    axiom_ids:
+    - us:statutes/26/85#temporary_unemployment_exclusion_adjusted_gross_income_threshold
+- program: tax
+  variable: gov.irs.unemployment_compensation.exemption.cutoff[SURVIVING_SPOUSE]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2021-01-01: Axiom 150000.0 (since 2020-01-01, us:statutes/26/85#temporary_unemployment_exclusion_adjusted_gross_income_threshold),
+    PolicyEngine 0.0 (since 2021-01-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 1
+      stale-axiom: 1
+    axiom_ids:
+    - us:statutes/26/85#temporary_unemployment_exclusion_adjusted_gross_income_threshold
+- program: ssi
+  variable: gov.ssa.ssi.income.exclusions.earned
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 1975-01-01: Axiom 780.0 (since 1974-01-01, us:statutes/42/1382a/b/4#annual_earned_income_initial_exclusion_limit),
+    PolicyEngine 65.0 (since 1975-01-01). Hint: ratio 12 (Axiom larger): annual vs monthly?'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      stale-axiom: 1
+    axiom_ids:
+    - us:statutes/42/1382a/b/4#annual_earned_income_initial_exclusion_limit
+- program: ssi
+  variable: gov.ssa.ssi.income.exclusions.general
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 1975-01-01: Axiom 240.0 (since 1974-01-01, us:statutes/42/1382a/b/2#annual_general_income_exclusion_limit),
+    PolicyEngine 20.0 (since 1975-01-01). Hint: ratio 12 (Axiom larger): annual vs monthly?'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      stale-axiom: 1
+    axiom_ids:
+    - us:statutes/42/1382a/b/2#annual_general_income_exclusion_limit
+- program: tax
+  variable: gov.states.co.tax.income.additions.federal_deductions.exemption[JOINT]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2026-01-01: Axiom 16000.0 (since 2023-01-01, us-co:statutes/39/39-22-104/3/p/5#joint_return_deduction_threshold),
+    PolicyEngine 2000.0 (since 2026-01-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 2
+      stale-axiom: 1
+    axiom_ids:
+    - us-co:statutes/39/39-22-104/3/p#joint_return_itemized_deduction_threshold
+    - us-co:statutes/39/39-22-104/3/p/5#joint_return_deduction_threshold
+- program: tax
+  variable: gov.states.co.tax.income.additions.federal_deductions.exemption[SINGLE]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2026-01-01: Axiom 12000.0 (since 2023-01-01, us-co:statutes/39/39-22-104/3/p/5#single_return_deduction_threshold),
+    PolicyEngine 1000.0 (since 2026-01-01). Hint: ratio 12 (Axiom larger): annual vs monthly?'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 2
+      stale-axiom: 1
+    axiom_ids:
+    - us-co:statutes/39/39-22-104/3/p#single_return_itemized_deduction_threshold
+    - us-co:statutes/39/39-22-104/3/p/5#single_return_deduction_threshold
+- program: tax
+  variable: gov.states.co.tax.income.credits.ctc.amount.joint[thresholds][1]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2025-01-01: Axiom 35000.0 (since 2024-01-01, us-co:statutes/39/39-22-129/4.5#joint_return_low_income_upper_threshold),
+    PolicyEngine 36000.0 (since 2025-01-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 1
+      stale-axiom: 1
+    axiom_ids:
+    - us-co:statutes/39/39-22-129/4.5#joint_return_low_income_upper_threshold
+    - us-co:statutes/39/39-22-129/4.5#joint_return_middle_income_lower_threshold
+- program: tax
+  variable: gov.states.co.tax.income.credits.ctc.amount.joint[thresholds][2]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2025-01-01: Axiom 60000.0 (since 2024-01-01, us-co:statutes/39/39-22-129/4.5#joint_return_middle_income_upper_threshold),
+    PolicyEngine 61000.0 (since 2025-01-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 1
+      stale-axiom: 1
+    axiom_ids:
+    - us-co:statutes/39/39-22-129/4.5#joint_return_middle_income_upper_threshold
+    - us-co:statutes/39/39-22-129/4.5#joint_return_high_income_lower_threshold
+- program: tax
+  variable: gov.states.co.tax.income.credits.ctc.amount.joint[thresholds][3]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2025-01-01: Axiom 85000.0 (since 2024-01-01, us-co:statutes/39/39-22-129/4.5#joint_return_high_income_upper_threshold),
+    PolicyEngine 87000.0 (since 2025-01-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 1
+      stale-axiom: 1
+    axiom_ids:
+    - us-co:statutes/39/39-22-129/4.5#joint_return_high_income_upper_threshold
+- program: tax
+  variable: gov.states.co.tax.income.credits.ctc.amount.single[thresholds][1]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2025-01-01: Axiom 25000.0 (since 2024-01-01, us-co:statutes/39/39-22-129/4.5#single_return_low_income_upper_threshold),
+    PolicyEngine 26000.0 (since 2025-01-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 1
+      stale-axiom: 1
+    axiom_ids:
+    - us-co:statutes/39/39-22-129/4.5#single_return_low_income_upper_threshold
+    - us-co:statutes/39/39-22-129/4.5#single_return_middle_income_lower_threshold
+- program: tax
+  variable: gov.states.co.tax.income.credits.ctc.amount.single[thresholds][2]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2025-01-01: Axiom 50000.0 (since 2024-01-01, us-co:statutes/39/39-22-129/4.5#single_return_middle_income_upper_threshold),
+    PolicyEngine 51000.0 (since 2025-01-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 1
+      stale-axiom: 1
+    axiom_ids:
+    - us-co:statutes/39/39-22-129/4.5#single_return_middle_income_upper_threshold
+    - us-co:statutes/39/39-22-129/4.5#single_return_high_income_lower_threshold
+- program: tax
+  variable: gov.states.co.tax.income.credits.ctc.amount.single[thresholds][3]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2025-01-01: Axiom 75000.0 (since 2024-01-01, us-co:statutes/39/39-22-129/4.5#single_return_high_income_upper_threshold),
+    PolicyEngine 77000.0 (since 2025-01-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 1
+      stale-axiom: 1
+    axiom_ids:
+    - us-co:statutes/39/39-22-129/4.5#single_return_high_income_upper_threshold
+- program: tax
+  variable: gov.states.co.tax.income.rate
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2000-01-01: Axiom 0.0475 (since 1999-01-01, us-co:statutes/39/39-22-104/1.5#subsection_1_5_individual_income_tax_rate),
+    PolicyEngine 0.0463 (since 2000-01-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 3
+      stale-axiom: 5
+    axiom_ids:
+    - us-co:statutes/39/39-22-104/1.7/c#individual_estate_trust_income_tax_rate
+    - us-co:statutes/39/39-22-104/1.5#subsection_1_5_individual_income_tax_rate
+- program: ssi_state_supplement
+  variable: gov.states.il.dhs.aabd.payment.grant_amount
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2015-01-01: Axiom 542.9 (since 2014-03-01, us-il:policies/dhs/csmm/25-06-01#aabd_grant_adjustment_amount),
+    PolicyEngine 571.9 (since 2015-01-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      stale-axiom: 1
+      stale-pe: 2
+      match: 8
+    axiom_ids:
+    - us-il:policies/dhs/csmm/25-06-01#aabd_grant_adjustment_amount
+- program: tanf
+  variable: gov.states.il.dhs.tanf.income.disregard.rate
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 1993-11-01: Axiom 0.75 (since 0001-01-01, us-il:policies/dhs/csmm/15232/block-1#earned_income_deduction_rate),
+    PolicyEngine 0.6667 (since 1993-11-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      stale-axiom: 1
+      match: 1
+    axiom_ids:
+    - us-il:policies/dhs/csmm/15232/block-1#earned_income_deduction_rate
+- program: tanf
+  variable: gov.states.in.fssa.tanf.income.deductions.eligibility.earned_income_disregard.rate
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 1997-10-01: Axiom 0.3333333333333333 (since 0001-01-01, us-in:policies/dfr/snap-tanf-program-policy-manual/3450-35-05-benefit-calculation#tanf_one_third_earned_income_disregard_rate),
+    PolicyEngine 0.3333 (since 1997-10-01). Hint: differs below 0.0001: a rounded statement of the same rate?'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      stale-axiom: 1
+    axiom_ids:
+    - us-in:policies/dfr/snap-tanf-program-policy-manual/3450-35-05-benefit-calculation#tanf_one_third_earned_income_disregard_rate
+- program: ssi_state_supplement
+  variable: gov.states.wa.dshs.ssp.amount[MEDICAL_INSTITUTION]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2024-01-01: Axiom 70.0 (since 2023-07-01, us-wa:regulations/388/388-478/388-478-0055#medical_institution_monthly_ssp_base),
+    PolicyEngine 73.2 (since 2024-01-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 1
+      stale-axiom: 3
+    axiom_ids:
+    - us-wa:regulations/388/388-478/388-478-0055#medical_institution_monthly_ssp_base
+- program: tanf
+  variable: gov.states.wa.dshs.tanf.income.limit[10]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2015-01-01: Axiom 3824.0 (since 0001-01-01, us-wa:regulations/388/388-478/388-478-0035#cash_assistance_maximum_monthly_gross_earned_income_level),
+    PolicyEngine 2448.0 (since 2015-01-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      stale-axiom: 4
+      match: 1
+    axiom_ids:
+    - us-wa:regulations/388/388-478/388-478-0035#cash_assistance_maximum_monthly_gross_earned_income_level
+- program: tanf
+  variable: gov.states.wa.dshs.tanf.income.limit[1]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2015-01-01: Axiom 1400.0 (since 0001-01-01, us-wa:regulations/388/388-478/388-478-0035#cash_assistance_maximum_monthly_gross_earned_income_level),
+    PolicyEngine 665.0 (since 2015-01-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      stale-axiom: 4
+      match: 1
+    axiom_ids:
+    - us-wa:regulations/388/388-478/388-478-0035#cash_assistance_maximum_monthly_gross_earned_income_level
+- program: tanf
+  variable: gov.states.wa.dshs.tanf.income.limit[2]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2015-01-01: Axiom 1640.0 (since 0001-01-01, us-wa:regulations/388/388-478/388-478-0035#cash_assistance_maximum_monthly_gross_earned_income_level),
+    PolicyEngine 839.0 (since 2015-01-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      stale-axiom: 4
+      match: 1
+    axiom_ids:
+    - us-wa:regulations/388/388-478/388-478-0035#cash_assistance_maximum_monthly_gross_earned_income_level
+- program: tanf
+  variable: gov.states.wa.dshs.tanf.income.limit[3]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2015-01-01: Axiom 1912.0 (since 0001-01-01, us-wa:regulations/388/388-478/388-478-0035#cash_assistance_maximum_monthly_gross_earned_income_level),
+    PolicyEngine 1042.0 (since 2015-01-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      stale-axiom: 4
+      match: 1
+    axiom_ids:
+    - us-wa:regulations/388/388-478/388-478-0035#cash_assistance_maximum_monthly_gross_earned_income_level
+- program: tanf
+  variable: gov.states.wa.dshs.tanf.income.limit[4]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2015-01-01: Axiom 2166.0 (since 0001-01-01, us-wa:regulations/388/388-478/388-478-0035#cash_assistance_maximum_monthly_gross_earned_income_level),
+    PolicyEngine 1225.0 (since 2015-01-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      stale-axiom: 4
+      match: 1
+    axiom_ids:
+    - us-wa:regulations/388/388-478/388-478-0035#cash_assistance_maximum_monthly_gross_earned_income_level
+- program: tanf
+  variable: gov.states.wa.dshs.tanf.income.limit[5]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2015-01-01: Axiom 2418.0 (since 0001-01-01, us-wa:regulations/388/388-478/388-478-0035#cash_assistance_maximum_monthly_gross_earned_income_level),
+    PolicyEngine 1413.0 (since 2015-01-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      stale-axiom: 4
+      match: 1
+    axiom_ids:
+    - us-wa:regulations/388/388-478/388-478-0035#cash_assistance_maximum_monthly_gross_earned_income_level
+- program: tanf
+  variable: gov.states.wa.dshs.tanf.income.limit[6]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2015-01-01: Axiom 2680.0 (since 0001-01-01, us-wa:regulations/388/388-478/388-478-0035#cash_assistance_maximum_monthly_gross_earned_income_level),
+    PolicyEngine 1604.0 (since 2015-01-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      stale-axiom: 4
+      match: 1
+    axiom_ids:
+    - us-wa:regulations/388/388-478/388-478-0035#cash_assistance_maximum_monthly_gross_earned_income_level
+- program: tanf
+  variable: gov.states.wa.dshs.tanf.income.limit[7]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2015-01-01: Axiom 3016.0 (since 0001-01-01, us-wa:regulations/388/388-478/388-478-0035#cash_assistance_maximum_monthly_gross_earned_income_level),
+    PolicyEngine 1853.0 (since 2015-01-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      stale-axiom: 4
+      match: 1
+    axiom_ids:
+    - us-wa:regulations/388/388-478/388-478-0035#cash_assistance_maximum_monthly_gross_earned_income_level
+- program: tanf
+  variable: gov.states.wa.dshs.tanf.income.limit[8]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2015-01-01: Axiom 3284.0 (since 0001-01-01, us-wa:regulations/388/388-478/388-478-0035#cash_assistance_maximum_monthly_gross_earned_income_level),
+    PolicyEngine 2051.0 (since 2015-01-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      stale-axiom: 4
+      match: 1
+    axiom_ids:
+    - us-wa:regulations/388/388-478/388-478-0035#cash_assistance_maximum_monthly_gross_earned_income_level
+- program: tanf
+  variable: gov.states.wa.dshs.tanf.income.limit[9]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2015-01-01: Axiom 3558.0 (since 0001-01-01, us-wa:regulations/388/388-478/388-478-0035#cash_assistance_maximum_monthly_gross_earned_income_level),
+    PolicyEngine 2252.0 (since 2015-01-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      stale-axiom: 4
+      match: 1
+    axiom_ids:
+    - us-wa:regulations/388/388-478/388-478-0035#cash_assistance_maximum_monthly_gross_earned_income_level
+- program: tanf
+  variable: gov.states.wa.dshs.tanf.payment_standard.amount[10]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2015-01-01: Axiom 1662.0 (since 0001-01-01, us-wa:regulations/388/388-478/388-478-0020#cash_assistance_maximum_monthly_payment_standard),
+    PolicyEngine 1224.0 (since 2015-01-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      stale-axiom: 3
+      match: 1
+    axiom_ids:
+    - us-wa:regulations/388/388-478/388-478-0020#cash_assistance_maximum_monthly_payment_standard
+- program: tanf
+  variable: gov.states.wa.dshs.tanf.payment_standard.amount[1]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2015-01-01: Axiom 450.0 (since 0001-01-01, us-wa:regulations/388/388-478/388-478-0020#cash_assistance_maximum_monthly_payment_standard),
+    PolicyEngine 332.0 (since 2015-01-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      stale-axiom: 3
+      match: 1
+    axiom_ids:
+    - us-wa:regulations/388/388-478/388-478-0020#cash_assistance_maximum_monthly_payment_standard
+- program: tanf
+  variable: gov.states.wa.dshs.tanf.payment_standard.amount[2]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2015-01-01: Axiom 570.0 (since 0001-01-01, us-wa:regulations/388/388-478/388-478-0020#cash_assistance_maximum_monthly_payment_standard),
+    PolicyEngine 420.0 (since 2015-01-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      stale-axiom: 3
+      match: 1
+    axiom_ids:
+    - us-wa:regulations/388/388-478/388-478-0020#cash_assistance_maximum_monthly_payment_standard
+- program: tanf
+  variable: gov.states.wa.dshs.tanf.payment_standard.amount[3]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2015-01-01: Axiom 706.0 (since 0001-01-01, us-wa:regulations/388/388-478/388-478-0020#cash_assistance_maximum_monthly_payment_standard),
+    PolicyEngine 521.0 (since 2015-01-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      stale-axiom: 3
+      match: 1
+    axiom_ids:
+    - us-wa:regulations/388/388-478/388-478-0020#cash_assistance_maximum_monthly_payment_standard
+- program: tanf
+  variable: gov.states.wa.dshs.tanf.payment_standard.amount[4]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2015-01-01: Axiom 833.0 (since 0001-01-01, us-wa:regulations/388/388-478/388-478-0020#cash_assistance_maximum_monthly_payment_standard),
+    PolicyEngine 613.0 (since 2015-01-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      stale-axiom: 3
+      match: 1
+    axiom_ids:
+    - us-wa:regulations/388/388-478/388-478-0020#cash_assistance_maximum_monthly_payment_standard
+- program: tanf
+  variable: gov.states.wa.dshs.tanf.payment_standard.amount[5]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2015-01-01: Axiom 959.0 (since 0001-01-01, us-wa:regulations/388/388-478/388-478-0020#cash_assistance_maximum_monthly_payment_standard),
+    PolicyEngine 706.0 (since 2015-01-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      stale-axiom: 3
+      match: 1
+    axiom_ids:
+    - us-wa:regulations/388/388-478/388-478-0020#cash_assistance_maximum_monthly_payment_standard
+- program: tanf
+  variable: gov.states.wa.dshs.tanf.payment_standard.amount[6]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2015-01-01: Axiom 1090.0 (since 0001-01-01, us-wa:regulations/388/388-478/388-478-0020#cash_assistance_maximum_monthly_payment_standard),
+    PolicyEngine 802.0 (since 2015-01-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      stale-axiom: 3
+      match: 1
+    axiom_ids:
+    - us-wa:regulations/388/388-478/388-478-0020#cash_assistance_maximum_monthly_payment_standard
+- program: tanf
+  variable: gov.states.wa.dshs.tanf.payment_standard.amount[7]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2015-01-01: Axiom 1258.0 (since 0001-01-01, us-wa:regulations/388/388-478/388-478-0020#cash_assistance_maximum_monthly_payment_standard),
+    PolicyEngine 927.0 (since 2015-01-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      stale-axiom: 3
+      match: 1
+    axiom_ids:
+    - us-wa:regulations/388/388-478/388-478-0020#cash_assistance_maximum_monthly_payment_standard
+- program: tanf
+  variable: gov.states.wa.dshs.tanf.payment_standard.amount[8]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2015-01-01: Axiom 1392.0 (since 0001-01-01, us-wa:regulations/388/388-478/388-478-0020#cash_assistance_maximum_monthly_payment_standard),
+    PolicyEngine 1026.0 (since 2015-01-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      stale-axiom: 3
+      match: 1
+    axiom_ids:
+    - us-wa:regulations/388/388-478/388-478-0020#cash_assistance_maximum_monthly_payment_standard
+- program: tanf
+  variable: gov.states.wa.dshs.tanf.payment_standard.amount[9]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2015-01-01: Axiom 1529.0 (since 0001-01-01, us-wa:regulations/388/388-478/388-478-0020#cash_assistance_maximum_monthly_payment_standard),
+    PolicyEngine 1126.0 (since 2015-01-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      stale-axiom: 3
+      match: 1
+    axiom_ids:
+    - us-wa:regulations/388/388-478/388-478-0020#cash_assistance_maximum_monthly_payment_standard
+- program: snap
+  variable: gov.usda.snap.asset_test.limit[elderly_disabled]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2024-10-01: Axiom 4250.0 (since 2023-10-01, us:policies/usda/snap/fy-2024-cola/deductions#snap_asset_limit_elderly_or_disabled_member),
+    PolicyEngine 4500.0 (since 2024-10-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 2
+      stale-axiom: 1
+    axiom_ids:
+    - us:policies/usda/snap/fy-2024-cola/deductions#snap_asset_limit_elderly_or_disabled_member
+    - us:policies/usda/snap/fy-2026-cola/deductions#snap_asset_limit_elderly_or_disabled_member
+- program: snap
+  variable: gov.usda.snap.asset_test.limit[standard]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2024-10-01: Axiom 2750.0 (since 2023-10-01, us:policies/usda/snap/fy-2024-cola/deductions#snap_asset_limit_other_households),
+    PolicyEngine 3000.0 (since 2024-10-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 2
+      stale-axiom: 1
+    axiom_ids:
+    - us:policies/usda/snap/fy-2024-cola/deductions#snap_asset_limit_other_households
+    - us:policies/usda/snap/fy-2026-cola/deductions#snap_asset_limit_other_households
+- program: snap
+  variable: gov.usda.snap.income.deductions.excess_shelter_expense.cap[AK_RURAL_1]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2024-10-01: Axiom 1073.0 (since 2023-10-01, us:policies/usda/snap/fy-2024-cola/deductions#snap_maximum_excess_shelter_deduction_alaska),
+    PolicyEngine 1137.0 (since 2024-10-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 2
+      stale-axiom: 1
+    axiom_ids:
+    - us:policies/usda/snap/fy-2024-cola/deductions#snap_maximum_excess_shelter_deduction_alaska
+    - us:policies/usda/snap/fy-2026-cola/deductions#snap_maximum_excess_shelter_deduction_alaska
+- program: snap
+  variable: gov.usda.snap.income.deductions.excess_shelter_expense.cap[AK_RURAL_2]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2024-10-01: Axiom 1073.0 (since 2023-10-01, us:policies/usda/snap/fy-2024-cola/deductions#snap_maximum_excess_shelter_deduction_alaska),
+    PolicyEngine 1137.0 (since 2024-10-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 2
+      stale-axiom: 1
+    axiom_ids:
+    - us:policies/usda/snap/fy-2024-cola/deductions#snap_maximum_excess_shelter_deduction_alaska
+    - us:policies/usda/snap/fy-2026-cola/deductions#snap_maximum_excess_shelter_deduction_alaska
+- program: snap
+  variable: gov.usda.snap.income.deductions.excess_shelter_expense.cap[AK_URBAN]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2024-10-01: Axiom 1073.0 (since 2023-10-01, us:policies/usda/snap/fy-2024-cola/deductions#snap_maximum_excess_shelter_deduction_alaska),
+    PolicyEngine 1137.0 (since 2024-10-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 2
+      stale-axiom: 1
+    axiom_ids:
+    - us:policies/usda/snap/fy-2024-cola/deductions#snap_maximum_excess_shelter_deduction_alaska
+    - us:policies/usda/snap/fy-2026-cola/deductions#snap_maximum_excess_shelter_deduction_alaska
+- program: snap
+  variable: gov.usda.snap.income.deductions.excess_shelter_expense.cap[CONTIGUOUS_US]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2024-10-01: Axiom 672.0 (since 2023-10-01, us:policies/usda/snap/fy-2024-cola/deductions#snap_maximum_excess_shelter_deduction_48_states_dc),
+    PolicyEngine 712.0 (since 2024-10-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 2
+      stale-axiom: 1
+    axiom_ids:
+    - us:policies/usda/snap/fy-2024-cola/deductions#snap_maximum_excess_shelter_deduction_48_states_dc
+    - us:policies/usda/snap/fy-2026-cola/deductions#snap_maximum_excess_shelter_deduction_48_states_dc
+- program: snap
+  variable: gov.usda.snap.income.deductions.excess_shelter_expense.cap[GU]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2024-10-01: Axiom 789.0 (since 2023-10-01, us:policies/usda/snap/fy-2024-cola/deductions#snap_maximum_excess_shelter_deduction_guam),
+    PolicyEngine 835.0 (since 2024-10-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 2
+      stale-axiom: 1
+    axiom_ids:
+    - us:policies/usda/snap/fy-2024-cola/deductions#snap_maximum_excess_shelter_deduction_guam
+    - us:policies/usda/snap/fy-2026-cola/deductions#snap_maximum_excess_shelter_deduction_guam
+- program: snap
+  variable: gov.usda.snap.income.deductions.excess_shelter_expense.cap[HI]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2024-10-01: Axiom 905.0 (since 2023-10-01, us:policies/usda/snap/fy-2024-cola/deductions#snap_maximum_excess_shelter_deduction_hawaii),
+    PolicyEngine 959.0 (since 2024-10-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 2
+      stale-axiom: 1
+    axiom_ids:
+    - us:policies/usda/snap/fy-2024-cola/deductions#snap_maximum_excess_shelter_deduction_hawaii
+    - us:policies/usda/snap/fy-2026-cola/deductions#snap_maximum_excess_shelter_deduction_hawaii
+- program: snap
+  variable: gov.usda.snap.income.deductions.excess_shelter_expense.cap[VI]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2024-10-01: Axiom 529.0 (since 2023-10-01, us:policies/usda/snap/fy-2024-cola/deductions#snap_maximum_excess_shelter_deduction_virgin_islands),
+    PolicyEngine 561.0 (since 2024-10-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 2
+      stale-axiom: 1
+    axiom_ids:
+    - us:policies/usda/snap/fy-2024-cola/deductions#snap_maximum_excess_shelter_deduction_virgin_islands
+    - us:policies/usda/snap/fy-2026-cola/deductions#snap_maximum_excess_shelter_deduction_virgin_islands
+- program: snap
+  variable: gov.usda.snap.income.deductions.excess_shelter_expense.homeless.deduction
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2024-10-01: Axiom 179.66 (since 2023-10-01, us:policies/usda/snap/fy-2024-cola/deductions#snap_homeless_shelter_deduction),
+    PolicyEngine 190.3 (since 2024-10-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 2
+      stale-axiom: 1
+    axiom_ids:
+    - us:policies/usda/snap/fy-2024-cola/deductions#snap_homeless_shelter_deduction
+    - us:policies/usda/snap/fy-2026-cola/deductions#snap_homeless_shelter_deduction
+- program: snap
+  variable: gov.usda.snap.income.deductions.standard.AK[1]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2024-10-01: Axiom 338.0 (since 2023-10-01, us:policies/usda/snap/fy-2024-cola/deductions#snap_standard_deduction_alaska_table),
+    PolicyEngine 348.0 (since 2024-10-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 2
+      stale-axiom: 1
+    axiom_ids:
+    - us:policies/usda/snap/fy-2024-cola/deductions#snap_standard_deduction_alaska_table
+    - us:policies/usda/snap/fy-2026-cola/deductions#snap_standard_deduction_alaska_table
+- program: snap
+  variable: gov.usda.snap.income.deductions.standard.AK[2]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2024-10-01: Axiom 338.0 (since 2023-10-01, us:policies/usda/snap/fy-2024-cola/deductions#snap_standard_deduction_alaska_table),
+    PolicyEngine 348.0 (since 2024-10-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 2
+      stale-axiom: 1
+    axiom_ids:
+    - us:policies/usda/snap/fy-2024-cola/deductions#snap_standard_deduction_alaska_table
+    - us:policies/usda/snap/fy-2026-cola/deductions#snap_standard_deduction_alaska_table
+- program: snap
+  variable: gov.usda.snap.income.deductions.standard.AK[3]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2024-10-01: Axiom 338.0 (since 2023-10-01, us:policies/usda/snap/fy-2024-cola/deductions#snap_standard_deduction_alaska_table),
+    PolicyEngine 348.0 (since 2024-10-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 2
+      stale-axiom: 1
+    axiom_ids:
+    - us:policies/usda/snap/fy-2024-cola/deductions#snap_standard_deduction_alaska_table
+    - us:policies/usda/snap/fy-2026-cola/deductions#snap_standard_deduction_alaska_table
+- program: snap
+  variable: gov.usda.snap.income.deductions.standard.AK[4]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2024-10-01: Axiom 338.0 (since 2023-10-01, us:policies/usda/snap/fy-2024-cola/deductions#snap_standard_deduction_alaska_table),
+    PolicyEngine 348.0 (since 2024-10-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 2
+      stale-axiom: 1
+    axiom_ids:
+    - us:policies/usda/snap/fy-2024-cola/deductions#snap_standard_deduction_alaska_table
+    - us:policies/usda/snap/fy-2026-cola/deductions#snap_standard_deduction_alaska_table
+- program: snap
+  variable: gov.usda.snap.income.deductions.standard.AK[5]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2024-10-01: Axiom 338.0 (since 2023-10-01, us:policies/usda/snap/fy-2024-cola/deductions#snap_standard_deduction_alaska_table),
+    PolicyEngine 348.0 (since 2024-10-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 2
+      stale-axiom: 1
+    axiom_ids:
+    - us:policies/usda/snap/fy-2024-cola/deductions#snap_standard_deduction_alaska_table
+    - us:policies/usda/snap/fy-2026-cola/deductions#snap_standard_deduction_alaska_table
+- program: snap
+  variable: gov.usda.snap.income.deductions.standard.AK[6]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2024-10-01: Axiom 349.0 (since 2023-10-01, us:policies/usda/snap/fy-2024-cola/deductions#snap_standard_deduction_alaska_table),
+    PolicyEngine 364.0 (since 2024-10-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 2
+      stale-axiom: 1
+    axiom_ids:
+    - us:policies/usda/snap/fy-2024-cola/deductions#snap_standard_deduction_alaska_table
+    - us:policies/usda/snap/fy-2026-cola/deductions#snap_standard_deduction_alaska_table
+- program: snap
+  variable: gov.usda.snap.income.deductions.standard.CONTIGUOUS_US[1]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2024-10-01: Axiom 198.0 (since 2023-10-01, us:policies/usda/snap/fy-2024-cola/deductions#snap_standard_deduction_48_states_dc_table),
+    PolicyEngine 204.0 (since 2024-10-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 2
+      stale-axiom: 1
+    axiom_ids:
+    - us:policies/usda/snap/fy-2024-cola/deductions#snap_standard_deduction_48_states_dc_table
+    - us:policies/usda/snap/fy-2026-cola/deductions#snap_standard_deduction_48_states_dc_table
+- program: snap
+  variable: gov.usda.snap.income.deductions.standard.CONTIGUOUS_US[2]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2024-10-01: Axiom 198.0 (since 2023-10-01, us:policies/usda/snap/fy-2024-cola/deductions#snap_standard_deduction_48_states_dc_table),
+    PolicyEngine 204.0 (since 2024-10-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 2
+      stale-axiom: 1
+    axiom_ids:
+    - us:policies/usda/snap/fy-2024-cola/deductions#snap_standard_deduction_48_states_dc_table
+    - us:policies/usda/snap/fy-2026-cola/deductions#snap_standard_deduction_48_states_dc_table
+- program: snap
+  variable: gov.usda.snap.income.deductions.standard.CONTIGUOUS_US[3]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2024-10-01: Axiom 198.0 (since 2023-10-01, us:policies/usda/snap/fy-2024-cola/deductions#snap_standard_deduction_48_states_dc_table),
+    PolicyEngine 204.0 (since 2024-10-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 2
+      stale-axiom: 1
+    axiom_ids:
+    - us:policies/usda/snap/fy-2024-cola/deductions#snap_standard_deduction_48_states_dc_table
+    - us:policies/usda/snap/fy-2026-cola/deductions#snap_standard_deduction_48_states_dc_table
+- program: snap
+  variable: gov.usda.snap.income.deductions.standard.CONTIGUOUS_US[4]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2024-10-01: Axiom 208.0 (since 2023-10-01, us:policies/usda/snap/fy-2024-cola/deductions#snap_standard_deduction_48_states_dc_table),
+    PolicyEngine 217.0 (since 2024-10-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 2
+      stale-axiom: 1
+    axiom_ids:
+    - us:policies/usda/snap/fy-2024-cola/deductions#snap_standard_deduction_48_states_dc_table
+    - us:policies/usda/snap/fy-2026-cola/deductions#snap_standard_deduction_48_states_dc_table
+- program: snap
+  variable: gov.usda.snap.income.deductions.standard.CONTIGUOUS_US[5]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2024-10-01: Axiom 244.0 (since 2023-10-01, us:policies/usda/snap/fy-2024-cola/deductions#snap_standard_deduction_48_states_dc_table),
+    PolicyEngine 254.0 (since 2024-10-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 2
+      stale-axiom: 1
+    axiom_ids:
+    - us:policies/usda/snap/fy-2024-cola/deductions#snap_standard_deduction_48_states_dc_table
+    - us:policies/usda/snap/fy-2026-cola/deductions#snap_standard_deduction_48_states_dc_table
+- program: snap
+  variable: gov.usda.snap.income.deductions.standard.CONTIGUOUS_US[6]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2024-10-01: Axiom 279.0 (since 2023-10-01, us:policies/usda/snap/fy-2024-cola/deductions#snap_standard_deduction_48_states_dc_table),
+    PolicyEngine 291.0 (since 2024-10-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 2
+      stale-axiom: 1
+    axiom_ids:
+    - us:policies/usda/snap/fy-2024-cola/deductions#snap_standard_deduction_48_states_dc_table
+    - us:policies/usda/snap/fy-2026-cola/deductions#snap_standard_deduction_48_states_dc_table
+- program: snap
+  variable: gov.usda.snap.income.deductions.standard.GU[1]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2024-10-01: Axiom 397.0 (since 2023-10-01, us:policies/usda/snap/fy-2024-cola/deductions#snap_standard_deduction_guam_table),
+    PolicyEngine 409.0 (since 2024-10-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 2
+      stale-axiom: 1
+    axiom_ids:
+    - us:policies/usda/snap/fy-2024-cola/deductions#snap_standard_deduction_guam_table
+    - us:policies/usda/snap/fy-2026-cola/deductions#snap_standard_deduction_guam_table
+- program: snap
+  variable: gov.usda.snap.income.deductions.standard.GU[2]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2024-10-01: Axiom 397.0 (since 2023-10-01, us:policies/usda/snap/fy-2024-cola/deductions#snap_standard_deduction_guam_table),
+    PolicyEngine 409.0 (since 2024-10-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 2
+      stale-axiom: 1
+    axiom_ids:
+    - us:policies/usda/snap/fy-2024-cola/deductions#snap_standard_deduction_guam_table
+    - us:policies/usda/snap/fy-2026-cola/deductions#snap_standard_deduction_guam_table
+- program: snap
+  variable: gov.usda.snap.income.deductions.standard.GU[3]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2024-10-01: Axiom 397.0 (since 2023-10-01, us:policies/usda/snap/fy-2024-cola/deductions#snap_standard_deduction_guam_table),
+    PolicyEngine 409.0 (since 2024-10-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 2
+      stale-axiom: 1
+    axiom_ids:
+    - us:policies/usda/snap/fy-2024-cola/deductions#snap_standard_deduction_guam_table
+    - us:policies/usda/snap/fy-2026-cola/deductions#snap_standard_deduction_guam_table
+- program: snap
+  variable: gov.usda.snap.income.deductions.standard.GU[4]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2024-10-01: Axiom 416.0 (since 2023-10-01, us:policies/usda/snap/fy-2024-cola/deductions#snap_standard_deduction_guam_table),
+    PolicyEngine 432.0 (since 2024-10-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 2
+      stale-axiom: 1
+    axiom_ids:
+    - us:policies/usda/snap/fy-2024-cola/deductions#snap_standard_deduction_guam_table
+    - us:policies/usda/snap/fy-2026-cola/deductions#snap_standard_deduction_guam_table
+- program: snap
+  variable: gov.usda.snap.income.deductions.standard.GU[5]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2024-10-01: Axiom 487.0 (since 2023-10-01, us:policies/usda/snap/fy-2024-cola/deductions#snap_standard_deduction_guam_table),
+    PolicyEngine 507.0 (since 2024-10-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 2
+      stale-axiom: 1
+    axiom_ids:
+    - us:policies/usda/snap/fy-2024-cola/deductions#snap_standard_deduction_guam_table
+    - us:policies/usda/snap/fy-2026-cola/deductions#snap_standard_deduction_guam_table
+- program: snap
+  variable: gov.usda.snap.income.deductions.standard.GU[6]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2024-10-01: Axiom 558.0 (since 2023-10-01, us:policies/usda/snap/fy-2024-cola/deductions#snap_standard_deduction_guam_table),
+    PolicyEngine 581.0 (since 2024-10-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 2
+      stale-axiom: 1
+    axiom_ids:
+    - us:policies/usda/snap/fy-2024-cola/deductions#snap_standard_deduction_guam_table
+    - us:policies/usda/snap/fy-2026-cola/deductions#snap_standard_deduction_guam_table
+- program: snap
+  variable: gov.usda.snap.income.deductions.standard.HI[1]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2024-10-01: Axiom 279.0 (since 2023-10-01, us:policies/usda/snap/fy-2024-cola/deductions#snap_standard_deduction_hawaii_table),
+    PolicyEngine 287.0 (since 2024-10-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 2
+      stale-axiom: 1
+    axiom_ids:
+    - us:policies/usda/snap/fy-2024-cola/deductions#snap_standard_deduction_hawaii_table
+    - us:policies/usda/snap/fy-2026-cola/deductions#snap_standard_deduction_hawaii_table
+- program: snap
+  variable: gov.usda.snap.income.deductions.standard.HI[2]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2024-10-01: Axiom 279.0 (since 2023-10-01, us:policies/usda/snap/fy-2024-cola/deductions#snap_standard_deduction_hawaii_table),
+    PolicyEngine 287.0 (since 2024-10-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 2
+      stale-axiom: 1
+    axiom_ids:
+    - us:policies/usda/snap/fy-2024-cola/deductions#snap_standard_deduction_hawaii_table
+    - us:policies/usda/snap/fy-2026-cola/deductions#snap_standard_deduction_hawaii_table
+- program: snap
+  variable: gov.usda.snap.income.deductions.standard.HI[3]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2024-10-01: Axiom 279.0 (since 2023-10-01, us:policies/usda/snap/fy-2024-cola/deductions#snap_standard_deduction_hawaii_table),
+    PolicyEngine 287.0 (since 2024-10-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 2
+      stale-axiom: 1
+    axiom_ids:
+    - us:policies/usda/snap/fy-2024-cola/deductions#snap_standard_deduction_hawaii_table
+    - us:policies/usda/snap/fy-2026-cola/deductions#snap_standard_deduction_hawaii_table
+- program: snap
+  variable: gov.usda.snap.income.deductions.standard.HI[4]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2024-10-01: Axiom 279.0 (since 2023-10-01, us:policies/usda/snap/fy-2024-cola/deductions#snap_standard_deduction_hawaii_table),
+    PolicyEngine 287.0 (since 2024-10-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 2
+      stale-axiom: 1
+    axiom_ids:
+    - us:policies/usda/snap/fy-2024-cola/deductions#snap_standard_deduction_hawaii_table
+    - us:policies/usda/snap/fy-2026-cola/deductions#snap_standard_deduction_hawaii_table
+- program: snap
+  variable: gov.usda.snap.income.deductions.standard.HI[5]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2024-10-01: Axiom 280.0 (since 2023-10-01, us:policies/usda/snap/fy-2024-cola/deductions#snap_standard_deduction_hawaii_table),
+    PolicyEngine 292.0 (since 2024-10-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 2
+      stale-axiom: 1
+    axiom_ids:
+    - us:policies/usda/snap/fy-2024-cola/deductions#snap_standard_deduction_hawaii_table
+    - us:policies/usda/snap/fy-2026-cola/deductions#snap_standard_deduction_hawaii_table
+- program: snap
+  variable: gov.usda.snap.income.deductions.standard.HI[6]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2024-10-01: Axiom 321.0 (since 2023-10-01, us:policies/usda/snap/fy-2024-cola/deductions#snap_standard_deduction_hawaii_table),
+    PolicyEngine 335.0 (since 2024-10-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 2
+      stale-axiom: 1
+    axiom_ids:
+    - us:policies/usda/snap/fy-2024-cola/deductions#snap_standard_deduction_hawaii_table
+    - us:policies/usda/snap/fy-2026-cola/deductions#snap_standard_deduction_hawaii_table
+- program: snap
+  variable: gov.usda.snap.income.deductions.standard.VI[1]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2024-10-01: Axiom 174.0 (since 2023-10-01, us:policies/usda/snap/fy-2024-cola/deductions#snap_standard_deduction_virgin_islands_table),
+    PolicyEngine 180.0 (since 2024-10-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 2
+      stale-axiom: 1
+    axiom_ids:
+    - us:policies/usda/snap/fy-2024-cola/deductions#snap_standard_deduction_virgin_islands_table
+    - us:policies/usda/snap/fy-2026-cola/deductions#snap_standard_deduction_virgin_islands_table
+- program: snap
+  variable: gov.usda.snap.income.deductions.standard.VI[2]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2024-10-01: Axiom 174.0 (since 2023-10-01, us:policies/usda/snap/fy-2024-cola/deductions#snap_standard_deduction_virgin_islands_table),
+    PolicyEngine 180.0 (since 2024-10-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 2
+      stale-axiom: 1
+    axiom_ids:
+    - us:policies/usda/snap/fy-2024-cola/deductions#snap_standard_deduction_virgin_islands_table
+    - us:policies/usda/snap/fy-2026-cola/deductions#snap_standard_deduction_virgin_islands_table
+- program: snap
+  variable: gov.usda.snap.income.deductions.standard.VI[3]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2024-10-01: Axiom 174.0 (since 2023-10-01, us:policies/usda/snap/fy-2024-cola/deductions#snap_standard_deduction_virgin_islands_table),
+    PolicyEngine 180.0 (since 2024-10-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 2
+      stale-axiom: 1
+    axiom_ids:
+    - us:policies/usda/snap/fy-2024-cola/deductions#snap_standard_deduction_virgin_islands_table
+    - us:policies/usda/snap/fy-2026-cola/deductions#snap_standard_deduction_virgin_islands_table
+- program: snap
+  variable: gov.usda.snap.income.deductions.standard.VI[4]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2024-10-01: Axiom 208.0 (since 2023-10-01, us:policies/usda/snap/fy-2024-cola/deductions#snap_standard_deduction_virgin_islands_table),
+    PolicyEngine 217.0 (since 2024-10-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 2
+      stale-axiom: 1
+    axiom_ids:
+    - us:policies/usda/snap/fy-2024-cola/deductions#snap_standard_deduction_virgin_islands_table
+    - us:policies/usda/snap/fy-2026-cola/deductions#snap_standard_deduction_virgin_islands_table
+- program: snap
+  variable: gov.usda.snap.income.deductions.standard.VI[5]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2024-10-01: Axiom 244.0 (since 2023-10-01, us:policies/usda/snap/fy-2024-cola/deductions#snap_standard_deduction_virgin_islands_table),
+    PolicyEngine 254.0 (since 2024-10-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 2
+      stale-axiom: 1
+    axiom_ids:
+    - us:policies/usda/snap/fy-2024-cola/deductions#snap_standard_deduction_virgin_islands_table
+    - us:policies/usda/snap/fy-2026-cola/deductions#snap_standard_deduction_virgin_islands_table
+- program: snap
+  variable: gov.usda.snap.income.deductions.standard.VI[6]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2024-10-01: Axiom 279.0 (since 2023-10-01, us:policies/usda/snap/fy-2024-cola/deductions#snap_standard_deduction_virgin_islands_table),
+    PolicyEngine 291.0 (since 2024-10-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 2
+      stale-axiom: 1
+    axiom_ids:
+    - us:policies/usda/snap/fy-2024-cola/deductions#snap_standard_deduction_virgin_islands_table
+    - us:policies/usda/snap/fy-2026-cola/deductions#snap_standard_deduction_virgin_islands_table
+- program: snap
+  variable: gov.usda.snap.max_allotment.main.AK_RURAL_1[1]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2024-10-01: Axiom 477.0 (since 2023-10-01, us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_alaska_rural_1_table),
+    PolicyEngine 481.0 (since 2024-10-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 2
+      stale-axiom: 1
+    axiom_ids:
+    - us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_alaska_rural_1_table
+    - us:policies/usda/snap/fy-2026-cola/maximum-allotments#snap_maximum_allotment_alaska_rural_1_table
+- program: snap
+  variable: gov.usda.snap.max_allotment.main.AK_RURAL_1[2]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2024-10-01: Axiom 875.0 (since 2023-10-01, us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_alaska_rural_1_table),
+    PolicyEngine 882.0 (since 2024-10-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 2
+      stale-axiom: 1
+    axiom_ids:
+    - us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_alaska_rural_1_table
+    - us:policies/usda/snap/fy-2026-cola/maximum-allotments#snap_maximum_allotment_alaska_rural_1_table
+- program: snap
+  variable: gov.usda.snap.max_allotment.main.AK_RURAL_1[3]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2024-10-01: Axiom 1253.0 (since 2023-10-01, us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_alaska_rural_1_table),
+    PolicyEngine 1263.0 (since 2024-10-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 2
+      stale-axiom: 1
+    axiom_ids:
+    - us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_alaska_rural_1_table
+    - us:policies/usda/snap/fy-2026-cola/maximum-allotments#snap_maximum_allotment_alaska_rural_1_table
+- program: snap
+  variable: gov.usda.snap.max_allotment.main.AK_RURAL_1[4]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2024-10-01: Axiom 1591.0 (since 2023-10-01, us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_alaska_rural_1_table),
+    PolicyEngine 1604.0 (since 2024-10-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 2
+      stale-axiom: 1
+    axiom_ids:
+    - us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_alaska_rural_1_table
+    - us:policies/usda/snap/fy-2026-cola/maximum-allotments#snap_maximum_allotment_alaska_rural_1_table
+- program: snap
+  variable: gov.usda.snap.max_allotment.main.AK_RURAL_1[5]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2024-10-01: Axiom 1890.0 (since 2023-10-01, us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_alaska_rural_1_table),
+    PolicyEngine 1905.0 (since 2024-10-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 2
+      stale-axiom: 1
+    axiom_ids:
+    - us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_alaska_rural_1_table
+    - us:policies/usda/snap/fy-2026-cola/maximum-allotments#snap_maximum_allotment_alaska_rural_1_table
+- program: snap
+  variable: gov.usda.snap.max_allotment.main.AK_RURAL_1[6]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2024-10-01: Axiom 2268.0 (since 2023-10-01, us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_alaska_rural_1_table),
+    PolicyEngine 2287.0 (since 2024-10-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 2
+      stale-axiom: 1
+    axiom_ids:
+    - us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_alaska_rural_1_table
+    - us:policies/usda/snap/fy-2026-cola/maximum-allotments#snap_maximum_allotment_alaska_rural_1_table
+- program: snap
+  variable: gov.usda.snap.max_allotment.main.AK_RURAL_1[7]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2024-10-01: Axiom 2506.0 (since 2023-10-01, us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_alaska_rural_1_table),
+    PolicyEngine 2527.0 (since 2024-10-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 2
+      stale-axiom: 1
+    axiom_ids:
+    - us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_alaska_rural_1_table
+    - us:policies/usda/snap/fy-2026-cola/maximum-allotments#snap_maximum_allotment_alaska_rural_1_table
+- program: snap
+  variable: gov.usda.snap.max_allotment.main.AK_RURAL_1[8]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2024-10-01: Axiom 2865.0 (since 2023-10-01, us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_alaska_rural_1_table),
+    PolicyEngine 2888.0 (since 2024-10-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 2
+      stale-axiom: 1
+    axiom_ids:
+    - us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_alaska_rural_1_table
+    - us:policies/usda/snap/fy-2026-cola/maximum-allotments#snap_maximum_allotment_alaska_rural_1_table
+- program: snap
+  variable: gov.usda.snap.max_allotment.main.AK_RURAL_2[1]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2024-10-01: Axiom 581.0 (since 2023-10-01, us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_alaska_rural_2_table),
+    PolicyEngine 586.0 (since 2024-10-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 2
+      stale-axiom: 1
+    axiom_ids:
+    - us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_alaska_rural_2_table
+    - us:policies/usda/snap/fy-2026-cola/maximum-allotments#snap_maximum_allotment_alaska_rural_2_table
+- program: snap
+  variable: gov.usda.snap.max_allotment.main.AK_RURAL_2[2]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2024-10-01: Axiom 1065.0 (since 2023-10-01, us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_alaska_rural_2_table),
+    PolicyEngine 1074.0 (since 2024-10-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 2
+      stale-axiom: 1
+    axiom_ids:
+    - us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_alaska_rural_2_table
+    - us:policies/usda/snap/fy-2026-cola/maximum-allotments#snap_maximum_allotment_alaska_rural_2_table
+- program: snap
+  variable: gov.usda.snap.max_allotment.main.AK_RURAL_2[3]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2024-10-01: Axiom 1525.0 (since 2023-10-01, us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_alaska_rural_2_table),
+    PolicyEngine 1538.0 (since 2024-10-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 2
+      stale-axiom: 1
+    axiom_ids:
+    - us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_alaska_rural_2_table
+    - us:policies/usda/snap/fy-2026-cola/maximum-allotments#snap_maximum_allotment_alaska_rural_2_table
+- program: snap
+  variable: gov.usda.snap.max_allotment.main.AK_RURAL_2[4]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2024-10-01: Axiom 1937.0 (since 2023-10-01, us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_alaska_rural_2_table),
+    PolicyEngine 1953.0 (since 2024-10-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 2
+      stale-axiom: 1
+    axiom_ids:
+    - us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_alaska_rural_2_table
+    - us:policies/usda/snap/fy-2026-cola/maximum-allotments#snap_maximum_allotment_alaska_rural_2_table
+- program: snap
+  variable: gov.usda.snap.max_allotment.main.AK_RURAL_2[5]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2024-10-01: Axiom 2300.0 (since 2023-10-01, us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_alaska_rural_2_table),
+    PolicyEngine 2319.0 (since 2024-10-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 2
+      stale-axiom: 1
+    axiom_ids:
+    - us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_alaska_rural_2_table
+    - us:policies/usda/snap/fy-2026-cola/maximum-allotments#snap_maximum_allotment_alaska_rural_2_table
+- program: snap
+  variable: gov.usda.snap.max_allotment.main.AK_RURAL_2[6]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2024-10-01: Axiom 2760.0 (since 2023-10-01, us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_alaska_rural_2_table),
+    PolicyEngine 2783.0 (since 2024-10-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 2
+      stale-axiom: 1
+    axiom_ids:
+    - us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_alaska_rural_2_table
+    - us:policies/usda/snap/fy-2026-cola/maximum-allotments#snap_maximum_allotment_alaska_rural_2_table
+- program: snap
+  variable: gov.usda.snap.max_allotment.main.AK_RURAL_2[7]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2024-10-01: Axiom 3051.0 (since 2023-10-01, us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_alaska_rural_2_table),
+    PolicyEngine 3076.0 (since 2024-10-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 2
+      stale-axiom: 1
+    axiom_ids:
+    - us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_alaska_rural_2_table
+    - us:policies/usda/snap/fy-2026-cola/maximum-allotments#snap_maximum_allotment_alaska_rural_2_table
+- program: snap
+  variable: gov.usda.snap.max_allotment.main.AK_RURAL_2[8]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2024-10-01: Axiom 3487.0 (since 2023-10-01, us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_alaska_rural_2_table),
+    PolicyEngine 3516.0 (since 2024-10-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 2
+      stale-axiom: 1
+    axiom_ids:
+    - us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_alaska_rural_2_table
+    - us:policies/usda/snap/fy-2026-cola/maximum-allotments#snap_maximum_allotment_alaska_rural_2_table
+- program: snap
+  variable: gov.usda.snap.max_allotment.main.AK_URBAN[1]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2024-10-01: Axiom 374.0 (since 2023-10-01, us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_alaska_urban_table),
+    PolicyEngine 377.0 (since 2024-10-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 2
+      stale-axiom: 1
+    axiom_ids:
+    - us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_alaska_urban_table
+    - us:policies/usda/snap/fy-2026-cola/maximum-allotments#snap_maximum_allotment_alaska_urban_table
+- program: snap
+  variable: gov.usda.snap.max_allotment.main.AK_URBAN[2]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2024-10-01: Axiom 686.0 (since 2023-10-01, us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_alaska_urban_table),
+    PolicyEngine 692.0 (since 2024-10-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 2
+      stale-axiom: 1
+    axiom_ids:
+    - us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_alaska_urban_table
+    - us:policies/usda/snap/fy-2026-cola/maximum-allotments#snap_maximum_allotment_alaska_urban_table
+- program: snap
+  variable: gov.usda.snap.max_allotment.main.AK_URBAN[3]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2024-10-01: Axiom 983.0 (since 2023-10-01, us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_alaska_urban_table),
+    PolicyEngine 991.0 (since 2024-10-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 2
+      stale-axiom: 1
+    axiom_ids:
+    - us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_alaska_urban_table
+    - us:policies/usda/snap/fy-2026-cola/maximum-allotments#snap_maximum_allotment_alaska_urban_table
+- program: snap
+  variable: gov.usda.snap.max_allotment.main.AK_URBAN[4]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2024-10-01: Axiom 1248.0 (since 2023-10-01, us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_alaska_urban_table),
+    PolicyEngine 1258.0 (since 2024-10-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 2
+      stale-axiom: 1
+    axiom_ids:
+    - us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_alaska_urban_table
+    - us:policies/usda/snap/fy-2026-cola/maximum-allotments#snap_maximum_allotment_alaska_urban_table
+- program: snap
+  variable: gov.usda.snap.max_allotment.main.AK_URBAN[5]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2024-10-01: Axiom 1482.0 (since 2023-10-01, us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_alaska_urban_table),
+    PolicyEngine 1494.0 (since 2024-10-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 2
+      stale-axiom: 1
+    axiom_ids:
+    - us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_alaska_urban_table
+    - us:policies/usda/snap/fy-2026-cola/maximum-allotments#snap_maximum_allotment_alaska_urban_table
+- program: snap
+  variable: gov.usda.snap.max_allotment.main.AK_URBAN[6]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2024-10-01: Axiom 1778.0 (since 2023-10-01, us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_alaska_urban_table),
+    PolicyEngine 1793.0 (since 2024-10-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 2
+      stale-axiom: 1
+    axiom_ids:
+    - us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_alaska_urban_table
+    - us:policies/usda/snap/fy-2026-cola/maximum-allotments#snap_maximum_allotment_alaska_urban_table
+- program: snap
+  variable: gov.usda.snap.max_allotment.main.AK_URBAN[7]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2024-10-01: Axiom 1966.0 (since 2023-10-01, us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_alaska_urban_table),
+    PolicyEngine 1982.0 (since 2024-10-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 2
+      stale-axiom: 1
+    axiom_ids:
+    - us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_alaska_urban_table
+    - us:policies/usda/snap/fy-2026-cola/maximum-allotments#snap_maximum_allotment_alaska_urban_table
+- program: snap
+  variable: gov.usda.snap.max_allotment.main.AK_URBAN[8]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2024-10-01: Axiom 2246.0 (since 2023-10-01, us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_alaska_urban_table),
+    PolicyEngine 2265.0 (since 2024-10-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 2
+      stale-axiom: 1
+    axiom_ids:
+    - us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_alaska_urban_table
+    - us:policies/usda/snap/fy-2026-cola/maximum-allotments#snap_maximum_allotment_alaska_urban_table
+- program: snap
+  variable: gov.usda.snap.max_allotment.main.CONTIGUOUS_US[1]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2024-10-01: Axiom 291.0 (since 2023-10-01, us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_table),
+    PolicyEngine 292.0 (since 2024-10-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 2
+      stale-axiom: 1
+    axiom_ids:
+    - us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_table
+    - us:policies/usda/snap/fy-2026-cola/maximum-allotments#snap_maximum_allotment_table
+- program: snap
+  variable: gov.usda.snap.max_allotment.main.CONTIGUOUS_US[2]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2024-10-01: Axiom 535.0 (since 2023-10-01, us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_table),
+    PolicyEngine 536.0 (since 2024-10-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 2
+      stale-axiom: 1
+    axiom_ids:
+    - us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_table
+    - us:policies/usda/snap/fy-2026-cola/maximum-allotments#snap_maximum_allotment_table
+- program: snap
+  variable: gov.usda.snap.max_allotment.main.CONTIGUOUS_US[3]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2024-10-01: Axiom 766.0 (since 2023-10-01, us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_table),
+    PolicyEngine 768.0 (since 2024-10-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 2
+      stale-axiom: 1
+    axiom_ids:
+    - us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_table
+    - us:policies/usda/snap/fy-2026-cola/maximum-allotments#snap_maximum_allotment_table
+- program: snap
+  variable: gov.usda.snap.max_allotment.main.CONTIGUOUS_US[4]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2024-10-01: Axiom 973.0 (since 2023-10-01, us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_table),
+    PolicyEngine 975.0 (since 2024-10-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 2
+      stale-axiom: 1
+    axiom_ids:
+    - us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_table
+    - us:policies/usda/snap/fy-2026-cola/maximum-allotments#snap_maximum_allotment_table
+- program: snap
+  variable: gov.usda.snap.max_allotment.main.CONTIGUOUS_US[5]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2024-10-01: Axiom 1155.0 (since 2023-10-01, us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_table),
+    PolicyEngine 1158.0 (since 2024-10-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 2
+      stale-axiom: 1
+    axiom_ids:
+    - us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_table
+    - us:policies/usda/snap/fy-2026-cola/maximum-allotments#snap_maximum_allotment_table
+- program: snap
+  variable: gov.usda.snap.max_allotment.main.CONTIGUOUS_US[6]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2024-10-01: Axiom 1386.0 (since 2023-10-01, us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_table),
+    PolicyEngine 1390.0 (since 2024-10-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 2
+      stale-axiom: 1
+    axiom_ids:
+    - us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_table
+    - us:policies/usda/snap/fy-2026-cola/maximum-allotments#snap_maximum_allotment_table
+- program: snap
+  variable: gov.usda.snap.max_allotment.main.CONTIGUOUS_US[7]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2024-10-01: Axiom 1532.0 (since 2023-10-01, us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_table),
+    PolicyEngine 1536.0 (since 2024-10-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 2
+      stale-axiom: 1
+    axiom_ids:
+    - us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_table
+    - us:policies/usda/snap/fy-2026-cola/maximum-allotments#snap_maximum_allotment_table
+- program: snap
+  variable: gov.usda.snap.max_allotment.main.CONTIGUOUS_US[8]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2024-10-01: Axiom 1751.0 (since 2023-10-01, us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_table),
+    PolicyEngine 1756.0 (since 2024-10-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 2
+      stale-axiom: 1
+    axiom_ids:
+    - us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_table
+    - us:policies/usda/snap/fy-2026-cola/maximum-allotments#snap_maximum_allotment_table
+- program: snap
+  variable: gov.usda.snap.max_allotment.main.GU[1]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2024-10-01: Axiom 430.0 (since 2023-10-01, us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_guam_table),
+    PolicyEngine 431.0 (since 2024-10-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 2
+      stale-axiom: 1
+    axiom_ids:
+    - us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_guam_table
+    - us:policies/usda/snap/fy-2026-cola/maximum-allotments#snap_maximum_allotment_guam_table
+- program: snap
+  variable: gov.usda.snap.max_allotment.main.GU[2]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2024-10-01: Axiom 788.0 (since 2023-10-01, us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_guam_table),
+    PolicyEngine 790.0 (since 2024-10-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 2
+      stale-axiom: 1
+    axiom_ids:
+    - us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_guam_table
+    - us:policies/usda/snap/fy-2026-cola/maximum-allotments#snap_maximum_allotment_guam_table
+- program: snap
+  variable: gov.usda.snap.max_allotment.main.GU[3]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2024-10-01: Axiom 1129.0 (since 2023-10-01, us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_guam_table),
+    PolicyEngine 1132.0 (since 2024-10-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 2
+      stale-axiom: 1
+    axiom_ids:
+    - us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_guam_table
+    - us:policies/usda/snap/fy-2026-cola/maximum-allotments#snap_maximum_allotment_guam_table
+- program: snap
+  variable: gov.usda.snap.max_allotment.main.GU[4]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2024-10-01: Axiom 1434.0 (since 2023-10-01, us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_guam_table),
+    PolicyEngine 1437.0 (since 2024-10-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 2
+      stale-axiom: 1
+    axiom_ids:
+    - us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_guam_table
+    - us:policies/usda/snap/fy-2026-cola/maximum-allotments#snap_maximum_allotment_guam_table
+- program: snap
+  variable: gov.usda.snap.max_allotment.main.GU[5]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2024-10-01: Axiom 1703.0 (since 2023-10-01, us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_guam_table),
+    PolicyEngine 1707.0 (since 2024-10-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 2
+      stale-axiom: 1
+    axiom_ids:
+    - us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_guam_table
+    - us:policies/usda/snap/fy-2026-cola/maximum-allotments#snap_maximum_allotment_guam_table
+- program: snap
+  variable: gov.usda.snap.max_allotment.main.GU[6]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2024-10-01: Axiom 2044.0 (since 2023-10-01, us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_guam_table),
+    PolicyEngine 2049.0 (since 2024-10-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 2
+      stale-axiom: 1
+    axiom_ids:
+    - us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_guam_table
+    - us:policies/usda/snap/fy-2026-cola/maximum-allotments#snap_maximum_allotment_guam_table
+- program: snap
+  variable: gov.usda.snap.max_allotment.main.GU[7]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2024-10-01: Axiom 2259.0 (since 2023-10-01, us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_guam_table),
+    PolicyEngine 2264.0 (since 2024-10-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 2
+      stale-axiom: 1
+    axiom_ids:
+    - us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_guam_table
+    - us:policies/usda/snap/fy-2026-cola/maximum-allotments#snap_maximum_allotment_guam_table
+- program: snap
+  variable: gov.usda.snap.max_allotment.main.GU[8]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2024-10-01: Axiom 2581.0 (since 2023-10-01, us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_guam_table),
+    PolicyEngine 2588.0 (since 2024-10-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 2
+      stale-axiom: 1
+    axiom_ids:
+    - us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_guam_table
+    - us:policies/usda/snap/fy-2026-cola/maximum-allotments#snap_maximum_allotment_guam_table
+- program: snap
+  variable: gov.usda.snap.max_allotment.main.HI[1]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2024-10-01: Axiom 527.0 (since 2023-10-01, us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_hawaii_table),
+    PolicyEngine 517.0 (since 2024-10-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 2
+      stale-axiom: 1
+    axiom_ids:
+    - us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_hawaii_table
+    - us:policies/usda/snap/fy-2026-cola/maximum-allotments#snap_maximum_allotment_hawaii_table
+- program: snap
+  variable: gov.usda.snap.max_allotment.main.HI[2]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2024-10-01: Axiom 967.0 (since 2023-10-01, us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_hawaii_table),
+    PolicyEngine 948.0 (since 2024-10-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 2
+      stale-axiom: 1
+    axiom_ids:
+    - us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_hawaii_table
+    - us:policies/usda/snap/fy-2026-cola/maximum-allotments#snap_maximum_allotment_hawaii_table
+- program: snap
+  variable: gov.usda.snap.max_allotment.main.HI[3]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2024-10-01: Axiom 1385.0 (since 2023-10-01, us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_hawaii_table),
+    PolicyEngine 1357.0 (since 2024-10-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 2
+      stale-axiom: 1
+    axiom_ids:
+    - us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_hawaii_table
+    - us:policies/usda/snap/fy-2026-cola/maximum-allotments#snap_maximum_allotment_hawaii_table
+- program: snap
+  variable: gov.usda.snap.max_allotment.main.HI[4]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2024-10-01: Axiom 1759.0 (since 2023-10-01, us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_hawaii_table),
+    PolicyEngine 1723.0 (since 2024-10-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 2
+      stale-axiom: 1
+    axiom_ids:
+    - us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_hawaii_table
+    - us:policies/usda/snap/fy-2026-cola/maximum-allotments#snap_maximum_allotment_hawaii_table
+- program: snap
+  variable: gov.usda.snap.max_allotment.main.HI[5]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2024-10-01: Axiom 2088.0 (since 2023-10-01, us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_hawaii_table),
+    PolicyEngine 2046.0 (since 2024-10-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 2
+      stale-axiom: 1
+    axiom_ids:
+    - us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_hawaii_table
+    - us:policies/usda/snap/fy-2026-cola/maximum-allotments#snap_maximum_allotment_hawaii_table
+- program: snap
+  variable: gov.usda.snap.max_allotment.main.HI[6]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2024-10-01: Axiom 2506.0 (since 2023-10-01, us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_hawaii_table),
+    PolicyEngine 2456.0 (since 2024-10-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 2
+      stale-axiom: 1
+    axiom_ids:
+    - us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_hawaii_table
+    - us:policies/usda/snap/fy-2026-cola/maximum-allotments#snap_maximum_allotment_hawaii_table
+- program: snap
+  variable: gov.usda.snap.max_allotment.main.HI[7]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2024-10-01: Axiom 2770.0 (since 2023-10-01, us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_hawaii_table),
+    PolicyEngine 2714.0 (since 2024-10-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 2
+      stale-axiom: 1
+    axiom_ids:
+    - us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_hawaii_table
+    - us:policies/usda/snap/fy-2026-cola/maximum-allotments#snap_maximum_allotment_hawaii_table
+- program: snap
+  variable: gov.usda.snap.max_allotment.main.HI[8]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2024-10-01: Axiom 3166.0 (since 2023-10-01, us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_hawaii_table),
+    PolicyEngine 3102.0 (since 2024-10-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 2
+      stale-axiom: 1
+    axiom_ids:
+    - us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_hawaii_table
+    - us:policies/usda/snap/fy-2026-cola/maximum-allotments#snap_maximum_allotment_hawaii_table
+- program: snap
+  variable: gov.usda.snap.max_allotment.main.VI[1]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2024-10-01: Axiom 375.0 (since 2023-10-01, us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_virgin_islands_table),
+    PolicyEngine 376.0 (since 2024-10-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 2
+      stale-axiom: 1
+    axiom_ids:
+    - us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_virgin_islands_table
+    - us:policies/usda/snap/fy-2026-cola/maximum-allotments#snap_maximum_allotment_virgin_islands_table
+- program: snap
+  variable: gov.usda.snap.max_allotment.main.VI[2]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2024-10-01: Axiom 688.0 (since 2023-10-01, us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_virgin_islands_table),
+    PolicyEngine 689.0 (since 2024-10-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 2
+      stale-axiom: 1
+    axiom_ids:
+    - us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_virgin_islands_table
+    - us:policies/usda/snap/fy-2026-cola/maximum-allotments#snap_maximum_allotment_virgin_islands_table
+- program: snap
+  variable: gov.usda.snap.max_allotment.main.VI[3]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2024-10-01: Axiom 985.0 (since 2023-10-01, us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_virgin_islands_table),
+    PolicyEngine 987.0 (since 2024-10-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 2
+      stale-axiom: 1
+    axiom_ids:
+    - us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_virgin_islands_table
+    - us:policies/usda/snap/fy-2026-cola/maximum-allotments#snap_maximum_allotment_virgin_islands_table
+- program: snap
+  variable: gov.usda.snap.max_allotment.main.VI[4]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2024-10-01: Axiom 1251.0 (since 2023-10-01, us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_virgin_islands_table),
+    PolicyEngine 1254.0 (since 2024-10-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 2
+      stale-axiom: 1
+    axiom_ids:
+    - us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_virgin_islands_table
+    - us:policies/usda/snap/fy-2026-cola/maximum-allotments#snap_maximum_allotment_virgin_islands_table
+- program: snap
+  variable: gov.usda.snap.max_allotment.main.VI[5]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2024-10-01: Axiom 1485.0 (since 2023-10-01, us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_virgin_islands_table),
+    PolicyEngine 1489.0 (since 2024-10-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 2
+      stale-axiom: 1
+    axiom_ids:
+    - us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_virgin_islands_table
+    - us:policies/usda/snap/fy-2026-cola/maximum-allotments#snap_maximum_allotment_virgin_islands_table
+- program: snap
+  variable: gov.usda.snap.max_allotment.main.VI[6]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2024-10-01: Axiom 1782.0 (since 2023-10-01, us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_virgin_islands_table),
+    PolicyEngine 1787.0 (since 2024-10-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 2
+      stale-axiom: 1
+    axiom_ids:
+    - us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_virgin_islands_table
+    - us:policies/usda/snap/fy-2026-cola/maximum-allotments#snap_maximum_allotment_virgin_islands_table
+- program: snap
+  variable: gov.usda.snap.max_allotment.main.VI[7]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2024-10-01: Axiom 1970.0 (since 2023-10-01, us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_virgin_islands_table),
+    PolicyEngine 1975.0 (since 2024-10-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 2
+      stale-axiom: 1
+    axiom_ids:
+    - us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_virgin_islands_table
+    - us:policies/usda/snap/fy-2026-cola/maximum-allotments#snap_maximum_allotment_virgin_islands_table
+- program: snap
+  variable: gov.usda.snap.max_allotment.main.VI[8]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-axiom from 2024-10-01: Axiom 2252.0 (since 2023-10-01, us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_virgin_islands_table),
+    PolicyEngine 2257.0 (since 2024-10-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      match: 2
+      stale-axiom: 1
+    axiom_ids:
+    - us:policies/usda/snap/fy-2024-cola/maximum-allotments#snap_maximum_allotment_virgin_islands_table
+    - us:policies/usda/snap/fy-2026-cola/maximum-allotments#snap_maximum_allotment_virgin_islands_table
+- program: doe_high_efficiency_rebate
+  variable: gov.doe.high_efficiency_electric_home_rebate.cap.electric_load_service_center_upgrade
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-pe from 2022-08-16: Axiom 4000.0 (since 2022-08-16, us:statutes/42/18795a/c/3#electric_load_service_center_upgrade_rebate_cap),
+    PolicyEngine 0.0 (since 0000-01-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      stale-pe: 1
+      match: 1
+    axiom_ids:
+    - us:statutes/42/18795a/c/3#electric_load_service_center_upgrade_rebate_cap
+- program: doe_high_efficiency_rebate
+  variable: gov.doe.high_efficiency_electric_home_rebate.cap.electric_stove_cooktop_range_or_oven
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-pe from 2022-08-16: Axiom 840.0 (since 2022-08-16, us:statutes/42/18795a/c/3#electric_stove_cooktop_range_oven_or_heat_pump_clothes_dryer_rebate_cap),
+    PolicyEngine 0.0 (since 0000-01-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      stale-pe: 1
+      match: 1
+    axiom_ids:
+    - us:statutes/42/18795a/c/3#electric_stove_cooktop_range_oven_or_heat_pump_clothes_dryer_rebate_cap
+- program: doe_high_efficiency_rebate
+  variable: gov.doe.high_efficiency_electric_home_rebate.cap.electric_wiring
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-pe from 2022-08-16: Axiom 2500.0 (since 2022-08-16, us:statutes/42/18795a/c/3#electric_wiring_rebate_cap),
+    PolicyEngine 0.0 (since 0000-01-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      stale-pe: 1
+      match: 1
+    axiom_ids:
+    - us:statutes/42/18795a/c/3#electric_wiring_rebate_cap
+- program: doe_high_efficiency_rebate
+  variable: gov.doe.high_efficiency_electric_home_rebate.cap.heat_pump
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-pe from 2022-08-16: Axiom 8000.0 (since 2022-08-16, us:statutes/42/18795a/c/3#heat_pump_space_heating_or_cooling_rebate_cap),
+    PolicyEngine 0.0 (since 0000-01-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      stale-pe: 1
+      match: 1
+    axiom_ids:
+    - us:statutes/42/18795a/c/3#heat_pump_space_heating_or_cooling_rebate_cap
+- program: doe_high_efficiency_rebate
+  variable: gov.doe.high_efficiency_electric_home_rebate.cap.heat_pump_water_heater
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-pe from 2022-08-16: Axiom 1750.0 (since 2022-08-16, us:statutes/42/18795a/c/3#heat_pump_water_heater_rebate_cap),
+    PolicyEngine 0.0 (since 0000-01-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      stale-pe: 1
+      match: 1
+    axiom_ids:
+    - us:statutes/42/18795a/c/3#heat_pump_water_heater_rebate_cap
+- program: doe_high_efficiency_rebate
+  variable: gov.doe.high_efficiency_electric_home_rebate.cap.insulation_air_sealing_ventilation
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-pe from 2022-08-16: Axiom 1600.0 (since 2022-08-16, us:statutes/42/18795a/c/3#insulation_air_sealing_and_ventilation_rebate_cap),
+    PolicyEngine 0.0 (since 0000-01-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      stale-pe: 1
+      match: 1
+    axiom_ids:
+    - us:statutes/42/18795a/c/3#insulation_air_sealing_and_ventilation_rebate_cap
+- program: doe_high_efficiency_rebate
+  variable: gov.doe.high_efficiency_electric_home_rebate.cap.total
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-pe from 2022-08-16: Axiom 14000.0 (since 2022-08-16, us:statutes/42/18795a/c/3#eligible_entity_multiple_rebate_total_cap),
+    PolicyEngine 0.0 (since 0000-01-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      stale-pe: 1
+      match: 1
+    axiom_ids:
+    - us:statutes/42/18795a/c/3#eligible_entity_multiple_rebate_total_cap
+- program: doe_high_efficiency_rebate
+  variable: gov.doe.high_efficiency_electric_home_rebate.percent_covered[amounts][0]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-pe from 2022-08-16: Axiom 1.0 (since 2022-08-16, us:statutes/42/18795a/c/4#full_project_cost_rebate_cap_rate),
+    PolicyEngine 0.0 (since 0000-01-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      stale-pe: 1
+      match: 1
+    axiom_ids:
+    - us:statutes/42/18795a/c/4#full_project_cost_rebate_cap_rate
+- program: doe_high_efficiency_rebate
+  variable: gov.doe.high_efficiency_electric_home_rebate.percent_covered[amounts][1]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-pe from 2022-08-16: Axiom 0.5 (since 2022-08-16, us:statutes/42/18795a/c/4#partial_project_cost_rebate_cap_rate),
+    PolicyEngine 0.0 (since 0000-01-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      stale-pe: 1
+      match: 1
+    axiom_ids:
+    - us:statutes/42/18795a/c/4#partial_project_cost_rebate_cap_rate
+- program: doe_efficiency_rebate
+  variable: gov.doe.residential_efficiency_electrification_rebate.cap.high[amounts][0]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-pe from 2022-08-16: Axiom 8000.0 (since 2022-08-16, us:statutes/42/18795/c/2#low_or_moderate_income_higher_modeled_amount_cap),
+    PolicyEngine 0.0 (since 0000-01-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      stale-pe: 1
+      match: 1
+    axiom_ids:
+    - us:statutes/42/18795/c/2#low_or_moderate_income_higher_modeled_amount_cap
+- program: doe_efficiency_rebate
+  variable: gov.doe.residential_efficiency_electrification_rebate.cap.high[amounts][1]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-pe from 2022-08-16: Axiom 4000.0 (since 2022-08-16, us:statutes/42/18795/c/2#standard_single_family_higher_modeled_amount_cap),
+    PolicyEngine 0.0 (since 0000-01-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      stale-pe: 1
+      match: 1
+    axiom_ids:
+    - us:statutes/42/18795/c/2#standard_single_family_higher_modeled_amount_cap
+- program: doe_efficiency_rebate
+  variable: gov.doe.residential_efficiency_electrification_rebate.cap.medium[amounts][0]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-pe from 2022-08-16: Axiom 4000.0 (since 2022-08-16, us:statutes/42/18795/c/2#low_or_moderate_income_lower_modeled_amount_cap),
+    PolicyEngine 0.0 (since 0000-01-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      stale-pe: 1
+      match: 1
+    axiom_ids:
+    - us:statutes/42/18795/c/2#low_or_moderate_income_lower_modeled_amount_cap
+- program: doe_efficiency_rebate
+  variable: gov.doe.residential_efficiency_electrification_rebate.cap.medium[amounts][1]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-pe from 2022-08-16: Axiom 2000.0 (since 2022-08-16, us:statutes/42/18795/c/2#standard_single_family_lower_modeled_amount_cap),
+    PolicyEngine 0.0 (since 0000-01-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      stale-pe: 1
+      match: 1
+    axiom_ids:
+    - us:statutes/42/18795/c/2#standard_single_family_lower_modeled_amount_cap
+- program: doe_efficiency_rebate
+  variable: gov.doe.residential_efficiency_electrification_rebate.percent[amounts][0]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-pe from 2022-08-16: Axiom 0.8 (since 2022-08-16, us:statutes/42/18795/c/2#low_or_moderate_income_project_cost_cap_rate),
+    PolicyEngine 0.0 (since 0000-01-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      stale-pe: 1
+      match: 1
+    axiom_ids:
+    - us:statutes/42/18795/c/2#low_or_moderate_income_project_cost_cap_rate
+- program: doe_efficiency_rebate
+  variable: gov.doe.residential_efficiency_electrification_rebate.percent[amounts][1]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-pe from 2022-08-16: Axiom 0.5 (since 2022-08-16, us:statutes/42/18795/c/2#standard_project_cost_cap_rate),
+    PolicyEngine 0.0 (since 0000-01-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      stale-pe: 1
+      match: 1
+    axiom_ids:
+    - us:statutes/42/18795/c/2#standard_project_cost_cap_rate
+- program: tax
+  variable: gov.irs.credits.ctc.refundable.phase_in.threshold
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-pe from 2026-01-01: Axiom 3000.0 (since 2026-01-01, us:statutes/26/24/d#ctc_refundable_phase_in_threshold),
+    PolicyEngine 2500.0 (since 2018-01-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      stale-pe: 1
+    axiom_ids:
+    - us:statutes/26/24/d#ctc_refundable_phase_in_threshold
+- program: ssi_state_supplement
+  variable: gov.states.mi.mdhhs.ssp.payment.couple[HOUSEHOLD_OF_ANOTHER]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-pe from 2026-01-01: Axiom 6.98 (since 2026-01-01, us-mi:policies/mdhhs/rft/248#household_of_another_couple_state_ssi_payment),
+    PolicyEngine 13.96 (since 2015-01-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      stale-pe: 1
+    axiom_ids:
+    - us-mi:policies/mdhhs/rft/248#household_of_another_couple_state_ssi_payment
+- program: ssi_state_supplement
+  variable: gov.states.mi.mdhhs.ssp.payment.couple[INDEPENDENT_LIVING]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-pe from 2026-01-01: Axiom 10.5 (since 2026-01-01, us-mi:policies/mdhhs/rft/248#independent_living_couple_state_ssi_payment),
+    PolicyEngine 21.0 (since 2015-01-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      stale-pe: 1
+    axiom_ids:
+    - us-mi:policies/mdhhs/rft/248#independent_living_couple_state_ssi_payment
+- program: snap
+  variable: gov.usda.snap.income.deductions.excess_medical_expense.standard[AZ]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'stale-pe from 2016-10-01: Axiom 145.0 (since 2016-10-01, us-az:policies/des/faa5/na-medical-expenses-and-deduction/medical-deduction#standard_medical_deduction_net_amount),
+    PolicyEngine 0.0 (since 2010-01-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      stale-pe: 1
+      match: 1
+    axiom_ids:
+    - us-az:policies/des/faa5/na-medical-expenses-and-deduction/medical-deduction#standard_medical_deduction_net_amount

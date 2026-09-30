@@ -1,0 +1,563 @@
+# policyengine-axiom bindings for us-co/snap-fy2026 (cut profile: read from a live PolicyEngine simulation).
+# Imported from policyengine-axiom manifests/us-co-snap-fy2026.json at 3a9222d; edit here, then export with
+# python -m axiom_mappings.export.policyengine_axiom --out <policyengine-axiom>/manifests
+program: us-co/snap-fy2026
+profile: cut
+consumers:
+- policyengine-axiom
+source_path: composed/fy-2026-benefit-calculation.yaml
+composed: true
+root_entity: Household
+entity_map:
+  Household: spm_unit
+  Person: person
+parameters:
+  project: false
+  alias: false
+scope: {household_of: {map_of: {variable: state_code, values: {CO: 1}, default: 0}}}
+notes:
+  parameters_note: 'Not projected: the composition''s own parameters are two boarder constants; the SNAP tables
+    live in imported modules, which projection does not read. A reform on a mapped PE path therefore unbinds (rule
+    4) instead of pinning.'
+  scope_note: 'D37: the composition is Colorado law (10 CCR 2506-1 over the federal FY 2026 tables). Outside Colorado
+    PE''s own formula answers; the shadow compares Colorado rows only.'
+  effective_note: 'D40: the composition carries the FY 2026 tables (effective 2025-10-01). From 2026-10-01 PE uprates
+    the tables to FY 2027; outside the window PE answers and the shadow compares nothing.'
+  inputs_note: 'Every slot the composition reads is listed: a PE variable, an adapter, or a const presumption (false
+    / 0 / 1 for divisors). Scaffolded by scripts/scaffold_manifest_inputs.py; column types verified against the
+    engine output by output.'
+inputs:
+  household_size: snap_unit_size
+  household_size_including_disqualified_members: snap_unit_size
+  remaining_household_member_count: snap_unit_size
+  snap_countable_earned_income: snap_earned_income
+  other_gain_or_benefit_payments: snap_unearned_income
+  household_shelter_costs_incurred: {per_month_of: housing_cost}
+  household_incurred_or_anticipated_heating_or_cooling_costs_separate_from_rent_or_mortgage: has_heating_cooling_expense
+  dependent_care_expenses_paid: snap_dependent_care_deduction
+  dependent_care_expense_necessary_for_work_or_training: {positive_of: snap_dependent_care_deduction}
+  child_support_payment_verified: {positive_of: snap_countable_child_support_expense}
+  average_monthly_child_support_paid: snap_countable_child_support_expense
+  total_medical_expenses: {sum_members_of: {variable: snap_allowable_medical_expenses, where: {any_of: [is_usda_elderly,
+          is_usda_disabled]}, per_month: true}}
+  snap_expanded_categorical_eligible: meets_snap_categorical_eligibility
+  all_household_members_experiencing_homelessness: {household_of: is_homeless}
+  homeless_household_has_shelter_costs: {positive_of: housing_cost}
+  liquid_resource_current_redemption_rate: {level_of: snap_assets}
+  household_received_leap_or_e_ebt_payment_within_previous_12_months: snap_state_using_standard_utility_allowance
+  household_pays_electricity_utility_cost: {positive_of: pre_subsidy_electricity_expense}
+  household_pays_water_utility_cost: {positive_of: water_expense}
+  household_pays_sewer_utility_cost: {positive_of: sewage_expense}
+  household_pays_trash_utility_cost: {positive_of: trash_expense}
+  household_pays_cooking_fuel_utility_cost: {positive_of: gas_expense}
+  household_pays_telephone_service_cost: {positive_of: phone_expense}
+presumed:
+  data-period:
+    child_support_payment_history_months: 12.0
+    income_pay_frequency: monthly
+  neutral-divisor:
+    farm_loss_period_months: 1.0
+    self_employment_income_period_months: 1.0
+    real_property_assessment_percentage_rate: 1.0
+    intended_beneficiary_count: 1.0
+    known_previous_month_count: 1.0
+    educational_income_intended_cover_months: 1.0
+    total_people_covered_by_combined_wage_count: 1.0
+    income_intended_cover_months: 1.0
+    total_people_paying_or_contributing_to_shared_expenses: 1.0
+    fluctuating_income_intended_cover_months: 1.0
+  not-in-data:
+    snap_basic_categorical_eligible: false
+    cash_on_hand: 0.0
+    initial_application_month: false
+    application_date: 0.0
+    public_institution_release_date: 0.0
+    anticipated_income_amount_reasonably_certain: false
+    anticipated_income_receipt_month_reasonably_certain: false
+    anticipated_income_certain_portion: 0.0
+    income_received_within_past_30_days: false
+    anticipated_income_change_requires_adjustment: false
+    income_received_in_past_30_days: 0.0
+    longer_past_period_more_accurate_for_anticipated_income: false
+    longer_past_period_average_income: 0.0
+    seasonal_income_last_season_more_accurate: false
+    last_season_average_income: 0.0
+    eligible_striker: false
+    striker_income_for_prospective_budgeting: 0.0
+    disqualified_or_sanctioned_member_count: 0.0
+    substantial_increase_or_decrease_in_business: false
+    self_employment_income_is_from_new_source: false
+    other_self_employment_income: 0.0
+    expected_gross_annual_farm_income: 0.0
+    farm_income_production_costs_for_period: 0.0
+    farm_gross_income_for_period: 0.0
+    household_only_income_from_new_source: false
+    new_source_income_amount: 0.0
+    new_source_income_normally_received_monthly_or_more_frequently: false
+    income_received_from_new_source_within_30_days_before_filing: false
+    income_received_within_last_normal_interval_between_payments: false
+    new_source_income_received_by_tenth_calendar_day: false
+    earned_income_excluding_farm_and_self_employment: 0.0
+    other_unearned_income: 0.0
+    household_goods_personal_effects_life_insurance_and_exempt_livestock_value: 0.0
+    self_employment_gross_income_for_period: 0.0
+    self_employment_capital_gains_for_period: 0.0
+    allowable_self_employment_business_costs_for_period: 0.0
+    nonrecurring_lump_sum_payment_received: false
+    lump_sum_excluded_as_resource_by_federal_law: false
+    nonrecurring_lump_sum_payment_remaining_as_resource: 0.0
+    liquid_resource_encumbrances: 0.0
+    non_liquid_resource_market_value: 0.0
+    non_liquid_resource_condition_adjustment: 0.0
+    non_liquid_resource_verified_encumbrances: 0.0
+    real_property_actual_value_reported_by_county_assessor: false
+    real_property_county_assessor_actual_value: 0.0
+    real_property_current_assessed_valuation: 0.0
+    real_property_amount_owed: 0.0
+    other_household_resource_value: 0.0
+    household_vehicle_resource_value: 0.0
+    home_and_surrounding_property_owned_or_purchased: false
+    household_occupies_home: false
+    temporary_absence_for_allowed_reason_with_intent_to_return: false
+    household_intends_to_build_permanent_home_on_property: false
+    home_and_surrounding_property_value: 0.0
+    prorated_income_still_being_counted_as_income: false
+    prorated_income_resource_value: 0.0
+    federal_tax_preferred_retirement_account_value: 0.0
+    tax_deferred_education_account_value: 0.0
+    bona_fide_prepaid_funeral_agreement: false
+    prepaid_funeral_agreement_equity_value_excluding_burial_plot: 0.0
+    property_produces_annual_income_consistent_with_fair_market_value: false
+    income_producing_property_value: 0.0
+    installment_contract_produces_income_consistent_with_fair_market_value: false
+    installment_contract_and_secured_property_value: 0.0
+    farm_self_employment_terminated: false
+    months_since_farm_self_employment_terminated: 0.0
+    farm_self_employment_property_value: 0.0
+    resource_cash_value_not_accessible_to_household: false
+    resource_in_probate_or_sale_barred_by_lien: false
+    real_property_good_faith_sale_effort: false
+    non_liquid_resource_net_return_if_sold: 0.0
+    trust_arrangement_will_not_likely_cease_during_certification_period: false
+    household_member_cannot_revoke_trust_or_change_beneficiary: false
+    trustee_is_independent_or_court_limited: false
+    trust_investments_do_not_assist_household_controlled_business: false
+    trust_funds_are_for_allowed_investment_education_or_medical_purpose_or_from_nonhousehold_member: false
+    inaccessible_resource_value: 0.0
+    resource_is_negotiable_financial_instrument: false
+    estimated_return_after_sale_costs_and_ownership_share: 0.0
+    no_significant_return_resource_value: 0.0
+    battered_shelter_resident: false
+    resource_access_depends_on_abusive_former_household_member: false
+    inaccessible_former_household_resource_value: 0.0
+    resource_exclusion_applies_because_used_by_or_for_household_member_or_counted_disqualified_person: false
+    household_member_use_resource_value: 0.0
+    specific_purpose_or_federally_excluded_government_payment_resource_value: 0.0
+    federal_eitc_received_in_current_or_following_month: false
+    federal_eitc_resource_value: 0.0
+    eitc_recipient_was_participating_in_snap_when_eitc_received: false
+    snap_participation_continues_or_temporary_nonparticipation_is_administrative: false
+    months_since_eitc_received: 0.0
+    earned_income_tax_credit_resource_value: 0.0
+    federal_income_tax_refund_received_on_or_after_2010_01_01: false
+    months_since_federal_income_tax_refund_received: 0.0
+    federal_income_tax_refund_resource_value: 0.0
+    sponsored_noncitizen_household: false
+    sponsor_total_resources: 0.0
+    anticipated_self_employment_income_for_projection_period: 0.0
+    self_employment_income_is_primary_annual_support: false
+    self_employment_income_is_partial_annual_support: false
+    self_employment_months: 0.0
+    self_employment_business_months_in_operation: 0.0
+    historical_self_employment_income_for_averaging_period: 0.0
+    assistance_payments: 0.0
+    retirement_disability_payments: 0.0
+    direct_support_and_alimony_payments: 0.0
+    average_rental_property_management_hours_per_week: 0.0
+    rental_property_gross_income: 0.0
+    rental_property_business_costs: 0.0
+    sponsor_income_deemed_to_household: 0.0
+    vacation_sick_or_bonus_pay_after_terminated_employment: false
+    vacation_sick_or_bonus_pay_received_in_installments: false
+    vacation_sick_or_bonus_pay: 0.0
+    nonprofit_gifts_received_in_fiscal_quarter: 0.0
+    gifts_from_other_sources_can_be_anticipated: false
+    gifts_from_other_sources: 0.0
+    trust_fund_withdrawals: 0.0
+    available_trust_dividends: 0.0
+    substantial_lottery_or_gambling_winnings_received: false
+    household_member_allocated_lottery_or_gambling_winnings: 0.0
+    estimated_monthly_child_support_paid: 0.0
+    work_supplementation_earned_income: 0.0
+    dependent_care_reimbursed_or_paid_by_other_program: 0.0
+    homeless_household_free_shelter_all_month: false
+    verified_higher_homeless_shelter_costs: false
+    private_rental_housing_landlord_bills_heating_or_cooling_separately: false
+    household_shares_residence_and_pays_portion_of_heating_or_cooling_cost: false
+    public_housing_responsible_for_excess_heating_or_cooling_costs: false
+    irregular_heating_or_cooling_costs_between_billing_periods: false
+    resident_of_battered_women_and_children_shelter_and_prior_abusive_household_member: false
+    third_party_beneficiary_payment_received: false
+    non_household_beneficiary_portion_readily_identified: false
+    identified_non_household_beneficiary_payment_portion: 0.0
+    payment_used_for_non_household_beneficiary: 0.0
+    third_party_beneficiary_payment: 0.0
+    non_household_beneficiary_count: 0.0
+    household_in_project_area_solely_for_vacation: false
+    household_contains_individual_participating_in_more_than_one_household_or_project_area: false
+    resource_transfer_by_counted_person_within_review_period: false
+    resource_transferred_knowingly_to_qualify_for_snap: false
+    transferred_resources_would_not_affect_eligibility: false
+    transferred_resources_sold_or_traded_at_or_near_fair_market_value: false
+    resources_transferred_between_same_household_members: false
+    transfer_reason_other_than_snap_qualification: false
+    average_income_per_pay_period: 0.0
+    prorated_member_earned_income_deduction: 0.0
+    household_contains_prorated_count_disqualified_member: false
+    disqualified_member_paid_or_billed_shelter_and_dependent_care_expenses: 0.0
+    standard_utility_allowance_if_household_qualifies: 0.0
+    self_employment_income_calculated_on_anticipated_basis: false
+    anticipated_monthly_self_employment_income: 0.0
+    anticipated_capital_gains_next_12_months: 0.0
+    anticipated_monthly_allowable_self_employment_business_costs: 0.0
+    snap_capital_goods_sale_self_employment_income: 0.0
+    recoupment_from_same_nonexempt_income_source: false
+    intentional_means_tested_program_noncompliance_overpayment: false
+    gross_nonexempt_income_source_payment: 0.0
+    recouped_overpayment_amount: 0.0
+    participating_household_benefits_reduced_or_terminated_within_certification_period: false
+    household_member_disqualified_for_failure_to_meet_ssn_requirement: false
+    local_office_issued_notice_of_adverse_action: false
+    household_lives_in_county_or_district_where_application_is_made: false
+    local_office_arranged_for_household_to_apply_in_nearby_specified_county_or_district_office: false
+    applicant_maintains_residence_in_county_or_district_for_purpose_other_than_vacation: false
+    applicant_resides_in_county_or_district_without_permanent_dwelling_or_fixed_mailing_address: false
+    household_resides_at_migrant_campsite_in_county_or_district: false
+    household_resides_at_homeless_shelter_in_county_or_district: false
+    household_is_homeless_person_residing_in_county_or_district: false
+    durational_residency_requirement_imposed: false
+    intent_to_permanently_remain_in_state_required_as_condition_of_eligibility: false
+    household_has_dual_participation_in_month_of_eligibility: false
+    earned_income_excluding_boarder_net_income: 0.0
+    boarder_payments_for_room_meals_and_shelter_contributions: 0.0
+    boarder_income_is_foster_care_payment: false
+    actual_documented_boarder_room_and_meal_costs: 0.0
+    number_of_boarders: 0.0
+    known_income_from_previous_months: 0.0
+    household_demonstrates_no_access_to_joint_resource: false
+    household_demonstrates_partial_access_to_joint_resource: false
+    accessible_joint_resource_value: 0.0
+    jointly_owned_resource_total_value: 0.0
+    migrant_or_seasonal_farmworker_household: false
+    first_month_of_certification_period: false
+    household_only_income_from_terminated_source_before_application: false
+    income_source_normally_received_monthly_or_more_frequently: false
+    income_expected_again_from_same_source_during_application_or_following_month: false
+    income_anticipated_in_month_normally_received: false
+    household_only_income_combines_terminated_source_before_application_and_new_source: false
+    prior_expedited_certification: false
+    postponed_verification_completed_since_last_expedited_certification: false
+    certified_under_normal_processing_since_last_expedited_certification: false
+    elderly_disabled_person_unable_to_purchase_and_prepare_meals: false
+    co_resident_gross_income: 0.0
+    co_resident_group_size: 0.0
+    household_derives_annual_income_from_self_employment: false
+    annual_self_employment_income: 0.0
+    new_source_income_received_or_anticipated_within_10_days: false
+    migrant_or_seasonal_farmworker_household_in_job_stream: false
+    break_in_participation_days: 0.0
+    educational_income: 0.0
+    public_institution_joint_ssi_snap_application_before_release: false
+    shelter_expenses_paid_directly_by_boarder_to_third_party: 0.0
+    initial_month_application_or_after_certification_expired: false
+    nonexempt_transferred_resources: 0.0
+    other_countable_resources: 0.0
+    household_contains_full_count_disqualified_member: false
+    full_count_disqualified_member_income: 0.0
+    disqualified_member_earned_income: 0.0
+    income_received_from_first_of_month_through_application_date: 0.0
+    normal_application_month_countable_income: 0.0
+    vacation_sick_or_bonus_pay_received_as_lump_sum: false
+    anticipated_income_reasonably_certain: false
+    title_iv_a_participant: false
+    child_support_must_be_transferred_to_title_iv_d: false
+    child_support_payment_received: 0.0
+    disqualified_member_nonexempt_income: 0.0
+    non_household_member_cash_payments_to_household: 0.0
+    nonrecurring_lump_sum_payment: 0.0
+    individual_household_participation_count_in_month: 0.0
+    individual_is_resident_of_shelter_for_battered_women_and_children: false
+    household_county_or_district_participation_count_in_month: 0.0
+    all_household_members_are_residents_of_shelter_for_battered_women_and_children: false
+    household_share_of_combined_wage_can_be_identified: false
+    identified_household_share_of_combined_wage: 0.0
+    combined_wage: 0.0
+    household_members_covered_by_combined_wage_count: 0.0
+    household_derives_annual_income_from_contract: false
+    contract_income_hourly_or_piecework: false
+    annual_contract_income: 0.0
+    household_required_to_meet_resource_standard: false
+    disqualified_or_sanctioned_member_resources: 0.0
+    household_resides_in_shelter_for_battered_women_and_children: false
+    household_lacks_permanent_dwelling: false
+    household_resides_in_permanent_dwelling: false
+    household_provided_physical_address: false
+    household_provided_information_identifying_location_of_home: false
+    household_provided_only_mailing_address: false
+    travel_advance_is_written_contract_wage_advance_subtracted_from_later_wages: false
+    employer_travel_advance_amount: 0.0
+    household_on_indian_reservation: false
+    household_participates_in_commodity_food_distribution_program_for_period: false
+    household_participates_in_snap_for_same_period: false
+    reimbursement_amount: 0.0
+    reimbursement_for_identified_non_living_expense: false
+    reimbursement_used_for_intended_expense: false
+    actual_reimbursed_non_living_expense: 0.0
+    joint_resource_cannot_practically_be_subdivided: false
+    joint_owner_refuses_to_comply: false
+    employer_travel_advance_reimburses_new_employee_relocation_travel_costs: false
+    local_office_required_social_security_card_or_other_official_documents_to_verify_ssn: false
+    vendor_payment_funds_otherwise_payable_to_household: false
+    vendor_payment_is_direct_third_party_payment_using_non_household_funds: false
+    emergency_pa_ga_payment_to_third_party_for_migrant_seasonal_job_stream: false
+    employer_pays_rent_directly_in_addition_to_regular_wages: false
+    employer_provided_housing: false
+    vendor_payment_is_medical_childcare_emergency_special_or_housing_authority_assistance: false
+    federally_authorized_demo_cash_conversion_of_vendor_payment: false
+    court_ordered_support_or_alimony_paid_to_third_party: false
+    vendor_payment_amount: 0.0
+    in_kind_benefit_value: 0.0
+    irregular_income_received_in_three_months: 0.0
+    irregular_income_received_too_infrequently_or_irregularly_to_anticipate: false
+    income_intended_to_cover_specific_period: 0.0
+    excluded_funds_kept_in_separate_uncommingled_account: false
+    months_since_excluded_funds_were_commingled: 0.0
+    commingled_excluded_funds_amount: 0.0
+    household_other_monthly_income: 0.0
+    household_school_employee_average_monthly_contract_income: 0.0
+    non_liquid_resource_fair_market_value: 0.0
+    non_liquid_resource_verified_amount_owed: 0.0
+    checking_account_balances: 0.0
+    savings_account_balances: 0.0
+    savings_certificates_value: 0.0
+    stocks_and_bonds_value: 0.0
+    countable_lump_sum_resources: 0.0
+    shared_expense_payments_or_contributions_can_be_differentiated: false
+    household_paid_or_contributed_shared_expenses: 0.0
+    shared_deductible_expenses: 0.0
+    household_expense_contributor_count: 0.0
+    household_elects_to_average_fluctuating_income: false
+    fluctuating_income_intended_to_cover_period: 0.0
+    bona_fide_loan_received: false
+    reverse_annuity_mortgage_loan_received: false
+    loan_amount_received: 0.0
+  procedural-eligibility:
+    household_lives_in_application_state: true
+slot_notes:
+  income_note: PE keeps one countable unearned aggregate; the composition sums a dozen unearned slots. All of PE's
+    unearned income enters as other_gain_or_benefit_payments; the other slots are zero presumptions.
+  gates_note: 'D42/D43 audit (2026-09-11): a presumption may not switch a rule on. The three gates that switched
+    an entitlement on -- dependent-care necessity (10 CCR 2506-1 4.407.4), child-support verification (4.407.5),
+    homeless shelter costs (4.407.3(C)) -- follow the PE fact that establishes each, through positive_of, so where
+    PE carries no expense the rule is inert. household_lives_in_application_state stays true: inside the scope (D37)
+    the household''s state_code is the application state by construction, and outside it PE answers. Finding 21
+    is unchanged: PE''s countable child support is a fact, and the composition still subtracts it twice. Finding
+    22: PE''s own homeless branch also counts the utility allowance as a shelter cost, and the composition''s homeless
+    line is not reached by any bound output.'
+  date_note: 'D38: application_date and public_institution_release_date are date slots. The Python extension carries
+    no date column, so they hold a placeholder and no bound output evaluates them (the initial-month proration chain
+    is not bound).'
+  resource_note: PE snap_assets is already-counted liquid resources. Carry this yearly stock without monthly division
+    into the valuation input actually used by total_household_resources_before_exclusions. The separate cash_on_hand
+    enumeration is not read by the bound resource chain and stays zero; do not double-count the aggregate. Other
+    resource components and exclusions remain zero because PE supplies the counted aggregate. Categorical exemption
+    continues to follow meets_snap_categorical_eligibility.
+  utility_note: 'Each utility-cost fact is PE''s yearly expense above zero (pre-subsidy electricity, as PE''s own
+    utility count uses, to avoid the subsidy''s SNAP dependence). Heating or cooling is has_heating_cooling_expense.
+    LEAP receipt: PE''s always-SUA parameter marks the Heat-and-Eat states (CO among them) where every SNAP household
+    is deemed to receive the nominal energy payment; the composition reads that as LEAP or E-EBT receipt, which
+    is the same presumption stated as a fact.'
+relations:
+  member_of_household:
+    inputs:
+      snap_member_is_elderly_or_disabled: {any_of: [is_usda_elderly, is_usda_disabled]}
+      member_age: age
+      student_age: age
+      member_is_us_citizen: is_snap_immigration_status_eligible
+      member_voluntarily_quit_or_reduced_work_below_30_hours_without_good_cause: {not_of: meets_snap_work_requirements_person}
+      enrolled_at_least_half_time: is_snap_ineligible_student
+      enrolled_in_college_or_university_degree_program: is_snap_ineligible_student
+    presumed:
+      law-supplied:
+        federal_or_state_minimum_wage: 7.25
+        federal_minimum_wage: 7.25
+      not-in-data:
+        member_refused_or_failed_to_provide_or_apply_for_ssn: false
+        member_has_documentary_or_collateral_evidence_of_ssn_application_or_every_effort: false
+        state_agency_fault_in_ssn_application_processing: false
+        member_unable_to_obtain_documents_required_for_ssn_application_with_caseworker_assistance_needed: false
+        member_ssn_application_filed_pending_state_agency_notification: false
+        member_later_provided_ssn_ending_disqualification: false
+        member_age_16_or_17_is_not_household_head_or_attends_school_or_training_half_time: false
+        member_physically_or_mentally_unfit_for_employment: false
+        member_subject_to_and_complying_with_title_iv_work_requirement: false
+        member_responsible_for_dependent_child_under_six_or_incapacitated_person: false
+        member_receiving_or_applying_for_unemployment_compensation_and_complying: false
+        member_regular_participant_in_drug_or_alcohol_treatment: false
+        member_weekly_work_hours: 0.0
+        member_weekly_wages: 0.0
+        migrant_or_seasonal_farmworker_under_contract_to_begin_employment_within_30_days: false
+        alaska_subsistence_hunts_or_fishes_30_hours_weekly: false
+        member_student_enrolled_at_least_half_time_and_student_eligible: false
+        member_snap_work_requirements_waived_due_to_pending_ssi_joint_application: false
+        member_medically_certified_physically_or_mentally_unfit_for_employment: false
+        member_is_parent_or_household_member_responsible_for_dependent_child: false
+        member_youngest_dependent_child_age: 0.0
+        member_is_pregnant: false
+        member_is_indian_or_urban_indian: false
+        member_is_california_indian: false
+        member_covered_by_abawd_time_limit_waiver: false
+        member_abawd_weekly_work_hours: 0.0
+        member_abawd_monthly_work_hours: 0.0
+        member_participates_in_abawd_work_program_20_hours_weekly: false
+        member_combines_work_and_work_program_20_hours_weekly: false
+        member_participates_in_abawd_workfare_program: false
+        snap_abawd_countable_months_in_three_year_period: 0.0
+        member_regained_abawd_eligibility: false
+        member_has_additional_three_month_abawd_eligibility: false
+        enrolled_in_business_technical_trade_or_vocational_school_requiring_high_school_diploma: false
+        student_physically_or_mentally_unfit: false
+        student_receives_tanf: false
+        enrolled_through_jobs_or_successor_program: false
+        student_paid_employment_hours_per_week: 0.0
+        student_self_employment_hours_per_week: 0.0
+        student_self_employment_weekly_earnings: 0.0
+        state_agency_averaged_student_work_hours_meet_twenty_per_week: false
+        student_participating_in_state_or_federally_financed_work_study: false
+        work_study_approved_at_snap_application: false
+        work_study_approved_for_school_term: false
+        student_anticipates_working_in_work_study: false
+        work_study_exemption_period_active: false
+        known_student_refused_work_study_assignment: false
+        student_participating_in_on_the_job_training_program: false
+        student_currently_being_trained_by_employer: false
+        responsible_for_care_of_dependent_household_member_under_age_six: false
+        responsible_for_care_of_dependent_household_member_age_six_to_under_twelve: false
+        adequate_child_care_unavailable_to_attend_class_and_meet_student_work_requirement: false
+        single_parent_enrolled_full_time_in_higher_education: false
+        responsible_for_care_of_dependent_child_under_twelve: false
+        single_parent_household_condition_satisfied: false
+        assigned_or_placed_in_higher_education_through_qualifying_employment_training_program: false
+        member_is_us_noncitizen_national: false
+        member_is_american_indian_born_in_canada_or_recognized_indian_tribe_member: false
+        member_is_hmong_or_highland_laotian_qualifying_person_or_family_member: false
+        member_is_trafficking_victim_or_qualifying_family_member: false
+        member_is_qualified_alien_with_forty_qualifying_quarters: false
+        member_is_refugee: false
+        member_is_asylee: false
+        member_has_deportation_or_removal_withheld: false
+        member_is_cuban_or_haitian_entrant: false
+        member_is_amerasian_immigrant: false
+        member_has_eligible_military_connection: false
+        member_receives_blindness_or_disability_benefits: false
+        member_was_lawfully_residing_on_1996_08_22_and_born_on_or_before_1931_08_22: false
+        member_is_under_age_eighteen: false
+        member_is_qualified_alien_subject_to_five_year_wait: false
+        qualified_alien_five_year_status_period_met: false
+        alien_status_documentation_missing_or_unwilling: false
+      procedural-eligibility:
+        member_registered_for_work_or_registered_by_state: true
+        member_participated_in_snap_et_if_assigned: true
+        member_participated_in_workfare_if_assigned: true
+        member_provided_employment_status_or_availability_information: true
+        member_reported_to_referred_suitable_employer_if_referred: true
+        member_accepted_bona_fide_suitable_employment_offer_if_offered: true
+    slot_notes:
+      citizen_note: 'Presumption: PE''s SNAP immigration-status eligibility stands in for citizenship; the alien-status
+        branches stay false, so the member-level judgment agrees with PE''s.'
+      work_note: 'Registrants are presumed compliant (as PE does); PE''s per-person work-requirement judgment enters
+        as the one non-compliance flag. The composition then requires every member eligible; PE requires any. Expected
+        shadow difference. D42/D43: the six compliance gates of 7 CFR 273.7(a)(1) stay true because true is their
+        inert value -- false would fire a disqualification PE never applies. PE''s only non-compliance evidence
+        (is_snap_work_registration_noncompliant, default false, absent from Populace) already enters through member_voluntarily_quit_or_reduced_work_below_30_hours_without_good_cause.'
+      student_note: 'Presumption: PE''s ineligible-student determination already applies the eight exemptions, so
+        it plays the enrolment facts and the exemption facts stay false.'
+bindings:
+- pe_variable: snap_max_allotment
+  axiom_output: snap_maximum_allotment
+  status: 'on'
+  parameters:
+    snap_maximum_allotment_table: gov.usda.snap.max_allotment.main
+    snap_maximum_allotment_additional_member: gov.usda.snap.max_allotment.additional
+- pe_variable: snap_standard_deduction
+  axiom_output: snap_standard_deduction
+  status: 'on'
+  parameters:
+    snap_standard_deduction_48_states_dc_table: gov.usda.snap.income.deductions.standard
+- pe_variable: snap_earned_income_deduction
+  axiom_output: snap_earned_income_deduction_for_net_income
+  status: shadow
+  parameters:
+    snap_earned_income_deduction_rate_for_net_income: gov.usda.snap.income.deductions.earned_income
+  notes:
+    note: 7 CFR 273.10(e)(1)(i)(B) floors the deduction; PE does not round. Expect sub-dollar differences.
+- pe_variable: snap_min_allotment
+  axiom_output: snap_minimum_monthly_allotment
+  status: 'on'
+  parameters:
+    snap_minimum_allotment_rate: gov.usda.snap.min_allotment.rate
+- pe_variable: snap_excess_shelter_expense_deduction
+  axiom_output: snap_excess_shelter_deduction
+  status: shadow
+  notes:
+    known_differences:
+    - 'Finding 19: the composition defines net income before shelter twice. The final net income uses `medical_deduction`,
+      which applies Colorado''s $165 SMD (7 CFR 273.9(d)(3)); the shelter cost uses `snap_net_income_before_shelter`,
+      whose medical term is the plain max(0, medical - 35). PE applies the SMD consistently, so the shelter deduction
+      differs by half the medical difference. Internal inconsistency upstream in rulespec-us, not a mapping error.'
+    - 'Finding 20: the composition rounds to whole dollars (floor(x+0.5)) and floors the earned-income deduction
+      per 273.10(e)(1)(i)(B); PE keeps cents. Bounds the residual at about $1. Rounding-policy decision, not a defect.'
+- pe_variable: snap_net_income
+  axiom_output: snap_net_income
+  status: shadow
+  notes:
+    known_differences:
+    - 'Finding 21: the composition subtracts child support twice - once via snap_income_exclusions inside snap_total_gross_income,
+      then again in snap_net_income_pre_shelter. Colorado excludes it from gross under 7 CFR 273.9(d)(5); exclusion
+      or deduction, never both. PE does it once. The gap equals the child-support amount exactly on all 125 differing
+      Colorado units. No manifest-side fix: presuming the verification gate false would also zero the gross-income
+      exclusion and break gross income. Fix upstream in rulespec-us.'
+- pe_variable: meets_snap_gross_income_test
+  axiom_output: passes_gross_income_test
+  status: shadow
+- pe_variable: meets_snap_net_income_test
+  axiom_output: passes_net_income_test
+  status: shadow
+  notes:
+    known_differences:
+    - 'Finding 21: the composition subtracts child support twice - once via snap_income_exclusions inside snap_total_gross_income,
+      then again in snap_net_income_pre_shelter. Colorado excludes it from gross under 7 CFR 273.9(d)(5); exclusion
+      or deduction, never both. PE does it once. The gap equals the child-support amount exactly on all 125 differing
+      Colorado units. No manifest-side fix: presuming the verification gate false would also zero the gross-income
+      exclusion and break gross income. Fix upstream in rulespec-us.'
+- pe_variable: is_snap_eligible
+  axiom_output: snap_eligible
+  status: shadow
+  notes:
+    known_differences:
+    - 'Finding 21: the composition subtracts child support twice - once via snap_income_exclusions inside snap_total_gross_income,
+      then again in snap_net_income_pre_shelter. Colorado excludes it from gross under 7 CFR 273.9(d)(5); exclusion
+      or deduction, never both. PE does it once. The gap equals the child-support amount exactly on all 125 differing
+      Colorado units. No manifest-side fix: presuming the verification gate false would also zero the gross-income
+      exclusion and break gross income. Fix upstream in rulespec-us.'
+- pe_variable: snap_normal_allotment
+  axiom_output: snap_regular_month_allotment
+  status: shadow
+  notes:
+    note: Bound below `snap`, which is an adds variable gated by take-up (handoff note).
+    known_differences:
+    - 'Finding 21: the composition subtracts child support twice - once via snap_income_exclusions inside snap_total_gross_income,
+      then again in snap_net_income_pre_shelter. Colorado excludes it from gross under 7 CFR 273.9(d)(5); exclusion
+      or deduction, never both. PE does it once. The gap equals the child-support amount exactly on all 125 differing
+      Colorado units. No manifest-side fix: presuming the verification gate false would also zero the gross-income
+      exclusion and break gross income. Fix upstream in rulespec-us.'

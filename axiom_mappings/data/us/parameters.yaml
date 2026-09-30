@@ -5035,6 +5035,14 @@ parameters:
   unit: USD
   comparison: money
   rationale: Same IRS maximum refundable child tax credit amount per qualifying child.
+- axiom: us:statutes/26/24/h#ctc_refundable_per_child_cap_under_subsection_h
+  program: tax
+  policyengine_parameter: gov.irs.credits.ctc.refundable.individual_max
+  period: year
+  unit: USD
+  comparison: money
+  rationale: Same 26 USC 24(h)(5)(A) per-child cap on the refundable credit. PolicyEngine's parameter cites 24(h)(5)(A)
+    and indexes it under 24(i)(1); the statute states the unindexed $1,400 (policyengine-axiom Finding 7).
 - axiom: us:statutes/26/24#ctc_phaseout_reduction_per_increment
   program: tax
   policyengine_parameter: gov.irs.credits.ctc.phase_out.amount

@@ -1,0 +1,32 @@
+{
+  "format": "policyengine-axiom-manifest/0",
+  "program": "us-snap-elderly-disabled-member",
+  "source": "us/statutes/7/2012/j.yaml",
+  "corpus_ref": "d58cc0ce6",
+  "root_entity": "Household",
+  "entity_map": {
+    "Household": "spm_unit",
+    "Person": "person"
+  },
+  "relations": {
+    "member_of_household": {
+      "inputs": {
+        "snap_member_is_elderly_or_disabled": {
+          "any_of": [
+            "is_usda_elderly",
+            "is_usda_disabled"
+          ]
+        }
+      }
+    }
+  },
+  "bindings": [
+    {
+      "pe_variable": "has_usda_elderly_disabled",
+      "axiom_output": "snap_household_has_elderly_or_disabled_member",
+      "status": "on",
+      "reduce": "any",
+      "_note": "Axiom's rule is monthly on the SNAP household; PE's variable is yearly on the SPM unit. Any month holding makes the year hold. The member flag is PE's two person flags combined."
+    }
+  ]
+}
