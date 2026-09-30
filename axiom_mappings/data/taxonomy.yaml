@@ -1,5 +1,8 @@
-# Why Axiom and a counterpart (PolicyEngine, TAXSIM, ...) disagree. Axiom is the truth (D48), so a
-# disagreement is not a failure until it is classified; each cause names who acts.
+# Why Axiom and a counterpart (PolicyEngine, TAXSIM, ...) disagree. Neither side is presumed right:
+# every disagreement is investigated and stays `unclassified` until then. Where the investigation
+# shows the law supports Axiom, Axiom answers and the difference is filed against the counterpart.
+# Each cause names who acts. unclassified, axiom-encoding-wrong and mapping-wrong block a program
+# from serving Axiom's answer; counterpart-differs-from-law and convention do not.
 causes:
 - id: counterpart-differs-from-law
   meaning: The counterpart departs from the law Axiom encodes, including projecting values the law has not published.
@@ -14,8 +17,8 @@ causes:
   meaning: Same law, different reporting convention (rounding, cents vs whole dollars, period).
   action: None; record the convention.
 - id: unclassified
-  meaning: Not yet triaged.
-  action: Triage.
+  meaning: Not yet investigated.
+  action: Investigate; blocks serving until classified.
 
 # The existing vocabularies, mapped onto these causes, so every tracker reports the same thing.
 crosswalk:

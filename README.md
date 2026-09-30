@@ -24,7 +24,7 @@ axiom_mappings/data/us/prefixes.yaml     Axiom id prefixes classified together
 axiom_mappings/data/us/presumptions.yaml what is presumed for facts the data lacks; constants name one
 axiom_mappings/data/us/supplied_parameters.yaml  values a harness supplies because the encoding lacks them
 axiom_mappings/data/us/programs.yaml     tracked programs, with each consumer's own name for them
-axiom_mappings/data/taxonomy.yaml        why Axiom and a counterpart disagree (D48 causes), and crosswalks
+axiom_mappings/data/taxonomy.yaml        why Axiom and a counterpart disagree (investigated causes), and crosswalks
                           from oracles' disposition kinds and axiom-api's known reasons
 axiom_mappings/data/us/findings.yaml     known disagreements, each recorded once with its cause and issue
 axiom_mappings/schema/finding.schema.json  the classified-disagreement record every consumer emits
@@ -56,7 +56,7 @@ axiom_mappings/           loader (load, rules_for_slot, policyengine_variable, .
 - **Readiness** (`python -m axiom_mappings.readiness`): a program serves Axiom as the truth only
   when every input slot is mapped, derived, or presumed under an acceptable presumption, and no
   parameter is supplied by a harness. Readiness is shown next to parity wherever parity is shown.
-- **Findings:** a disagreement is recorded once, in `schema/finding.schema.json` form, with one
+- **Findings:** every disagreement is investigated; neither side is presumed right. It is recorded once, in `schema/finding.schema.json` form, with one
   cause from `taxonomy.yaml`. `Mappings.classify()` turns a consumer's own reason code into it.
 
 ## Consumers
