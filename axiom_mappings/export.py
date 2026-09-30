@@ -11,7 +11,7 @@ from typing import Any
 
 from . import Mappings
 
-AXIOM_ONLY_FIELDS = {"entity_projection", "keyed_by_prefix_string"}
+AXIOM_ONLY_FIELDS = {"entity_projection", "keyed_by_prefix_string", "comment"}
 
 
 def _oracles_row(row: dict[str, Any], country: str, *, parameter: bool) -> dict[str, Any]:

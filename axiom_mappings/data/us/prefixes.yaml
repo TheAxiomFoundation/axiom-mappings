@@ -2254,6 +2254,13 @@ prefixes:
   candidate_priority: P4
   rationale: PolicyEngine-US does not model AL agency policy manuals or state regulations at output granularity;
     comparable state outputs carry exact mappings which take precedence over this prefix.
+  comment: 'State agency policy manuals and regulations are not modeled by
+
+    PolicyEngine-US except where an exact mapping above says otherwise;
+
+    exact entries take precedence over these jurisdiction-wide prefixes.
+
+    Added for the country-monorepo consolidation (rulespec-us#395).'
 - axiom_prefix: 'us-ar:'
   type: not_comparable
   candidate_priority: P4

@@ -178,6 +178,37 @@ def build_registry(entries: list[dict]) -> tuple[list[dict], list[dict]]:
     return outputs, parameters
 
 
+def comment_blocks(raw: str) -> dict[tuple[str, str], str]:
+    """Comments preceding an entry, keyed by (section, the entry's legal_id or legal_id_prefix).
+
+    ``yaml.safe_load`` drops comments, and the registry uses them to document blocks of entries
+    (for example why a state's interface is held). Each block is kept on the entry it precedes.
+    """
+    blocks: dict[tuple[str, str], str] = {}
+    section, pending = None, []
+    for line in raw.splitlines():
+        stripped = line.strip()
+        if line.startswith(("mappings:", "prefixes:")):
+            section, pending = line.split(":")[0], []
+            continue
+        if stripped.startswith("#"):
+            pending.append(stripped.lstrip("#").strip())
+            continue
+        if stripped.startswith("- legal_id") and ":" in stripped and pending and section:
+            value = stripped.split(":", 1)[1].strip().strip('"').strip("'")
+            blocks[(section, value)] = "\n".join(pending).strip()
+        if stripped:
+            pending = [] if not stripped.startswith("#") else pending
+    return blocks
+
+
+def attach_comments(rows: list[dict], section: str, blocks: dict[tuple[str, str], str], key: str) -> None:
+    for row in rows:
+        comment = blocks.get((section, row.get(key, "")))
+        if comment:
+            row["comment"] = comment
+
+
 def build_prefixes(entries: list[dict]) -> list[dict]:
     return [{("axiom_prefix" if k == "legal_id_prefix" else RENAMES.get(k, k)): v for k, v in e.items() if k != "country"}
             for e in entries]
@@ -199,8 +230,10 @@ def main() -> None:
     ids = concept_ids(git_show(repo, commit, "axiom_oracles/core/case.py"))
     tables = runner_tables(git_show(repo, commit, "axiom_oracles/adapters/policyengine/runner.py"))
     rules = yaml.safe_load(git_show(repo, commit, "axiom_oracles/data/populace_input_mapping.yaml"))["mappings"]
-    registry_file = yaml.safe_load(git_show(repo, commit, "axiom_oracles/bridges/mappings/us.yaml"))
+    registry_raw = git_show(repo, commit, "axiom_oracles/bridges/mappings/us.yaml")
+    registry_file = yaml.safe_load(registry_raw)
     registry, prefixes = registry_file["mappings"], registry_file.get("prefixes", [])
+    blocks = comment_blocks(registry_raw)
 
     DATA.mkdir(parents=True, exist_ok=True)
     seeded = f"Seeded from axiom-oracles@{commit[:12]} by scripts/seed_from_oracles.py; edit here from now on."
@@ -210,10 +243,18 @@ def main() -> None:
          f"# rules matching a slot wins; the validator reports every slot more than one rule matches.\n# {seeded}",
          "inputs", build_inputs(rules, ids))
     outputs, parameters = build_registry(registry)
+    attach_comments(outputs, "mappings", blocks, "axiom")
+    attach_comments(parameters, "mappings", blocks, "axiom")
+    prefix_rows = build_prefixes(prefixes)
+    attach_comments(prefix_rows, "prefixes", blocks, "axiom_prefix")
+    attach_comments(prefix_rows, "prefixes", blocks, "axiom")
+    kept = sum(1 for r in outputs + parameters + prefix_rows if "comment" in r)
+    if kept != len(blocks):
+        raise SystemExit(f"kept {kept} of {len(blocks)} comment blocks")
     dump(DATA / "outputs.yaml", f"# Axiom output -> PolicyEngine variable (or why not comparable).\n# {seeded}", "outputs", outputs)
     dump(DATA / "parameters.yaml", f"# Axiom parameter -> PolicyEngine parameter path.\n# {seeded}", "parameters", parameters)
     dump(DATA / "prefixes.yaml", "# Axiom id prefixes whose outputs are classified together (all not comparable today).\n"
-         f"# {seeded}", "prefixes", build_prefixes(prefixes))
+         f"# {seeded}", "prefixes", prefix_rows)
 
     pins_path = ROOT / "pins.yaml"
     pins = yaml.safe_load(pins_path.read_text()) if pins_path.exists() else {}

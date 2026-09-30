@@ -66,6 +66,10 @@
             "items": {
               "type": "string"
             }
+          },
+          "comment": {
+            "type": "string",
+            "description": "documentation kept from the source registry's YAML comments"
           }
         }
       }

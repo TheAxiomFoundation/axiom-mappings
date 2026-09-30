@@ -88,7 +88,11 @@
           "keyed_by_prefix_string": {
             "type": "boolean"
           },
-          "parameter_key": {}
+          "parameter_key": {},
+          "comment": {
+            "type": "string",
+            "description": "documentation kept from the source registry's YAML comments"
+          }
         },
         "allOf": [
           {

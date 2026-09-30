@@ -55,6 +55,10 @@
           "axiom": {
             "type": "string",
             "description": "oracles lists a few prefixes under legal_id; kept verbatim"
+          },
+          "comment": {
+            "type": "string",
+            "description": "documentation kept from the source registry's YAML comments"
           }
         },
         "anyOf": [

@@ -5926,6 +5926,11 @@ parameters:
   comparison: rate
   rationale: Same two percent first-bracket rate; PolicyEngine's Alabama joint and nonjoint scales share
     all three marginal rates, so the single scale is the exact canonical parameter target.
+  comment: 'Alabama Code section 40-18-5 is a narrow schedule surface. Exact entries
+
+    override the jurisdiction-wide fallback without representing this module as
+
+    a completed annual-return liability pipeline.'
 - axiom: us-al:policies/income_tax/2026_section_40_18_5_schedule_before_credits#al_pit_2026_section_40_18_5_second_rate
   program: tax
   policyengine_parameter: gov.states.al.tax.income.rates.single
@@ -6490,6 +6495,11 @@ parameters:
   comparison: rate
   rationale: The official 2026 K-40ES and PolicyEngine's joint and all-other Kansas schedules use the
     same 5.2 percent lower marginal rate; the joint scale is the canonical exact parameter target.
+  comment: 'The official Kansas K-40ES module is a narrow schedule-before-credits
+
+    surface on completed Kansas taxable income. It does not claim the complete
+
+    annual-return liability chain or replace the legacy TAXSIM diagnostic.'
 - axiom: us-ks:policies/income_tax/2026_k40es_schedule_before_credits#ks_pit_2026_k40es_upper_rate
   program: tax
   policyengine_parameter: gov.states.ks.tax.income.rates.joint
@@ -6508,6 +6518,13 @@ parameters:
   comparison: rate
   rationale: KRS 141.020(2)(f) and PolicyEngine's Kentucky income-tax rate parameter both supply the 3.5
     percent rate for tax year 2026.
+  comment: 'KRS 141.020 is a narrow schedule-before-credits surface, separate from the
+
+    annual-return source hold above. The caller supplies completed Kentucky net
+
+    income; the module applies only the official 2026 rate and claims neither
+
+    upstream return construction nor any post-credit liability.'
 - axiom: us-ms:policies/income_tax/2026_section_27_7_5_schedule#ms_pit_2026_zero_tax_ceiling
   program: tax
   policyengine_parameter: gov.states.ms.tax.income.rate
@@ -6519,6 +6536,13 @@ parameters:
   comparison: money
   rationale: Same $10,000 zero-tax ceiling in PolicyEngine's Mississippi marginal-rate scale for tax year
     2026.
+  comment: 'Mississippi''s canonical TY2026 section 27-7-5 surface applies the enacted
+
+    Person-grain schedule to one caller-completed Mississippi taxable-income
+
+    amount. It does not select a filing method, construct taxable income,
+
+    aggregate an annual return, apply credits, or claim final liability.'
 - axiom: us-ms:policies/income_tax/2026_section_27_7_5_schedule#ms_pit_2026_rate
   program: tax
   policyengine_parameter: gov.states.ms.tax.income.rate

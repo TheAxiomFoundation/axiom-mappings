@@ -11989,6 +11989,7 @@ outputs:
   program: snap
   type: not_comparable
   rationale: California CalFresh MPP §63-300.1 state-specific rule; no direct PolicyEngine variable equivalent.
+  comment: === California CalFresh MPP §63 bulk encoding (auto-generated) ===
 - axiom: us-ca:regulations/mpp/63-300/1#food_stamp_benefits_retroactive_to_application_month
   program: snap
   type: not_comparable
@@ -15797,6 +15798,11 @@ outputs:
   type: not_comparable
   rationale: California CalFresh MPP §63-405.532 state-specific rule (renamed sibling); no direct PolicyEngine
     variable equivalent.
+  comment: 'Renamed during sibling-collision fix on rulespec-us-ca#4 (2026-05-14):
+
+    63-405/532.yaml and 63-503/312.yaml had rule-name collisions with their
+
+    respective siblings; appending __per_532 / __per_312 made names unique.'
 - axiom: us-ca:regulations/mpp/63-503/312#net_monthly_earned_income_after_earned_income_deduction__per_312
   program: snap
   type: not_comparable
@@ -19564,6 +19570,7 @@ outputs:
     factor as an intermediate statutory derivation; PolicyEngine computes the final PIA/AIME/benefit without
     surfacing this per-segment/per-threshold helper as a one-to-one oracle output. The comparison oracle
     for this chain is the populace_dynamics Social Security model, not PolicyEngine.
+  comment: 42 USC Title II OASDI benefit-formula outputs (rulespec-us#541) — not comparable
 - axiom: us:statutes/42/415/a#second_pia_formula_factor
   program: social_security
   type: not_comparable
@@ -20140,6 +20147,7 @@ outputs:
     (RTC 17041). The California Franchise Tax Board indexes these figures annually, so PolicyEngine's
     current-year parameter carries the indexed value rather than this un-indexed statutory base; the two
     are not a one-to-one comparison.
+  comment: California Revenue and Taxation Code Part 10 (personal income tax core) — RTC 17041/17052/17054
 - axiom: us-ca:statutes/rtc/17041#regular_tax_excess_floor_by_band
   program: tax
   type: not_comparable
@@ -20419,6 +20427,7 @@ outputs:
     is declared as a deferred output to import from the current-year authority rather than an executable
     value; PolicyEngine exposes the indexed, composed ny_income_tax_before_credits variable. It becomes
     directly comparable once the composed current-year output is encoded.
+  comment: New York Tax Law Article 22 (personal income tax core) — TAX 601/614
 - axiom: us-ny:statutes/TAX/614#ny_standard_deduction
   program: tax
   type: not_comparable
@@ -20483,6 +20492,13 @@ outputs:
   candidate_priority: P4
   rationale: Axiom validates that exactly one Maine individual filing-status schedule applies. PolicyEngine
     uses its own filing-status entity and exposes no one-to-one interface-validation output.
+  comment: 'Maine''s TY2026 resident annual-return interface is source held after the
+
+    federal/raw-fact boundary. Exact entries retain all readiness judgments
+
+    and fail-closed sentinels in tax-scoped coverage without treating those
+
+    sentinels as substantive Maine tax calculations.'
 - axiom: us-me:policies/income_tax/2026_resident_liability_source_hold#me_pit_2026_input_domain_is_valid
   program: tax
   type: not_comparable
@@ -20574,6 +20590,15 @@ outputs:
   candidate_priority: P4
   rationale: Axiom validates that exactly one supported Alabama filing-status flag is selected. PolicyEngine
     uses its own categorical filing-status input and exposes no equivalent RuleSpec input-contract predicate.
+  comment: 'Alabama''s TY2026 resident module is a source-readiness surface. Its public
+
+    monetary stages fail closed until the missing annual income-base,
+
+    deduction, tax, surtax, credit, and ordering authority is pinned. Exact
+
+    mappings keep every output in tax coverage without treating a zero
+
+    sentinel as a completed Alabama tax result.'
 - axiom: us-al:policies/income_tax/2026_resident_liability_source_hold#al_pit_2026_input_domain_is_valid
   program: tax
   type: not_comparable
@@ -20691,6 +20716,13 @@ outputs:
   rationale: This private Axiom output preserves the supplied federal adjusted-gross-income boundary for
     the held annual interface. It is an input-boundary diagnostic, not a substantive Arizona result for
     one-to-one PolicyEngine comparison.
+  comment: 'Arizona''s TY2026 resident annual-return interface is fully source held.
+
+    Its amount outputs are fail-closed sentinels, not claims of zero tax.
+
+    Exact entries keep every output in tax-scoped coverage without comparing
+
+    readiness metadata or sentinels to substantive PolicyEngine calculations.'
 - axiom: us-az:policies/income_tax/2026_resident_liability_source_hold#az_pit_2026_filing_status_is_valid
   program: tax
   type: not_comparable
@@ -20803,6 +20835,11 @@ outputs:
     including the high-income bracket-adjustment table, to completed-return individual taxable income
     at Person grain before nonrefundable credits; this narrow mapping excludes taxable-income construction,
     filing-unit aggregation or method selection, low-income tables, credits, payments, and final liability.
+  comment: 'Arkansas Act 2 of 2026 supplies this bounded Person-grain individual
+
+    schedule component. Person-to-TaxUnit summation belongs only to the
+
+    reviewed Populace comparison accounting and does not change its entity.'
 - axiom: us-ar:policies/income_tax/2026_resident_liability_source_hold#ar_pit_2026_input_domain_is_valid
   program: tax
   type: not_comparable
@@ -20810,6 +20847,15 @@ outputs:
   rationale: Axiom validates full-year Arkansas residence, aligned federal and state filing units, and
     the federal-AGI input boundary. PolicyEngine uses its own entity and input schema and exposes no one-to-one
     validation output for this interface contract.
+  comment: 'Arkansas''s TY2026 resident annual-return interface is fully source held.
+
+    Act 2 supplies the ordinary rate schedule, but the pinned corpus does not
+
+    supply the net-income, deduction, exemption, surtax, or credit chain.
+
+    Exact entries keep every readiness judgment and fail-closed sentinel in
+
+    tax-scoped coverage without comparing it to a substantive PE calculation.'
 - axiom: us-ar:policies/income_tax/2026_resident_liability_source_hold#ar_pit_2026_income_base_source_hold_applies
   program: tax
   type: not_comparable
@@ -20900,6 +20946,13 @@ outputs:
   rationale: This private Axiom parameter is the forty-percent statutory multiplier used by the bounded
     section 12-704e branch. PolicyEngine does not expose this exact source parameter as a standalone annual-return
     output for one-to-one comparison.
+  comment: 'Connecticut''s TY2026 resident annual-return interface exposes one bounded
+
+    statutory EITC branch while every complete annual-liability stage is held.
+
+    Exact entries keep the full module in tax-scoped coverage without treating
+
+    source-readiness judgments or fail-closed sentinels as PE calculations.'
 - axiom: us-ct:policies/income_tax/2026_resident_liability_source_hold#ct_pit_2026_refundable_eitc_qualifying_child_addition
   program: tax
   type: not_comparable
@@ -21017,6 +21070,13 @@ outputs:
   candidate_priority: P4
   rationale: Axiom validates exactly one of four schedule flags; PolicyEngine uses a categorical filing-status
     input and exposes no one-to-one validation judgment.
+  comment: 'Canonical Connecticut TY2026 full-year-resident ordinary section 12-700
+
+    tax before the personal credit. PolicyEngine publishes every statutory
+
+    component and the after-personal-credit result, so the pre-credit total is
+
+    recovered exactly from PE''s own formula rather than reimplemented here.'
 - axiom: us-ct:policies/income_tax/2026_resident_ordinary_tax_before_personal_credit#ct_pit_2026_ordinary_tax_input_domain_is_valid
   program: tax
   type: not_comparable
@@ -21094,6 +21154,13 @@ outputs:
   rationale: This Axiom output records the applicability of Florida Constitution article VII section 5(a)
     to natural-person residents. PolicyEngine exposes no legal-authority applicability predicate for a
     state with no active individual income-tax program.
+  comment: 'Florida does not impose chapter 220 individual income tax on a natural
+
+    person. PolicyEngine therefore has no active Florida individual-income-tax
+
+    program surface to compare. Exact entries keep every complete legal output
+
+    in tax-scoped coverage without inventing an oracle variable.'
 - axiom: us-fl:policies/income_tax/2026_resident_zero_liability#fl_pit_2026_chapter_220_taxpayer_definition_excludes_natural_person
   program: tax
   type: not_comparable
@@ -21158,6 +21225,15 @@ outputs:
   candidate_priority: P4
   rationale: This Axiom output records the enacted permanent zero Hall-income-tax rate for tax years beginning
     on or after January 1, 2021. PolicyEngine exposes no active Tennessee individual-income-tax rate parameter.
+  comment: 'Tennessee''s former Hall income tax has a permanent post-2020 zero rate,
+
+    Revenue treats it as repealed and directs taxpayers not to file returns,
+
+    and Tennessee has no tax on earned income. PolicyEngine therefore has no
+
+    active Tennessee individual-income-tax surface. Exact entries keep every
+
+    complete legal output in tax-scoped coverage without inventing an oracle.'
 - axiom: us-tn:policies/income_tax/2026_resident_zero_liability#tn_pit_2026_no_earned_income_tax_applies
   program: tax
   type: not_comparable
@@ -21230,6 +21306,15 @@ outputs:
   rationale: Axiom validates that exactly one of its four District filing-status input flags is selected.
     PolicyEngine uses its own categorical filing-status input and exposes no equivalent RuleSpec input-contract
     predicate.
+  comment: 'The District''s TY2026 resident module intentionally stops after a bounded
+
+    adjusted-gross-income surface.  Its later annual stages are typed holds
+
+    and fail-closed sentinels until final D-40 materials are available.  Exact
+
+    entries keep every output in tax-scoped coverage without treating those
+
+    sentinels as zero tax or as PolicyEngine equivalents.'
 - axiom: us-dc:policies/income_tax/2026_resident_liability_source_hold#dc_pit_2026_input_domain_is_valid
   program: tax
   type: not_comparable
@@ -21331,6 +21416,13 @@ outputs:
   rationale: RuleSpec stores the six finite upper bounds as one selector-indexed private table. PolicyEngine
     exposes its District schedule through a marginal-rate parameter scale, not a one-to-one variable or
     table with this internal representation.
+  comment: 'The canonical section 47-1806.03(a)(11) module is a narrow joint-method
+
+    schedule-before-credits surface on completed District taxable income. It
+
+    neither chooses between joint and separate-return methods nor replaces the
+
+    legacy broad-liability/TAXSIM diagnostic.'
 - axiom: us-dc:policies/income_tax/2026_section_47_1806_03_schedule_before_credits#dc_pit_2026_section_47_1806_03_bracket_floor
   program: tax
   type: not_comparable
@@ -21387,6 +21479,13 @@ outputs:
   rationale: Axiom's fail-closed validation of its raw-input contract is a RuleSpec harness judgment;
     PolicyEngine computes SC tax from its own entity/input schema and exposes no corresponding domain-validity
     variable.
+  comment: 'South Carolina''s 2026 resident core has a mixed oracle surface.  Keep
+
+    every executable output exact here: otherwise the broad us-sc fallback
+
+    below falsely reports the whole module as one undifferentiated agency-
+
+    manual gap.'
 - axiom: us-sc:policies/income_tax/2026_full_year_resident_core#sc_pit_2026_base_profile_applies
   program: tax
   type: not_comparable
@@ -21677,6 +21776,13 @@ outputs:
   candidate_priority: P4
   rationale: This is Axiom's private statutory-rate implementation constant; the module's executable output
     contract is not a one-to-one PolicyEngine parameter surface.
+  comment: 'Illinois''s TY2026 resident module is an explicitly bounded source-ready
+
+    profile. Exact classifications prevent the broad us-il fallback from
+
+    hiding new outputs and prevent profile-gated zero sentinels from being
+
+    mistaken for PolicyEngine''s population-wide Illinois tax variables.'
 - axiom: us-il:policies/income_tax/2026_full_year_resident_core#il_pit_2026_personal_exemption_amount
   program: tax
   type: not_comparable
@@ -21882,6 +21988,15 @@ outputs:
   candidate_priority: P4
   rationale: This private Axiom parameter records the statutory $100 political-credit cap. PolicyEngine
     exposes no active Alaska individual-credit parameter.
+  comment: 'Alaska excludes individuals from its chapter tax but provides two
+
+    resident credits payable as refunds, subject to appropriation. PolicyEngine
+
+    has no active Alaska individual-income-tax surface. Exact not-comparable
+
+    entries preserve the distinction between substantive pre-credit zeros,
+
+    private statutory candidates, and held public refund/liability sentinels.'
 - axiom: us-ak:policies/income_tax/2026_resident_zero_liability#ak_pit_2026_dependent_care_credit_rate
   program: tax
   type: not_comparable
@@ -22011,6 +22126,17 @@ outputs:
   rationale: This Axiom output records the applicability of Nevada's constitutional prohibition on taxing
     a natural person's wages or personal income. PolicyEngine exposes no legal-authority applicability
     predicate for a state with no active individual income-tax program.
+  comment: 'Nevada Constitution article 10, section 1(9) prohibits a personal income
+
+    tax on natural persons while expressly preserving taxes on business income
+
+    or revenue. PolicyEngine has no active Nevada individual-income-tax surface,
+
+    so these bounded legal and source-hold outputs are exact tax-scoped
+
+    non-comparables. Downstream zero values are fail-closed sentinels, not
+
+    substantive claims of complete signed net liability.'
 - axiom: us-nv:policies/income_tax/2026_resident_zero_liability#nv_pit_2026_constitutional_prohibition_current_for_tax_year
   program: tax
   type: not_comparable
@@ -22097,6 +22223,17 @@ outputs:
   rationale: This Axiom output records the applicability of Texas's constitutional prohibition on taxing
     an individual's net income. PolicyEngine exposes no legal-authority applicability predicate for a
     state with no active individual income-tax program.
+  comment: 'Texas Constitution article VIII, sections 24-a and 24-b prohibit taxes on
+
+    individual net income and capital gains while preserving specified
+
+    non-income taxes. PolicyEngine has no active Texas individual-income-tax
+
+    surface, so these bounded legal and source-hold outputs are exact
+
+    tax-scoped non-comparables. Downstream zero values are fail-closed
+
+    sentinels, not substantive claims of complete signed net liability.'
 - axiom: us-tx:policies/income_tax/2026_resident_zero_liability#tx_pit_2026_capital_gains_tax_prohibition_applies
   program: tax
   type: not_comparable
@@ -22183,6 +22320,15 @@ outputs:
   rationale: This Axiom output records the current State of Wyoming portal's affirmative statement that
     Wyoming has no individual income tax. PolicyEngine exposes no legal-authority applicability predicate
     for a state with no active individual-income-tax program.
+  comment: 'Current official Wyoming sources state that Wyoming has no individual or
+
+    state income tax. PolicyEngine has no active Wyoming individual-income-tax
+
+    surface, so these bounded legal and source-hold outputs are exact
+
+    tax-scoped non-comparables. Downstream zero values are fail-closed
+
+    sentinels, not substantive claims of complete signed net liability.'
 - axiom: us-wy:policies/income_tax/2026_resident_zero_liability#wy_pit_2026_state_income_tax_absence_current_for_tax_year
   program: tax
   type: not_comparable
@@ -22299,6 +22445,13 @@ outputs:
   candidate_priority: P4
   rationale: Axiom exposes a private raw-input and source-readiness judgment for its bounded Kansas interface.
     PolicyEngine uses its own categorical and entity inputs and exposes no one-to-one readiness predicate.
+  comment: 'Kansas''s bounded TY2026 resident core has eight amount stages with aligned
+
+    PolicyEngine variables. Readiness judgments, literal parameters,
+
+    non-identical ordering intermediates, and fail-closed public sentinels are
+
+    classified exactly but are not compared as substantive PolicyEngine values.'
 - axiom: us-ks:policies/income_tax/2026_full_year_resident_core#ks_pit_2026_base_profile_applies
   program: tax
   type: not_comparable
@@ -22545,6 +22698,15 @@ outputs:
   rationale: Axiom's input-domain gate requires a full-year Indiana resident return, aligned federal and
     Indiana filing units, and a nonnegative integer dependent count. PolicyEngine exposes no one-to-one
     validation output for that interface contract.
+  comment: 'Indiana''s TY2026 resident module is a source-readiness surface. Its
+
+    monetary stages fail closed until final current-year income-base,
+
+    deduction, tax, statewide surtax, credit, and ordering authority is
+
+    pinned. Exact mappings prevent those zero sentinels from being treated as
+
+    completed Indiana tax results.'
 - axiom: us-in:policies/income_tax/2026_resident_liability_source_hold#in_pit_2026_current_law_source_hold_applies
   program: tax
   type: not_comparable
@@ -22641,6 +22803,21 @@ outputs:
   rationale: This Axiom output records the applicability of South Dakota's official no-personal-income-tax
     position for tax year 2026. PolicyEngine exposes no legal-authority applicability predicate for a
     state with no active individual income-tax program.
+  comment: 'The South Dakota Department of Revenue''s January 2026 guide states that
+
+    South Dakota does not have a personal income tax. SDCL chapter 10-43 and
+
+    section 10-43-2 confine the state''s income-tax chapter to banks and
+
+    financial corporations. PolicyEngine has no active South Dakota
+
+    individual-income-tax surface, so these bounded legal and source-hold
+
+    outputs are exact tax-scoped non-comparables. Downstream zero values are
+
+    fail-closed sentinels, not substantive claims of complete signed net
+
+    liability.'
 - axiom: us-sd:policies/income_tax/2026_resident_zero_liability#sd_pit_2026_business_and_entity_taxes_outside_scope
   program: tax
   type: not_comparable
@@ -22719,6 +22896,13 @@ outputs:
   candidate_priority: P4
   rationale: The preserved federal starting point is an input-boundary diagnostic, not an independently
     computed Colorado result.
+  comment: 'Colorado''s TY2026 full-year-resident module is a source-readiness
+
+    boundary. Exact P4 mappings prevent federal-boundary diagnostics and
+
+    fail-closed Colorado sentinels from being mistaken for completed state-tax
+
+    results.'
 - axiom: us-co:policies/income_tax/2026_full_year_resident_source_hold#co_pit_2026_input_domain_is_valid
   program: tax
   type: not_comparable
@@ -22797,6 +22981,13 @@ outputs:
   candidate_priority: P4
   rationale: Axiom validates the bounded Kentucky full-year-resident and aligned-filing-unit contract;
     PolicyEngine exposes no one-to-one predicate.
+  comment: 'Kentucky''s TY2026 full-year-resident module is a source-readiness
+
+    boundary. Exact P4 mappings keep its source holds and fail-closed
+
+    sentinels from being treated as completed Kentucky tax results or compared
+
+    with PolicyEngine''s projected state-tax outputs.'
 - axiom: us-ky:policies/income_tax/2026_full_year_resident_source_hold#ky_pit_2026_final_return_source_hold_applies
   program: tax
   type: not_comparable
@@ -22906,6 +23097,13 @@ outputs:
   candidate_priority: P4
   rationale: Axiom validates the caller-supplied completed Georgia taxable-net-income boundary. PolicyEngine
     exposes no one-to-one validation Judgment for this interface contract.
+  comment: 'Georgia''s canonical TY2026 section 48-7-20 surface accepts completed
+
+    Georgia taxable net income and applies only the annual 4.99 percent rate.
+
+    It does not construct taxable income, credits, payments, filing mechanics,
+
+    or final Form 500 liability.'
 - axiom: us-ga:policies/income_tax/2026_annual_tax_before_nonrefundable_credits#ga_pit_2026_annual_tax_before_nonrefundable_credits
   program: tax
   type: direct_variable
@@ -22929,6 +23127,13 @@ outputs:
     one Person's completed Delaware taxable income before nonrefundable credits. This mapping excludes
     filing-method selection, combined-return computation, TaxUnit aggregation, credits, payments, and
     final liability.
+  comment: 'Delaware''s canonical TY2026 section 1102(a)(14) surface applies the enacted
+
+    individual schedule to one caller-completed Person taxable-income amount.
+
+    It does not select a filing method, compute a combined return, apply
+
+    credits or payments, aggregate an annual return, or claim final liability.'
 - axiom: us-ms:policies/income_tax/pilot_liability_pipeline#ms_pit_pilot_taxable_income
   program: tax
   type: not_comparable
@@ -22942,6 +23147,15 @@ outputs:
     amount at TaxUnit/year. PolicyEngine's adjacent ms_taxable_income_joint target and its individual-filing
     counterpart are separate Person-grain constructed candidates, so neither is a one-to-one generic TaxUnit
     taxable-income boundary.
+  comment: 'The strict-cutover candidate still carries the earlier narrow TaxUnit
+
+    pipeline. It accepts completed taxable income and the selected bracket as
+
+    caller-supplied boundaries, so only its final before-credit amount shares a
+
+    one-to-one PolicyEngine surface. These exact records intentionally override
+
+    the broad us-ms fallback below.'
 - axiom: us-ms:policies/income_tax/pilot_liability_pipeline#ms_pit_pilot_schedule_tax
   program: tax
   type: not_comparable
@@ -22995,6 +23209,15 @@ outputs:
   rationale: This Judgment records that Ohio adjusted-gross-income, business-income separation, and exemption
     construction remain outside the bounded completed-income schedule. PolicyEngine exposes no equivalent
     source-readiness hold.
+  comment: 'Ohio''s bounded TY2026 nonbusiness-income module accepts one completed
+
+    Ohio taxable-income boundary and applies only section 5747.02(A)(3)(c)''s
+
+    schedule before credits. PolicyEngine-US 1.752.2 incorrectly treats the
+
+    $26,050 equality point as taxable, so the comparable schedule records
+
+    explicitly restore the statute''s inclusive no-tax gate.'
 - axiom: us-oh:policies/income_tax/pilot_liability_pipeline#oh_pit_pilot_business_income_and_excess_exemption_source_hold_applies
   program: tax
   type: not_comparable
@@ -23053,6 +23276,13 @@ outputs:
   candidate_priority: P4
   rationale: Axiom validates the caller's nonnegative-income, aligned-filing-unit, full-year-resident
     interface contract. PolicyEngine exposes no one-to-one Judgment for that complete contract.
+  comment: 'Utah''s canonical TY2026 full-year-resident surface applies section
+
+    59-10-104''s rate to completed Utah taxable income, but must also honor the
+
+    separate section 59-10-104.1 exemption. PolicyEngine publishes those two
+
+    components separately, so the schedule comparison is explicitly derived.'
 - axiom: us-ut:policies/income_tax/2026_full_year_resident_before_credit_schedule#ut_pit_2026_before_credit_schedule_applies
   program: tax
   type: not_comparable
@@ -23106,6 +23336,13 @@ outputs:
   candidate_priority: P4
   rationale: The preserved federal adjusted-gross-income value is an allowed input-boundary diagnostic,
     not an independently computed Idaho result.
+  comment: 'Idaho''s TY2026 full-year-resident module is a source-readiness boundary.
+
+    Exact P4 mappings prevent federal-boundary diagnostics, source holds, and
+
+    fail-closed Idaho sentinels from being mistaken for completed state-tax
+
+    results or compared to PolicyEngine''s projected Idaho outputs.'
 - axiom: us-id:policies/income_tax/2026_full_year_resident_source_hold#id_pit_2026_input_domain_is_valid
   program: tax
   type: not_comparable
@@ -23196,6 +23433,13 @@ outputs:
   candidate_priority: P4
   rationale: The preserved federal adjusted-gross-income value is an allowed input-boundary diagnostic,
     not an independently computed Massachusetts result.
+  comment: 'Massachusetts''s TY2026 full-year-resident module is a source-readiness
+
+    boundary. Exact P4 mappings prevent federal-boundary diagnostics, source
+
+    holds, and fail-closed Massachusetts sentinels from being mistaken for
+
+    completed state-tax results or compared to PolicyEngine projections.'
 - axiom: us-ma:policies/income_tax/2026_full_year_resident_source_hold#ma_pit_2026_input_domain_is_valid
   program: tax
   type: not_comparable
@@ -23292,6 +23536,13 @@ outputs:
   candidate_priority: P4
   rationale: The preserved federal adjusted-gross-income value is an allowed input-boundary diagnostic,
     not an independently computed Maryland result.
+  comment: 'Maryland''s TY2026 full-year-resident State module is a source-readiness
+
+    boundary. Exact P4 mappings prevent federal-boundary diagnostics, source
+
+    holds, and fail-closed Maryland sentinels from being mistaken for completed
+
+    State-tax results or compared to PolicyEngine projections.'
 - axiom: us-md:policies/income_tax/2026_full_year_resident_source_hold#md_pit_2026_input_domain_is_valid
   program: tax
   type: not_comparable
@@ -23376,6 +23627,13 @@ outputs:
   candidate_priority: P4
   rationale: Axiom validates the bounded Michigan full-year-resident and aligned-filing-unit contract;
     PolicyEngine exposes no one-to-one predicate.
+  comment: 'Michigan''s TY2026 full-year-resident module is a source-readiness
+
+    boundary. Exact P4 mappings keep its source holds and fail-closed
+
+    sentinels from being treated as completed Michigan tax results or compared
+
+    with PolicyEngine''s projected state-tax outputs.'
 - axiom: us-mi:policies/income_tax/e2e_resident_liability_pipeline#mi_pit_e2e_income_base_source_hold_applies
   program: tax
   type: not_comparable
@@ -23863,6 +24121,13 @@ outputs:
   rationale: RuleSpec's $100,000 threshold selects the official California rate-schedule branch instead
     of the tax table. PolicyEngine exposes completed California income-tax results, not this source-specific
     routing threshold as a one-to-one parameter or variable.
+  comment: 'California''s TY2026 pilot contains one independently comparable subgraph:
+
+    the 1 percent Behavioral Health Services Tax on completed California
+
+    taxable income above $1 million. These records deliberately do not promote
+
+    the pilot''s separate rate-schedule branch or broad liability surface.'
 - axiom: us-ca:policies/income_tax/pilot_liability_pipeline#ca_pit_pilot_schedule_x_upper
   program: tax
   type: not_comparable
@@ -24049,6 +24314,11 @@ outputs:
     the preserved $1 absolute tolerance. This narrow mapping makes no claim about taxable-income construction,
     tax-table rounding, alternative minimum tax, net investment income tax, credits, payments, or final
     liability.
+  comment: 'Minnesota''s tax-year-2026 pilot exposes a source-faithful continuous
+
+    section 290.06 rate schedule. The exact mapping deliberately does not
+
+    promote the pilot''s historical broad-liability concept.'
 - axiom: us-mt:policies/income_tax/pilot_liability_pipeline#mt_pit_pilot_income_tax_liability
   program: tax
   type: direct_variable
@@ -24060,6 +24330,13 @@ outputs:
   rationale: Both outputs compose Montana's complete temporary tax-year-2026 ordinary-income and net-long-term-capital-gain
     schedules under MCA 15-30-2103 from the same completed-return boundaries, before nonrefundable credits;
     this narrow mapping excludes credits, payments, and final annual liability.
+  comment: 'Montana''s bounded TY2026 tax before nonrefundable credits. Completed
+
+    taxable income, section 1222 net long-term capital gain, and filing-status
+
+    classification remain reviewed caller boundaries; credits, payments, and
+
+    final annual liability are not promoted.'
 - axiom: us-ny:policies/income_tax/pilot_liability_pipeline#ny_pit_pilot_taxable_income
   program: tax
   type: direct_variable
@@ -24070,6 +24347,13 @@ outputs:
   comparison: money
   rationale: RuleSpec preserves the completed New York taxable-income boundary supplied to the section
     601 main schedule; PolicyEngine exposes that same completed boundary as ny_taxable_income.
+  comment: 'New York Tax Law section 601''s bounded TY2026 main resident schedule.
+
+    These exact records cover every output in the canonical RuleSpec module
+
+    and take precedence over the jurisdiction-wide fallback below. They do not
+
+    claim supplemental tax, credits, local taxes, or final annual liability.'
 - axiom: us-ny:policies/income_tax/pilot_liability_pipeline#ny_pit_pilot_main_income_tax
   program: tax
   type: direct_variable
@@ -24162,6 +24446,11 @@ outputs:
   comparison: money
   rationale: Both outputs apply Indiana's tax-year-2026 2.95 percent state rate to completed Indiana adjusted
     gross income with a zero floor, before credits and excluding the separate county tax.
+  comment: 'Indiana''s bounded TY2026 adjusted-gross-income tax before credits and
+
+    county tax. The completed-return AGI remains a caller boundary, so only
+
+    the RuleSpec output is mapped directly.'
 - axiom: us-sc:policies/income_tax/pilot_liability_pipeline#sc_pit_pilot_income_tax_liability
   program: tax
   type: direct_variable
@@ -24173,6 +24462,13 @@ outputs:
   rationale: On the reviewed nonnegative completed-return boundary, both outputs apply South Carolina's
     enacted tax-year-2026 1.99 percent and 5.21 percent-minus-$966 schedule to South Carolina taxable
     income before nonrefundable credits, payments, or final annual liability.
+  comment: 'South Carolina''s bounded TY2026 individual income tax before
+
+    nonrefundable credits. The completed-return taxable-income input remains a
+
+    caller boundary; promotion is limited to the enacted 2026 schedule and a
+
+    runtime-proved nonnegative population domain.'
 - axiom: us-ok:policies/income_tax/pilot_liability_pipeline#ok_pit_pilot_income_tax_liability
   program: tax
   type: direct_variable
@@ -24185,6 +24481,11 @@ outputs:
     tax-year-2026 four-band schedule to Oklahoma taxable income using the statutory single-or-separate
     versus joint, surviving-spouse, or head-of-household schedule branch, before credits, payments, or
     final annual liability.
+  comment: 'Oklahoma''s bounded TY2026 individual income tax before credits. Completed
+
+    taxable income and filing-status classification remain caller boundaries;
+
+    no credit, payment, or final-liability surface is promoted here.'
 - axiom: us-pa:policies/income_tax/pilot_liability_pipeline#pa_pit_pilot_taxable_income
   program: tax
   type: direct_variable
@@ -24196,6 +24497,13 @@ outputs:
   rationale: On the reviewed nonnegative completed-return boundary, RuleSpec's taxable-income output and
     PolicyEngine's pa_adjusted_taxable_income expose the same Pennsylvania adjusted taxable income before
     tax forgiveness and credits.
+  comment: 'Pennsylvania''s bounded TY2026 resident tax before forgiveness. The
+
+    completed-return adjusted-taxable-income input remains a caller boundary;
+
+    these exact output mappings are promoted only with a runtime proof that the
+
+    selected certified population stays in RuleSpec''s nonnegative domain.'
 - axiom: us-pa:policies/income_tax/pilot_liability_pipeline#pa_pit_pilot_income_tax_liability
   program: tax
   type: direct_variable
@@ -24217,6 +24525,13 @@ outputs:
   comparison: money
   rationale: RuleSpec preserves the completed Illinois taxable-income boundary after a nonnegative floor;
     PolicyEngine exposes the same completed TaxUnit boundary as il_taxable_income.
+  comment: 'Illinois''s bounded TY2026 annual tax before nonrefundable credits.
+
+    The canonical module accepts completed Illinois taxable income and
+
+    investment-credit recapture boundaries; it does not reconstruct either
+
+    upstream chain or claim credits, payments, or final annual liability.'
 - axiom: us-il:policies/income_tax/pilot_liability_pipeline#il_pit_pilot_income_tax_liability
   program: tax
   type: direct_variable
