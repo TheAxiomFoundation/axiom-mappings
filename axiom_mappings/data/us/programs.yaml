@@ -1,28 +1,37 @@
 # Programs whose readiness is tracked. `axiom` is the RuleSpec module or composition; `consumers` gives
-# each consumer's own name for it, so reports from different repos join on one id.
+# each consumer's own name for it, so reports from different repos join on one id. `corpus_ref` is the
+# rulespec-us commit the program is read at (policyengine-axiom's archived corpus); without it, the
+# map's `rulespec_us` pin. `assembled_by` marks a program a consumer assembles in its own code from
+# many modules, so `axiom` is that consumer's id and not a RuleSpec module.
 programs:
 - id: us-co/snap-fy2026
   jurisdiction: us-co
   axiom: us-co:policies/cdhs/snap/fy-2026-benefit-calculation
+  corpus_ref: d58cc0ce67ad891fde4c9061c86a2091bfdd524f
   window: ["2025-10-01", "2026-09-30"]
   consumers: {policyengine-axiom: us-co-snap-fy2026, axiom-oracles: co-snap-populace}
 - id: us/oasdi-employee-tax
   jurisdiction: us
   axiom: us:statutes/26/3101/a
+  corpus_ref: d58cc0ce67ad891fde4c9061c86a2091bfdd524f
   consumers: {policyengine-axiom: us-oasdi-wage-tax}
 - id: us/ctc
   jurisdiction: us
   axiom: us:statutes/26/24/h
+  corpus_ref: d58cc0ce67ad891fde4c9061c86a2091bfdd524f
   consumers: {policyengine-axiom: us-ctc-subsection-h}
 - id: us/snap-elderly-disabled-member
   jurisdiction: us
   axiom: us:statutes/7/2012/j
+  corpus_ref: d58cc0ce67ad891fde4c9061c86a2091bfdd524f
   consumers: {policyengine-axiom: us-snap-elderly-disabled-member}
 - id: us/snap-student-child-income-exclusion
   jurisdiction: us
   axiom: us:statutes/7/2014/d
+  corpus_ref: d58cc0ce67ad891fde4c9061c86a2091bfdd524f
   consumers: {policyengine-axiom: us-snap-student-child-income-exclusion}
 - id: us/federal-income-tax
   jurisdiction: us
   axiom: us:tax/federal-income-tax
+  assembled_by: axiom-oracles/axiom_oracles/adapters/axiom/tax_projection.py
   consumers: {axiom-oracles: us-federal-income-tax}

@@ -1,6 +1,6 @@
 us:
   policyengine_us: 1.808.0
-  rulespec_us: null
+  rulespec_us: 36f72ea429f475c66b88453f67a344c16021c610  # origin/main 2026-09-30
   future_years: axiom-then-policyengine-indexing
   seeded_from:
     repo: TheAxiomFoundation/axiom-oracles

@@ -18,8 +18,14 @@ jobs:
         run: |
           uv venv --python 3.13 .venv
           uv pip install --python .venv/bin/python -e '.[policyengine,test]'
-      - name: Validate the map against policyengine-us
-        run: .venv/bin/python -m axiom_mappings.validate --country us --policyengine
+      - name: Fetch rulespec-us at the pinned commits
+        run: |
+          git init -q "$RUNNER_TEMP/rulespec-us"
+          git -C "$RUNNER_TEMP/rulespec-us" fetch -q --depth 1 https://github.com/TheAxiomFoundation/rulespec-us \
+            $(.venv/bin/python -m axiom_mappings.identity --refs)
+          echo "RULESPEC_US=$RUNNER_TEMP/rulespec-us" >> "$GITHUB_ENV"
+      - name: Validate the map against policyengine-us and RuleSpec
+        run: .venv/bin/python -m axiom_mappings.validate --country us --policyengine --corpus "$RULESPEC_US"
       - name: Readiness report
         run: .venv/bin/python -m axiom_mappings.readiness --all
       - name: Tests

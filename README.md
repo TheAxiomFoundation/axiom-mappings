@@ -27,6 +27,8 @@ axiom_mappings/data/us/programs.yaml     tracked programs, with each consumer's 
 axiom_mappings/data/taxonomy.yaml        why Axiom and a counterpart disagree (investigated causes), and crosswalks
                           from oracles' disposition kinds and axiom-api's known reasons
 axiom_mappings/data/us/findings.yaml     known disagreements, each recorded once with its cause and issue
+axiom_mappings/data/us/unresolved.yaml   Axiom ids that do not resolve in RuleSpec at the pin (a ratchet)
+axiom_mappings/data/us/renames.yaml      reviewed Axiom id renames, with evidence
 axiom_mappings/schema/finding.schema.json  the classified-disagreement record every consumer emits
 axiom_mappings/schema/*.schema.json      JSON Schema for each table (usable from Python and TypeScript)
 axiom_mappings/pins.yaml  what a release is valid against: policyengine-us, corpus, future-years rule
@@ -46,6 +48,13 @@ axiom_mappings/           loader (load, rules_for_slot, policyengine_variable, .
   `parameter_key_path`.
 - **Constants are presumptions.** They should name the presumption policy they apply; today none
   do, and the validator counts them.
+- **Axiom ids must exist.** `python -m axiom_mappings.identity --corpus <rulespec-us>` resolves every
+  id in outputs, parameters and prefixes at the pinned `rulespec_us` commit, and each program's module
+  at its own `corpus_ref`, reading git objects so no checkout or branch is touched. An id that does not
+  resolve comes with suggestions (same name moved within the jurisdiction, or a longer or shorter name
+  in its module). `unresolved.yaml` lists the known ones; a new one fails, and a listed one that
+  resolves again fails until removed, so the list only shrinks. A rename is a claim about meaning,
+  so it goes through review into `renames.yaml` with evidence, never automatically.
 - **Future years** (`pins.yaml`): Axiom's values through its last encoded date, then PolicyEngine's
   indexing, flagged in provenance.
 
@@ -69,7 +78,8 @@ axiom_mappings/           loader (load, rules_for_slot, policyengine_variable, .
 
 ```sh
 uv venv --python 3.13 .venv && uv pip install --python .venv/bin/python -e '.[policyengine,test]'
-.venv/bin/python -m axiom_mappings.validate --country us --policyengine --artifact compiled.json
+.venv/bin/python -m axiom_mappings.validate --country us --policyengine --corpus ~/rulespec-us --artifact compiled.json
+.venv/bin/python -m axiom_mappings.identity --corpus ~/rulespec-us --ref origin/main   # drift since the pin
 .venv/bin/python -m pytest
 ```
 

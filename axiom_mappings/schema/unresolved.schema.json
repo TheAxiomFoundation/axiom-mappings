@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "axiom-mappings/unresolved.schema.json",
+  "title": "Axiom ids known not to resolve in RuleSpec at a commit (a ratchet)",
+  "type": "object",
+  "required": ["ref", "unresolved"],
+  "additionalProperties": false,
+  "properties": {
+    "ref": {"type": ["string", "null"], "pattern": "^[0-9a-f]{40}$"},
+    "unresolved": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["axiom", "table", "status"],
+        "properties": {
+          "axiom": {"type": "string", "pattern": "^[a-z-]+:[^#]*(#.*)?$"},
+          "table": {"enum": ["outputs", "parameters", "prefixes"]},
+          "status": {"enum": ["missing-module", "missing-rule", "missing-prefix"]},
+          "candidates": {"type": "array", "items": {"type": "string"}},
+          "note": {"type": "string"}
+        }
+      }
+    }
+  }
+}

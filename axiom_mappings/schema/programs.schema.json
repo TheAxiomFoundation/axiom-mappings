@@ -42,6 +42,15 @@
             "additionalProperties": {
               "type": "string"
             }
+          },
+          "corpus_ref": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{40}$",
+            "description": "rulespec-us commit this program is read at; the map's rulespec_us pin when absent"
+          },
+          "assembled_by": {
+            "type": "string",
+            "description": "consumer code that assembles the program from many modules (then `axiom` is that consumer's id, not a RuleSpec module)"
           }
         }
       }

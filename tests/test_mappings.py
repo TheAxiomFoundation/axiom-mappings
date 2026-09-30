@@ -162,6 +162,9 @@ def test_export_reproduces_the_oracles_registry_it_was_seeded_from(m):
     commit = m.pins["seeded_from"]["commit"]
     raw = subprocess.check_output(["git", "-C", str(ORACLES), "show", f"{commit}:axiom_oracles/bridges/mappings/us.yaml"], text=True)
     original = yaml.safe_load(raw)
+    for row in original["mappings"]:  # ids the map changed since seeding, each a reviewed rename
+        if "legal_id" in row:
+            row["legal_id"] = m.current_id(row["legal_id"])
     exported = oracles_registry(m)
 
     def key(e):

@@ -11451,7 +11451,7 @@ outputs:
   unit: USD
   comparison: money
   rationale: Same total child tax credit before splitting refundable and nonrefundable portions.
-- axiom: us:statutes/26/24/h#ctc_refundable_maximum
+- axiom: us:statutes/26/24/h#ctc_refundable_maximum_under_subsection_h
   program: tax
   type: direct_variable
   policyengine_variable: ctc_refundable_maximum

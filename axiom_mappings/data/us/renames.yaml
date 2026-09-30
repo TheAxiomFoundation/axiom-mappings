@@ -1,0 +1,13 @@
+# Axiom ids the map changed because RuleSpec renamed or moved the rule. Each entry is a reviewed claim
+# that the new rule means what the old one did, with the evidence for it. Consumers that keyed anything
+# by the old id (oracles dispositions, stored results) follow these; the oracles export test maps the
+# seeded registry through them.
+renames:
+- from: us:statutes/26/24/h#ctc_refundable_maximum
+  to: us:statutes/26/24/h#ctc_refundable_maximum_under_subsection_h
+  table: outputs
+  date: '2026-09-30'
+  evidence: >-
+    rulespec-us renamed every 26 USC 24(h) rule with an _under_subsection_h suffix. policyengine-axiom's
+    manifests/us-ctc-subsection-h.json binds ctc_refundable_maximum to this output, and its shadow runs compare
+    the two (the only difference is the recorded 24(h)(5) indexing finding, rulespec-us#1343).

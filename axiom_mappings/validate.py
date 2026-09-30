@@ -1,11 +1,13 @@
 """Validate the map: schema, integrity, vocabulary, PolicyEngine metadata, and coverage of Axiom programs.
 
-    python -m axiom_mappings.validate --country us [--policyengine] [--artifact compiled.json ...] [--json]
+    python -m axiom_mappings.validate --country us [--policyengine] [--corpus RULESPEC [--ref SHA]]
+                                      [--artifact compiled.json ...] [--json]
 
 Errors fail the run (exit 1); warnings are reported. ``--policyengine`` checks every mapped
 PolicyEngine variable and parameter against the installed policyengine-us (pinned in pins.yaml).
 ``--artifact`` reads a compiled Axiom program and reports which of its input slots the rules
-cover, which they miss, and which more than one rule matches.
+cover, which they miss, and which more than one rule matches. ``--corpus`` resolves every Axiom id
+at the pinned rulespec-us commit (``identity.py``).
 """
 
 from __future__ import annotations
@@ -117,6 +119,12 @@ def _integrity_findings(m: Mappings) -> list[Finding]:
                 note = r.get("type") == "not_comparable"  # a note covering several outputs; usable by no consumer
                 out.append(Finding("warning" if note else "error", f"{table}-without-axiom-id", f"{table}[{i}]",
                                    f"no Axiom id ({r['program']})" + (": a group note, list its outputs" if note else "")))
+    for r in m.renames:
+        ids = {row["axiom"] for row in getattr(m, r["table"])}
+        if r["to"] not in ids:
+            out.append(Finding("error", "rename-target-unmapped", r["to"], f"renamed from {r['from']} but not in {r['table']}"))
+        if r["from"] in ids:
+            out.append(Finding("error", "rename-source-still-mapped", r["from"], f"renamed to {r['to']} but still in {r['table']}"))
     for r in m.outputs:
         comparison = r.get("comparison")
         if comparison and comparison not in COMPARISONS:
@@ -225,7 +233,8 @@ def coverage(m: Mappings, compiled: dict[str, Any]) -> dict[str, Any]:
 
 
 def validate(country: str = "us", root: Path | None = None, policyengine: bool = False,
-             artifacts: Iterable[Path] = ()) -> tuple[list[Finding], dict[str, Any]]:
+             artifacts: Iterable[Path] = (), corpus: Path | None = None,
+             ref: str | None = None) -> tuple[list[Finding], dict[str, Any]]:
     root = root or ROOT
     findings = _schema_findings(country, root)
     m = load(country, root)
@@ -233,6 +242,12 @@ def validate(country: str = "us", root: Path | None = None, policyengine: bool =
     if policyengine:
         findings += _policyengine_findings(m)
     reports = {}
+    if corpus is not None:
+        from . import identity
+
+        report = identity.check(m, corpus, ref)
+        findings += identity.findings(m, report)
+        reports["identity"] = {k: v for k, v in report.items() if k != "unresolved"} | {"unresolved": len(report["unresolved"])}
     for path in artifacts:
         report = coverage(m, json.loads(Path(path).read_text()))
         reports[str(path)] = report
@@ -246,9 +261,12 @@ def main(argv=None) -> int:
     ap.add_argument("--country", default="us")
     ap.add_argument("--policyengine", action="store_true", help="check against the installed policyengine-us")
     ap.add_argument("--artifact", action="append", default=[], help="compiled Axiom program JSON (repeatable)")
+    ap.add_argument("--corpus", type=Path, help="rulespec-us git checkout: resolve every Axiom id at the pin")
+    ap.add_argument("--ref", help="with --corpus: check at this commit instead of the pin")
     ap.add_argument("--json", action="store_true")
     args = ap.parse_args(argv)
-    findings, reports = validate(args.country, policyengine=args.policyengine, artifacts=[Path(a) for a in args.artifact])
+    findings, reports = validate(args.country, policyengine=args.policyengine, artifacts=[Path(a) for a in args.artifact],
+                                 corpus=args.corpus, ref=args.ref)
     errors = [f for f in findings if f.level == "error"]
     if args.json:
         print(json.dumps({"findings": [asdict(f) for f in findings], "coverage": reports}, indent=2))
@@ -258,6 +276,10 @@ def main(argv=None) -> int:
             print(f"{level:7} {code:28} {n}")
         for f in errors[:40]:
             print(f"  ERROR {f.code}: {f.where}: {f.message}")
+        identity = reports.pop("identity", None)
+        if identity:
+            print(f"\nrulespec-us {identity['ref'][:9]}: {identity['ok']} ok, {identity['deferred']} deferred, "
+                  f"{identity['unresolved']} unresolved of {identity['checked']} Axiom ids")
         for path, r in reports.items():
             print(f"\n{Path(path).name}: {r['covered']}/{r['slots']} slots covered {r['by_source']}, "
                   f"{len(r['missing'])} missing, {len(r['ambiguous'])} ambiguous")

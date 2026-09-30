@@ -18,7 +18,8 @@ import yaml
 ROOT = Path(__file__).resolve().parent  # data/, schema/ and pins.yaml ship inside the package
 DATA = ROOT / "data"
 SCHEMA = ROOT / "schema"
-TABLES = ("concepts", "inputs", "outputs", "parameters", "presumptions", "supplied_parameters", "programs", "findings", "prefixes")
+TABLES = ("concepts", "inputs", "outputs", "parameters", "presumptions", "supplied_parameters", "programs", "findings", "prefixes",
+          "unresolved", "renames")
 
 
 def _yaml(path: Path) -> Any:
@@ -27,6 +28,10 @@ def _yaml(path: Path) -> Any:
 
 def _read(country: str, table: str, root: Path) -> list[dict[str, Any]]:
     return (_yaml(root / "data" / country / f"{table}.yaml") or {}).get(table, [])
+
+
+def _unresolved_ref(country: str, root: Path) -> str | None:
+    return (_yaml(root / "data" / country / "unresolved.yaml") or {}).get("ref")
 
 
 def matches(rule: dict[str, Any], slot: str) -> bool:
@@ -42,6 +47,7 @@ def release_id(country: str, root: Path | None = None) -> str:
     """``<country>-<sha12>`` over every table, the taxonomy and the pins: the map a report used."""
     root = Path(root) if root is not None else ROOT
     content = {t: _read(country, t, root) for t in TABLES}
+    content["unresolved_ref"] = _unresolved_ref(country, root)
     content["taxonomy"] = _yaml(root / "data" / "taxonomy.yaml")
     content["pins"] = (_yaml(root / "pins.yaml") or {}).get(country)
     digest = hashlib.sha256(json.dumps(content, sort_keys=True, default=str).encode()).hexdigest()
@@ -63,6 +69,16 @@ class Mappings:
     prefixes: tuple[dict[str, Any], ...] = ()
     taxonomy: dict[str, Any] = field(default_factory=dict)
     pins: dict[str, Any] = field(default_factory=dict)
+    unresolved: dict[str, dict[str, Any]] = field(default_factory=dict)  # Axiom ids known not to resolve (a ratchet)
+    unresolved_ref: str | None = None  # the rulespec-us commit that list was taken at
+    renames: tuple[dict[str, Any], ...] = ()  # reviewed Axiom id renames, oldest first
+
+    def current_id(self, axiom_id: str) -> str:
+        """The id the map uses now for ``axiom_id``, following reviewed renames."""
+        for r in self.renames:
+            if r["from"] == axiom_id:
+                axiom_id = r["to"]
+        return axiom_id
 
     def rules_for_slot(self, slot: str) -> list[dict[str, Any]]:
         """Every rule matching ``slot``, winner first."""
@@ -127,6 +143,9 @@ def load(country: str = "us", root: Path | str | None = None) -> Mappings:
         prefixes=tuple(_read(country, "prefixes", root)),
         taxonomy=_yaml(root / "data" / "taxonomy.yaml") or {},
         pins=(_yaml(root / "pins.yaml") or {}).get(country, {}),
+        unresolved={u["axiom"]: u for u in _read(country, "unresolved", root)},
+        unresolved_ref=_unresolved_ref(country, root),
+        renames=tuple(_read(country, "renames", root)),
     )
 
 
