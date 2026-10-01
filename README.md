@@ -88,6 +88,16 @@ axiom_mappings/           loader (load, rules_for_slot, policyengine_variable, .
   index, fixes `program` / `rationale` / table keys, and `accept` writes that row or binding.
   `--evaluate` replays the reviewed map: the proposers put the reviewer's choice first for 278 parameters
   and 107 outputs (top three: 307 and 122); rules citing state codes, which are not read yet, get none.
+- **Unclassified findings get a drafted cause, never an automatic one** (`python -m axiom_mappings investigate
+  --finding PROGRAM:VARIABLE --corpus <rulespec-us> [--live]`). Evidence is gathered without a model (where
+  the histories part, the hint, each Axiom rule's source, proof text and values, PolicyEngine's references
+  and values, the mapping rationale). Claude (`claude-opus-5-5`, structured output, server-side fallback on a
+  decline) reads it with neither side presumed right and answers with one taxonomy cause, the mechanism,
+  arithmetic and citations. A deterministic check then requires a classified answer's arithmetic to evaluate
+  to its stated result and that result to be a number the evidence shows; one that fails is recorded, not
+  proposed. Every request and response is written to `investigations/` for exact replay (`--replay`); without
+  `--live` nothing is sent. A reviewer accepts a proposal into findings.yaml with `accept`. Needs the
+  `investigate` extra and Anthropic credentials.
 - **Future years** (`pins.yaml`): Axiom's values through its last encoded date, then PolicyEngine's
   indexing, flagged in provenance.
 

@@ -10,6 +10,7 @@
     python -m axiom_mappings bindings set-status --program ID --variable PE_VAR --status off|shadow|on [--profile cut]
     python -m axiom_mappings propose parameters|outputs --corpus <rulespec-us> [--module PREFIX] [--evaluate]
     python -m axiom_mappings propose slots --program ID --catalog SLOTS.json [--profile cut] [--evaluate]
+    python -m axiom_mappings investigate --finding PROGRAM:VARIABLE --corpus <rulespec-us> [--live] [--replay DIR]
     python -m axiom_mappings accept proposals/<kind>/<name>.yaml
 """
 
@@ -141,6 +142,9 @@ def main(argv=None) -> int:
         return verify_parameters(rest[1:])
     if command == "propose":
         return propose(rest)
+    if command == "investigate":
+        from .investigate import main as run
+        return run(rest)
     if command == "accept":
         from .accept import main as run
         return run(rest)

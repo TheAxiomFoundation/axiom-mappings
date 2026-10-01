@@ -8,6 +8,7 @@ dependencies = ["pyyaml>=6.0", "jsonschema>=4.0"]
 [project.optional-dependencies]
 policyengine = ["policyengine-us==1.808.0", "spm-calculator==0.3.1", "policyengine-core==3.30.2"]  # policyengine-us under-declares spm-calculator
 test = ["pytest>=8"]
+investigate = ["anthropic>=1.11"]  # python -m axiom_mappings investigate --live
 
 [build-system]
 requires = ["setuptools>=68"]

@@ -65,12 +65,31 @@ def _slot(doc: dict[str, Any], proposal: dict[str, Any], spec: Any) -> None:
         block.setdefault("inputs", {})[slot] = spec
 
 
+def _update_finding(text: str, program: str, variable: str, candidate: dict[str, Any]) -> str:
+    """Rewrite one finding's entry in findings.yaml (its cause, a note of the mechanism, and where the
+    investigation is recorded); every other line, comments included, stays as it is."""
+    lines = text.splitlines(keepends=True)
+    start = next((i for i, line in enumerate(lines) if line.rstrip("\n") == f"- program: {program}"
+                  and i + 1 < len(lines) and lines[i + 1].strip() in (f"variable: {variable}", f"variable: '{variable}'")), None)
+    if start is None:
+        raise KeyError(f"no finding {program}:{variable} in findings.yaml")
+    end = next((i for i in range(start + 1, len(lines)) if lines[i].startswith(("- ", "#"))), len(lines))
+    entry = yaml.safe_load("".join(lines[start:end]))[0]
+    entry["cause"] = candidate["cause"]
+    note = f"Investigated ({candidate.get('model')}): {candidate['mechanism']}"
+    entry["note"] = f"{entry['note']} {note}" if entry.get("note") else note
+    entry.setdefault("evidence", {})["investigation"] = {
+        k: candidate[k] for k in ("investigation", "model", "confidence", "arithmetic", "citations") if k in candidate}
+    lines[start:end] = [yaml.safe_dump([entry], sort_keys=False, width=110, allow_unicode=True)]
+    return "".join(lines)
+
+
 def accept(path: Path, *, country: str = "us", root: Path | None = None) -> list[str]:
     root = Path(root or ROOT)
     raw = path.read_text()
     header = "".join(line for line in raw.splitlines(keepends=True) if line.startswith("#"))
     doc = yaml.safe_load(raw)
-    kind = doc["generator"].rsplit(".", 1)[-1]
+    kind = doc.get("kind") or doc["generator"].rsplit(".", 1)[-1]  # another tool's proposals name their kind
     chosen = [(p, p["candidates"][p["accept"]]) for p in doc["proposals"] if p.get("accept") is not None]
     if not chosen:
         return []
@@ -103,6 +122,13 @@ def accept(path: Path, *, country: str = "us", root: Path | None = None) -> list
             _slot(binding, p, c["spec"])
             written.append(f"{p['block']} {p['slot']}")
         target.write_text(file_header + dump(binding))
+    elif kind == "findings":
+        path_findings = root / "data" / country / "findings.yaml"
+        text = path_findings.read_text()
+        for p, c in chosen:
+            text = _update_finding(text, p["program"], p["variable"], c)
+            written.append(f"{p['program']}:{p['variable']}")
+        path_findings.write_text(text)
     else:
         raise ValueError(f"unknown proposal kind {kind!r}")
     doc["proposals"] = [p for p in doc["proposals"] if p.get("accept") is None]

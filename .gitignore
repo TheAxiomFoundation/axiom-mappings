@@ -5,3 +5,5 @@ build/
 dist/
 # review artifacts: regenerate with `python -m axiom_mappings propose ...`
 proposals/
+# recorded model requests and responses: python -m axiom_mappings investigate
+investigations/
