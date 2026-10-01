@@ -111,6 +111,14 @@ def _integrity_findings(m: Mappings) -> list[Finding]:
         for code, cause in table.items():
             if cause not in m.causes:
                 out.append(Finding("error", "unknown-cause", f"{vocabulary}:{code}", f"maps to {cause!r}, not a defined cause"))
+    for r in m.inputs:
+        transform = r["source"].get("transform")
+        if r["source"]["kind"] == "derived" and transform not in m.transforms:
+            out.append(Finding("error", "unknown-transform", r["id"], f"transform {transform!r} is not in transforms.yaml"))
+    harness = collections.Counter(m.harness_kind(r) for r in m.inputs if m.harness_kind(r))
+    for kind, n in sorted(harness.items()):
+        out.append(Finding("warning", kind.replace("_", "-"), "inputs",
+                           f"{n} slot rules compute law or an assumption outside RuleSpec (transforms.yaml); they block readiness"))
     constants = [r for r in m.inputs if r["source"]["kind"] == "constant" and "presumption" not in r["source"]]
     if constants:
         out.append(Finding("warning", "undeclared-constants", "inputs",

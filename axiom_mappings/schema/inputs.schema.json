@@ -131,6 +131,12 @@
                         }
                       ]
                     }
+                  },
+                  "zero_concepts": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
                   }
                 }
               }
@@ -138,6 +144,21 @@
           },
           "note": {
             "type": "string"
+          },
+          "comment": {
+            "type": "string",
+            "description": "rationale kept from the comment before the rule (section headings included)"
+          },
+          "comment_inside": {
+            "type": "string",
+            "description": "rationale kept from comments inside the rule"
+          },
+          "comment_inside_above": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "the line of the oracles table the inside comment sits above"
           }
         }
       }

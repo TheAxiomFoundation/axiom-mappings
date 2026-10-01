@@ -31,7 +31,7 @@ def _slot_kind(m: Mappings, names: list[str]) -> tuple[str, str | None]:
     if src["kind"] == "concept":
         return "mapped", rule["id"]
     if src["kind"] == "derived":
-        return "derived", rule["id"]
+        return m.harness_kind(rule) or "derived", rule["id"]
     presumption = src.get("presumption")
     if presumption is None:
         return "undeclared_constant", rule["id"]
@@ -94,16 +94,23 @@ def readiness(m: Mappings, program_id: str, compiled: dict[str, Any] | None = No
     if not sets and compiled is None:
         blockers.append("no bindings and no compiled program given: input coverage unknown")
     elif not sets:
-        counts = {k: 0 for k in ("mapped", "derived", "presumed", "undeclared_constant", "fixture_default", "missing")}
+        counts = {k: 0 for k in ("mapped", "derived", "presumed", "undeclared_constant", "fixture_default", "harness_law",
+                                 "harness_assumption", "missing")}
         examples: dict[str, list[str]] = {}
         for slot, names in sorted(slot_names(compiled).items()):
             kind, _ = _slot_kind(m, names)
             counts[kind] += 1
             examples.setdefault(kind, []).append(slot)
         report["inputs"] = {"slots": sum(counts.values()), **counts,
-                            "examples": {k: v[:5] for k, v in examples.items() if k in ("missing", "undeclared_constant", "fixture_default")}}
+                            "examples": {k: v[:5] for k, v in examples.items() if k in ("missing", "undeclared_constant",
+                                                                                        "fixture_default", "harness_law",
+                                                                                        "harness_assumption")}}
+        if not counts or sum(counts.values()) == 0:
+            blockers.append("the compiled program lists no input slots (metadata.input_catalog): coverage unknown")
         for kind, label in (("missing", "input slots no rule covers"), ("undeclared_constant", "constants with no presumption"),
-                            ("fixture_default", "test-fixture defaults")):
+                            ("fixture_default", "test-fixture defaults"),
+                            ("harness_law", "slots computed by law outside RuleSpec (transforms.yaml)"),
+                            ("harness_assumption", "slots computed by an undeclared assumption (transforms.yaml)")):
             if counts[kind]:
                 blockers.append(f"{counts[kind]} {label}")
     disagreements = m.findings_for(program_id)

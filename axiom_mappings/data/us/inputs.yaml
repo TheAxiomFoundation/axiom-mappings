@@ -12,6 +12,11 @@ inputs:
   source:
     kind: derived
     transform: hh_size
+  comment: '---------------------------------------------------------------------
+
+    Household-level
+
+    ---------------------------------------------------------------------'
 - id: us-in-0002
   priority: 2
   match:
@@ -21,9 +26,9 @@ inputs:
   source:
     kind: derived
     transform: monthly
-    aggregate: sum_over_people
     from_concepts:
     - axiom:income/person#yearly_earned_income
+    aggregate: sum_over_people
 - id: us-in-0003
   priority: 3
   match:
@@ -33,11 +38,25 @@ inputs:
   source:
     kind: derived
     transform: monthly
-    aggregate: sum_over_people
     from_concepts:
     - axiom:income/person#yearly_earned_income
     - concept: axiom:income/person#self_employment_income
       scale: 0.6
+    aggregate: sum_over_people
+  comment_inside: 'SNAP counts self-employment as earned income net of the cost of
+
+    producing it (7 CFR 273.9(b)(1)(ii), 273.11(a)). ECPS carries
+
+    gross self-employment; 0.6 is the oracle''s own modeled netting
+
+    (verified against PE snap_earned_income to 4 decimals on the
+
+    2026-07 triage: 39771/66285, 18036/30061). Without this fact the
+
+    projection rendered business owners as zero-income households —
+
+    the verified root cause of every axiom-side AL SNAP residual.'
+  comment_inside_above: '- { fact: SELF_EMPLOYMENT_INCOME, scale: 0.6 }'
 - id: us-in-0004
   priority: 4
   match:
@@ -47,6 +66,27 @@ inputs:
   source:
     kind: constant
     value: true
+  comment: 'Arizona''s composition names the same legal concepts in its state-manual
+
+    vocabulary (NA/CA chapters) — the name-drift class. Same projections as
+
+    the federal-vocabulary SNAP slots above/below.
+
+    Arizona applies its expanded (BBCE, 185% FPL) gross income test
+
+    statewide (the state''s standing SNAP state option; PE models it via
+
+    gov/hhs/tanf/non_cash gross=1.85). A statewide-policy fact, not a
+
+    household attribute — same pattern as household_lives_in_application_state.
+
+    ...and its companion gate: AZ''s broad-based categorical eligibility
+
+    "considered" status attaches to essentially every budgetary unit (the
+
+    TANF-funded non-cash brochure confers it; PE models the same via
+
+    is_tanf_non_cash_eligible defaulting eligible). Statewide-policy fact.'
 - id: us-in-0005
   priority: 5
   match:
@@ -65,11 +105,11 @@ inputs:
   source:
     kind: derived
     transform: monthly
-    aggregate: sum_over_people
     from_concepts:
     - axiom:income/person#yearly_earned_income
     - concept: axiom:income/person#self_employment_income
       scale: 0.6
+    aggregate: sum_over_people
 - id: us-in-0007
   priority: 7
   match:
@@ -79,13 +119,13 @@ inputs:
   source:
     kind: derived
     transform: monthly
-    aggregate: sum_over_people
     from_concepts:
     - axiom:income/person#tanf_benefits
     - axiom:income/person#ssi_benefits
     - axiom:income/person#social_security_benefits
     - axiom:income/person#pension_income
     - axiom:income/person#unemployment_insurance
+    aggregate: sum_over_people
 - id: us-in-0008
   priority: 8
   match:
@@ -95,7 +135,6 @@ inputs:
   source:
     kind: derived
     transform: monthly
-    aggregate: sum_over_people
     from_concepts:
     - axiom:income/person#tanf_benefits
     - axiom:income/person#ssi_benefits
@@ -106,6 +145,7 @@ inputs:
     - axiom:income/person#dividend_income
     - axiom:income/person#qualified_dividend_income
     - axiom:income/person#interest_income
+    aggregate: sum_over_people
 - id: us-in-0009
   priority: 9
   match:
@@ -115,7 +155,6 @@ inputs:
   source:
     kind: derived
     transform: monthly
-    aggregate: sum_over_people
     from_concepts:
     - axiom:income/person#yearly_earned_income
     - axiom:income/person#tanf_benefits
@@ -127,6 +166,15 @@ inputs:
     - axiom:income/person#dividend_income
     - axiom:income/person#qualified_dividend_income
     - axiom:income/person#interest_income
+    aggregate: sum_over_people
+  comment_inside: 'SNAP gross income includes earned + unearned: wages, TANF, SSI/SS,
+
+    pensions, UI, rental, dividends, interest. Raw ECPS self-employment
+
+    income is not included here because PolicyEngine''s SNAP path uses net
+
+    self-employment after the SNAP self-employment expense deduction instead.'
+  comment_inside_above: 'from_facts:'
 - id: us-in-0010
   priority: 10
   match:
@@ -136,7 +184,6 @@ inputs:
   source:
     kind: derived
     transform: monthly
-    aggregate: sum_over_people
     from_concepts:
     - axiom:income/person#yearly_earned_income
     - axiom:income/person#tanf_benefits
@@ -148,6 +195,7 @@ inputs:
     - axiom:income/person#dividend_income
     - axiom:income/person#qualified_dividend_income
     - axiom:income/person#interest_income
+    aggregate: sum_over_people
 - id: us-in-0011
   priority: 11
   match:
@@ -158,6 +206,11 @@ inputs:
     kind: concept
     concept: axiom:demographics/person#age
     cast: int
+  comment: '---------------------------------------------------------------------
+
+    Person-level
+
+    ---------------------------------------------------------------------'
 - id: us-in-0012
   priority: 12
   match:
@@ -209,9 +262,9 @@ inputs:
   source:
     kind: derived
     transform: positive_to_constant
-    constant: 30
     from_concepts:
     - axiom:income/person#yearly_earned_income
+    constant: 30
 - id: us-in-0017
   priority: 17
   match:
@@ -232,9 +285,9 @@ inputs:
   source:
     kind: derived
     transform: positive_to_constant
-    constant: 20
     from_concepts:
     - axiom:income/person#yearly_earned_income
+    constant: 20
 - id: us-in-0019
   priority: 19
   match:
@@ -244,9 +297,9 @@ inputs:
   source:
     kind: derived
     transform: positive_to_constant
-    constant: 80
     from_concepts:
     - axiom:income/person#yearly_earned_income
+    constant: 80
 - id: us-in-0020
   priority: 20
   match:
@@ -265,6 +318,13 @@ inputs:
   source:
     kind: constant
     value: true
+  comment: '`member_is_us_citizen` defaults to True until ECPS exposes a column
+
+    we can read. This replicates the legacy CO projection''s behaviour
+
+    exactly; replace with `{kind: fact, name: IS_US_CITIZEN}` when the
+
+    case fact lands.'
 - id: us-in-0022
   priority: 22
   match:
@@ -274,6 +334,11 @@ inputs:
   source:
     kind: constant
     value: true
+  comment: 'Comparisons filter cases to a single state''s FIPS, so every case under
+
+    comparison IS a resident of the target state by construction. ECPS
+
+    doesn''t expose a "lives in application state" column directly.'
 - id: us-in-0023
   priority: 23
   match:
@@ -301,6 +366,11 @@ inputs:
   source:
     kind: constant
     value: 0
+  comment: 'ECPS doesn''t track household financial resources / countable assets.
+
+    Default to 0 so SNAP''s resource test passes; revise when ECPS exposes
+
+    an assets column.'
 - id: us-in-0026
   priority: 26
   match:
@@ -310,6 +380,11 @@ inputs:
   source:
     kind: constant
     value: false
+  comment: 'ECPS annual datasets represent ordinary benefit months, not SNAP initial
+
+    issuance months. This keeps 7 CFR 273.10(e)(2)(ii)''s minimum-benefit branch
+
+    aligned with PolicyEngine''s normal-allotment comparison.'
 - id: us-in-0027
   priority: 27
   match:
@@ -321,6 +396,11 @@ inputs:
     transform: monthly
     from_concepts:
     - axiom:housing/household#rent_paid
+  comment: 'Map ECPS housing_cost (annual) into the base shelter-cost input. Program
+
+    specs should derive snap_total_allowable_shelter_expenses from this base
+
+    amount plus any encoded utility allowances.'
 - id: us-in-0028
   priority: 28
   match:
@@ -332,6 +412,9 @@ inputs:
     transform: monthly
     from_concepts:
     - axiom:housing/household#rent_paid
+  comment: 'Fallback for compiled programs that still consume the federal shelter
+
+    total directly instead of deriving it from household_shelter_costs_incurred.'
 - id: us-in-0029
   priority: 29
   match:
@@ -341,6 +424,13 @@ inputs:
   source:
     kind: constant
     value: true
+  comment: 'Enhanced CPS does not expose separate utility-expense detail. PolicyEngine''s
+
+    SNAP baseline assigns the standard heating/cooling utility allowance in
+
+    state SNAP runs, so mirror that projection assumption where encoded state
+
+    utility rules request the corresponding eligibility inputs.'
 - id: us-in-0030
   priority: 30
   match:
@@ -494,6 +584,13 @@ inputs:
   source:
     kind: constant
     value: 1
+  comment: 'Neutral denominator defaults for optional SNAP branches that ECPS does not
+
+    measure directly. These prevent unused zero-numerator branches from
+
+    crashing the generic RuleSpec runner; measured income/resource inputs above
+
+    still drive the substantive comparison.'
 - id: us-in-0046
   priority: 46
   match:
@@ -593,6 +690,15 @@ inputs:
   source:
     kind: constant
     value: false
+  comment: 'CO''s encoded 10 CCR 2506-1 categorical branches require basic/expanded
+
+    categorical-service facts. ECPS does not expose those service facts, so the
+
+    generic projector mirrors the existing CO fixture/legacy adapter baseline:
+
+    compare the ordinary non-categorical path unless a future dataset supplies
+
+    source-backed BCE/ECE inputs.'
 - id: us-in-0057
   priority: 57
   match:
@@ -613,6 +719,15 @@ inputs:
     transform: all_people_any_positive
     from_concepts:
     - axiom:income/person#ssi_benefits
+  comment: 'Massachusetts categorical eligibility can be established when all members
+
+    receive or are authorized for SSI/EAEDC, TAFDC, or a combination. ECPS
+
+    carries SSI and the generic SNAP income path already understands TANF when
+
+    a case supplies it; EAEDC is not exposed yet, so this mapping only asserts
+
+    the portions actually supported by observed/provided case facts.'
 - id: us-in-0059
   priority: 59
   match:
@@ -646,6 +761,24 @@ inputs:
     kind: concept
     concept: axiom:demographics/person#age
     default: 0
+  comment: '---------------------------------------------------------------------
+
+    SSI (us/ssi program) — 42 USC 1382 individual slice.
+
+
+    Person status and income slots come from ECPS facts. The 1382f COLA
+
+    chain is fed the announced 2025 in-effect annual amounts plus the 2.8%
+
+    2026 COLA so the encoding computes the 2026 FBR itself. The couple
+
+    branch, deeming, resources, self-support plans, and the grandfathered
+
+    1382a(b)(2) state-age payment path are constants (documented divergence
+
+    classes on the dashboard).
+
+    ---------------------------------------------------------------------'
 - id: us-in-0062
   priority: 62
   match:
@@ -740,6 +873,7 @@ inputs:
   source:
     kind: constant
     value: true
+  comment: 'Citizenship/residency: ECPS lacks the columns; assume citizen residents.'
 - id: us-in-0070
   priority: 70
   match:
@@ -803,6 +937,9 @@ inputs:
   source:
     kind: derived
     transform: abd_adult_with_abd_adult_partner
+  comment: 'Couple branch: two aged/blind/disabled adults in one household are
+
+    treated as an SSI eligible couple (ECPS lacks marital linkage here).'
 - id: us-in-0077
   priority: 77
   match:
@@ -831,6 +968,23 @@ inputs:
     kind: concept
     concept: axiom:resources/person#ssi_countable_resources
     default: 0
+  comment: 'Resources (42 USC 1382b(a) countable resources, net of the statutory
+
+    exclusions). The certified populace-us artifact DOES carry SSI countable
+
+    resources: PolicyEngine reads them and screens the 1382(a)(1)(B) limit
+
+    ($2,000 individual / $3,000 couple), so Axiom must screen the same value.
+
+    Projected from PolicyEngine''s person-level ssi_countable_resources (see
+
+    populace_us.py::_PERSON_NON_WAGE_VARIABLES); defaults to 0 when absent (no
+
+    resources -> screen passes), matching PE. The prior { constant: 0 } wiring
+
+    left Axiom resource-unconstrained and awarded SSI over the limit
+
+    (axiom-oracles#227).'
 - id: us-in-0080
   priority: 80
   match:
@@ -840,6 +994,7 @@ inputs:
   source:
     kind: constant
     value: false
+  comment: 'Self-support plans and work expenses: not observable in ECPS.'
 - id: us-in-0081
   priority: 81
   match:
@@ -876,6 +1031,7 @@ inputs:
   source:
     kind: constant
     value: false
+  comment: 'Grandfathered 1382a(b)(2) state-age payment exclusion: dead path today.'
 - id: us-in-0085
   priority: 85
   match:
@@ -957,6 +1113,17 @@ inputs:
   source:
     kind: constant
     value: 11604
+  comment: '1382f COLA chain: announced 2025 in-effect annual amounts (individual
+
+    $967/mo = $11,604; couple $1,450/mo = $17,400) and the 2.8% 2026 COLA.
+
+    The encoding computes the 2026 amounts including the $12 rounding.
+
+    Specific b_1/b_2 slots MUST precede the generic subsection (a) slot:
+
+    matching is first-match-wins and the generic name is a suffix of the
+
+    b_1/b_2 slot names.'
 - id: us-in-0094
   priority: 94
   match:
@@ -1042,6 +1209,22 @@ inputs:
     from_concepts:
     - axiom:demographics/person#age
     - axiom:demographics/person#pregnant
+  comment: '---------------------------------------------------------------------
+
+    NY TANF (us-ny/tanf program) — state plan 2024-2026 slice.
+
+
+    Income slots are monthly household sums; the demographic gate mirrors
+
+    PolicyEngine''s ny_tanf_eligible (minor child or pregnant member). The
+
+    earned income disregard is applied unconditionally (PolicyEngine''s
+
+    post-October-2022 semantics), and the resource/work-activity rules are
+
+    outside the compared output tree, so their slots take inert constants.
+
+    ---------------------------------------------------------------------'
 - id: us-in-0103
   priority: 103
   match:
@@ -1149,6 +1332,9 @@ inputs:
   source:
     kind: constant
     value: false
+  comment: 'Slots owned by rules outside the compared output tree (resource test,
+
+    work-activity disregards, screening sanctions): inert constants.'
 - id: us-in-0113
   priority: 113
   match:
@@ -1284,6 +1470,17 @@ inputs:
   source:
     kind: derived
     transform: hh_size
+  comment: '---------------------------------------------------------------------
+
+    WA TANF (us-wa/tanf program) — WAC 388-450 / 388-478 slice.
+
+    Dependent care, deemed income, and outside-unit allocations are not
+
+    observable in ECPS and take inert constants; the demographic gate
+
+    entry above (household_has_minor_or_pregnant_member) is shared.
+
+    ---------------------------------------------------------------------'
 - id: us-in-0128
   priority: 128
   match:
@@ -1468,6 +1665,19 @@ inputs:
     - axiom:income/person#qualified_dividend_income
     - axiom:income/person#rental_income
     - axiom:income/person#unemployment_insurance
+  comment: '---------------------------------------------------------------------
+
+    Medicaid MAGI groups (us/medicaid-magi program) — 42 CFR 435, CO slice.
+
+    State-plan standards are constants mirroring PolicyEngine''s Colorado
+
+    limits (verified by the co-health-thresholds parameter suite). The
+
+    SSI-status detail, 1619, medically-needy, and state-supplement slots
+
+    belong to transitively imported rules outside the compared rollup.
+
+    ---------------------------------------------------------------------'
 - id: us-in-0144
   priority: 144
   match:
@@ -1557,6 +1767,7 @@ inputs:
   source:
     kind: constant
     value: 1.47
+  comment: Colorado state-plan standards (PolicyEngine CO values).
 - id: us-in-0152
   priority: 152
   match:
@@ -1611,6 +1822,7 @@ inputs:
   source:
     kind: constant
     value: true
+  comment: 'Adult-group blocking and elections: children assumed covered.'
 - id: us-in-0158
   priority: 158
   match:
@@ -1692,6 +1904,9 @@ inputs:
   source:
     kind: constant
     value: false
+  comment: 'Transitively imported SSI-status / 1619 / medically-needy / QMB paths:
+
+    inert constants (their rules sit outside the compared rollup).'
 - id: us-in-0167
   priority: 167
   match:
@@ -1892,6 +2107,15 @@ inputs:
     transform: count_age_at_least
     threshold: 18
     cap: 2
+  comment: '---------------------------------------------------------------------
+
+    CO TANF (us-co/tanf program) — Colorado Works basic cash assistance.
+
+    Steady-state recipient month: application/redetermination flags off,
+
+    disregards mirror the 67% + $90 exclusion PolicyEngine carries.
+
+    ---------------------------------------------------------------------'
 - id: us-in-0189
   priority: 189
   match:
@@ -2055,6 +2279,7 @@ inputs:
   source:
     kind: constant
     value: false
+  comment: Steady-state recipient month.
 - id: us-in-0200
   priority: 200
   match:
@@ -2162,6 +2387,15 @@ inputs:
   source:
     kind: derived
     transform: hh_size
+  comment: '---------------------------------------------------------------------
+
+    CA TANF / CalWORKs (us-ca/tanf program) — recipient-month slice.
+
+    Region 1 is the seventeen higher-MAP counties (by county FIPS);
+
+    exempt units approximated as any-member-receives-SSI.
+
+    ---------------------------------------------------------------------'
 - id: us-in-0211
   priority: 211
   match:
@@ -2253,6 +2487,15 @@ inputs:
       10: 3265
     per_additional: 248
     max_size: 10
+  comment: '---------------------------------------------------------------------
+
+    MN TANF / MFIP (us-mn/tanf program) — Combined Manual 0022.12.
+
+    Standards mirror PolicyEngine''s transitional standard (cash + food),
+
+    110% family wage level, and $65-per-earner + 50% disregard.
+
+    ---------------------------------------------------------------------'
 - id: us-in-0216
   priority: 216
   match:
@@ -2362,9 +2605,6 @@ inputs:
     kind: derived
     transform: sum_positive_and_zero
     aggregate: sum_over_people
-    zero_facts:
-    - YEARLY_EARNED_INCOME
-    - SELF_EMPLOYMENT_INCOME
     from_concepts:
     - axiom:income/person#social_security_benefits
     - axiom:income/person#pension_income
@@ -2373,6 +2613,9 @@ inputs:
     - axiom:income/person#qualified_dividend_income
     - axiom:income/person#rental_income
     - axiom:income/person#unemployment_insurance
+    zero_concepts:
+    - axiom:income/person#yearly_earned_income
+    - axiom:income/person#self_employment_income
 - id: us-in-0222
   priority: 222
   match:
@@ -2383,17 +2626,17 @@ inputs:
     kind: derived
     transform: sum_positive_and_zero
     aggregate: sum_over_people
-    zero_facts:
-    - SOCIAL_SECURITY_BENEFITS
-    - PENSION_INCOME
-    - INTEREST_INCOME
-    - DIVIDEND_INCOME
-    - QUALIFIED_DIVIDEND_INCOME
-    - RENTAL_INCOME
-    - UNEMPLOYMENT_INSURANCE_INCOME
     from_concepts:
     - axiom:income/person#yearly_earned_income
     - axiom:income/person#self_employment_income
+    zero_concepts:
+    - axiom:income/person#social_security_benefits
+    - axiom:income/person#pension_income
+    - axiom:income/person#interest_income
+    - axiom:income/person#dividend_income
+    - axiom:income/person#qualified_dividend_income
+    - axiom:income/person#rental_income
+    - axiom:income/person#unemployment_insurance
 - id: us-in-0223
   priority: 223
   match:
@@ -2407,6 +2650,9 @@ inputs:
     from_concepts:
     - axiom:income/person#yearly_earned_income
     - axiom:income/person#self_employment_income
+  comment: 'Contextually correct: this branch is only reached after the
+
+    earned-only test fails, so "has both" reduces to "has earned income".'
 - id: us-in-0224
   priority: 224
   match:
@@ -2447,6 +2693,19 @@ inputs:
     from_concepts:
     - axiom:income/person#yearly_earned_income
     - axiom:income/person#self_employment_income
+  comment: '---------------------------------------------------------------------
+
+    AZ Cash Assistance (us-az/tanf program) — DES FAA5 needy-family and
+
+    payment-standard path. The module budgets in ANNUAL terms (the A1/A2
+
+    standard is annual; the bridge divides by 12), so income inputs are
+
+    annual sums. The base-year FPL is the 1992 poverty guideline the A1
+
+    standard is expressed against; current FPL is the 2026 guideline.
+
+    ---------------------------------------------------------------------'
 - id: us-in-0228
   priority: 228
   match:
@@ -2700,6 +2959,19 @@ inputs:
   source:
     kind: derived
     transform: hh_size
+  comment: '---------------------------------------------------------------------
+
+    KS TANF (us-ks/tanf program) — KEESM 7410 budgetary standards.
+
+    The Axiom projection fixes shelter group I and a day-1 full month.
+
+    PolicyEngine 1.767.3 instead derives the county group; Douglas, Harvey,
+
+    and Johnson ECPS rows resolve to group IV, producing a visible $43
+
+    bridge residual at each household size. Keep the projection explicit.
+
+    ---------------------------------------------------------------------'
 - id: us-in-0252
   priority: 252
   match:
@@ -2862,6 +3134,35 @@ inputs:
   source:
     kind: derived
     transform: hh_size
+  comment: '---------------------------------------------------------------------
+
+    GA TANF (us-ga/tanf program) — DFCS PAMMS 1525/1605/1615/appendix-a slice.
+
+    The benefit leaf (1605 block-14) already encodes Steps 11-13:
+
+    min(max(standard_of_need - net_countable_income, 0), family_maximum). This
+
+    block projects its budgeting free-inputs from ECPS. Gross countable income
+
+    is the AU''s included earned + unearned income; the 1615 standard $250 work
+
+    deduction is projected at household scope as min(monthly AU earned, 250)
+
+    (allowable_earned_income_deductions), exact for the 0-/1-earner units that
+
+    dominate the caseload. Deemed/allocated non-member income and the
+
+    SON-trial-budget applicant path are not observable in ECPS and take inert
+
+    constants (steady-state recipient month); the demographic gate
+
+    (household_has_minor_or_pregnant_member) is shared above.
+
+    ---------------------------------------------------------------------
+
+    au_size is declared Count in the program spec (integer chart key); it binds to
+
+    this AU member count. hh_size returns len(people) as an integer.'
 - id: us-in-0270
   priority: 270
   match:
@@ -2924,6 +3225,19 @@ inputs:
     from_concepts:
     - axiom:income/person#yearly_earned_income
     - axiom:income/person#self_employment_income
+  comment: '1605 block-4 net_countable_income = gross_countable - allowable_earned_income_deductions.
+
+    PolicyEngine''s ga_tanf earned disregard is the PAMMS 1615 standard $250 work
+
+    deduction per employed individual (min(earned, 250) each). Projected here at
+
+    household scope as min(monthly AU earned income, 250) via monthly_rate_plus_flat
+
+    (rate 0, flat 250, capped at the income): exact for the 0- and 1-earner units
+
+    that dominate the caseload; a rare multi-earner unit understates the total by
+
+    capping at one $250 rather than one per earner (dispositioned).'
 - id: us-in-0275
   priority: 275
   match:
@@ -2944,6 +3258,41 @@ inputs:
       6: 2772.5
       7: 3127.5
       8: 3482.5
+  comment: '---------------------------------------------------------------------
+
+    DE TANF (us-de/tanf program) -- 16 DE Admin. Code 4007/4008 slice.
+
+    The 4008 grant leaf reproduces PolicyEngine de_tanf:
+
+    min(payment_standard, 0.5 * max(standard_of_need - countable_income, 0)),
+
+    gated by the 185%-of-standard-of-need gross-income test and the $90 applicant
+
+    net-income test. This block projects its free inputs from ECPS at household
+
+    scope. number_people_in_budget reuses assistance_unit_member_count (hh_size)
+
+    via the program-spec Count declaration; unearned_income reuses the shared
+
+    monthly-unearned projection above; the demographic gate
+
+    (household_has_minor_or_pregnant_member) is shared. Deemed income, the
+
+    dependent-care deduction, and the $50 child-support disregard are not
+
+    observable in ECPS and take the values below (steady-state recipient month).
+
+    ---------------------------------------------------------------------
+
+    Delaware standard of need = 75% of the monthly federal poverty guideline.
+
+    PE: spm_unit_fpg (annual, CONTIGUOUS_US 2026: 15,960 + 5,680*(size-1)) / 12
+
+    * 0.75 = 997.50 + 355.00*(size-1). Projected here as the exact schedule by
+
+    household size, with the constant per-additional-person increment for sizes
+
+    beyond the tabulated eight.'
 - id: us-in-0276
   priority: 276
   match:
@@ -2964,6 +3313,9 @@ inputs:
     - axiom:income/person#qualified_dividend_income
     - axiom:income/person#rental_income
     - axiom:income/person#unemployment_insurance
+  comment: 'PE de_tanf_gross_income = tanf_gross_earned + tanf_gross_unearned (monthly AU
+
+    sum, pre-disregard), tested against 185% of the standard of need.'
 - id: us-in-0277
   priority: 277
   match:
@@ -2977,6 +3329,7 @@ inputs:
     from_concepts:
     - axiom:income/person#yearly_earned_income
     - axiom:income/person#self_employment_income
+  comment: 'PE add(spm_unit, tanf_gross_earned_income): monthly AU earned income.'
 - id: us-in-0278
   priority: 278
   match:
@@ -2986,6 +3339,17 @@ inputs:
   source:
     kind: constant
     value: 1
+  comment: 'The $90 work + $30 + 1/3 earned-income deduction is applied once at household
+
+    scope (wage_earner_count = 1): exact for the 0- and 1-earner units that
+
+    dominate the caseload; a rare multi-earner unit understates the deduction by
+
+    granting one $90/$30 pass rather than one per earner (dispositioned). For a
+
+    zero-earner unit the deduction floors at 0 against zero earnings, so the count
+
+    is immaterial there.'
 - id: us-in-0279
   priority: 279
   match:
@@ -2995,6 +3359,11 @@ inputs:
   source:
     kind: constant
     value: true
+  comment: 'PE de_tanf benefit always applies the $30 + 1/3 disregard in the grant
+
+    computation (de_tanf_countable_earned_income_person), so the applicability
+
+    flag is always true here.'
 - id: us-in-0280
   priority: 280
   match:
@@ -3004,6 +3373,17 @@ inputs:
   source:
     kind: constant
     value: 0
+  comment: 'PE de_tanf_dependent_care_deduction caps observed child-care spending by an
+
+    age-tiered per-dependent maximum; child care is not observable in the ECPS
+
+    slice feeding the composed program and only reduces countable EARNED income,
+
+    so it takes 0 for the (predominantly unearned-income) TANF caseload.
+
+    (Predates the CHILDCARE_EXPENSES household fact below — candidate for the
+
+    same real feed once the DE cap tiers are composed.)'
 - id: us-in-0281
   priority: 281
   match:
@@ -3015,3 +3395,16 @@ inputs:
     transform: monthly
     from_concepts:
     - axiom:tax/household#childcare_expenses
+  comment: 'AL TANF Appendix N §2 step-2 deduction: child care or care of an
+
+    incapacitated adult, deducted from gross earnings after the 20% work
+
+    expense. Fed from the populace CHILDCARE_EXPENSES household fact (the
+
+    SPM-unit annual childcare_expenses PolicyEngine''s own
+
+    al_tanf_countable_earned_income reads at MONTH period), so both engines
+
+    see the same observed spending. Closes rulespec-us#1184 / the 3
+
+    al-tanf-ecps axiom-attributed rows.'

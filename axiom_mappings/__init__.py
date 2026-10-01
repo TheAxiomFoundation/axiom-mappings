@@ -19,7 +19,7 @@ ROOT = Path(__file__).resolve().parent  # data/, schema/ and pins.yaml ship insi
 DATA = ROOT / "data"
 SCHEMA = ROOT / "schema"
 TABLES = ("concepts", "inputs", "outputs", "parameters", "presumptions", "supplied_parameters", "programs", "findings", "prefixes",
-          "unresolved", "renames")
+          "unresolved", "renames", "transforms")
 
 
 def _yaml(path: Path) -> Any:
@@ -74,6 +74,7 @@ class Mappings:
     unresolved_ref: str | None = None  # the rulespec-us commit that list was taken at
     renames: tuple[dict[str, Any], ...] = ()  # reviewed Axiom id renames, oldest first
     bindings: dict[tuple[str, str], Any] = field(default_factory=dict)  # (program, profile) -> bindings.BindingSet
+    transforms: dict[str, dict[str, Any]] = field(default_factory=dict)  # derived-rule transforms and the law they carry
 
     def binding_set(self, program: str, profile: str = "cut"):
         return self.bindings.get((program, profile))
@@ -137,6 +138,13 @@ class Mappings:
         """The program names the output and parameter registry groups rows by (oracles' names: snap, tax, ...)."""
         return {r["program"] for r in self.outputs + self.parameters if r.get("program")}
 
+    def harness_kind(self, rule: dict[str, Any]) -> str | None:
+        """For a derived slot rule whose transform carries law or an assumption outside RuleSpec:
+        ``harness_law`` or ``harness_assumption`` (both block readiness); else None."""
+        src = rule["source"]
+        kind = self.transforms.get(src.get("transform"), {}).get("kind") if src["kind"] == "derived" else None
+        return {"law-in-rule": "harness_law", "law-in-code": "harness_law", "assumption": "harness_assumption"}.get(kind)
+
     def findings_for(self, program: str) -> list[dict[str, Any]]:
         return [f for f in self.findings if f["program"] == program]
 
@@ -167,6 +175,7 @@ def load(country: str = "us", root: Path | str | None = None) -> Mappings:
         unresolved_ref=_unresolved_ref(country, root),
         renames=tuple(_read(country, "renames", root)),
         bindings=load_bindings(country, root),
+        transforms={t["id"]: t for t in _read(country, "transforms", root)},
     )
 
 

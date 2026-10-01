@@ -1,0 +1,108 @@
+# What every derived slot rule's transform computes, as implemented by its consumer (today all in
+# axiom-oracles' populace_mapping_loader.py), and whether it carries law that belongs in RuleSpec.
+#
+#   arithmetic      a unit or counting convention, no law in it
+#   reference-data  a fact about the world the rule names (geography)
+#   assumption      a modelling assumption about facts the data lacks; it blocks until it is a declared,
+#                   acceptable presumption
+#   law-in-rule     a generic shape fed law values by the rule (tables, rates, flats, age thresholds)
+#   law-in-code     law hard-coded in the consumer's code
+#
+# law-in-rule, law-in-code and assumption block readiness (D48): the answer would rest on law or an
+# assumption supplied outside RuleSpec. Moving the law into RuleSpec (so the slot moves up the program's
+# graph), or binding a PolicyEngine variable that computes it, retires the entry.
+transforms:
+- id: monthly
+  kind: arithmetic
+  meaning: Annual amount (summed over people with aggregate sum_over_people) divided by 12, rounded to cents.
+- id: weekly
+  kind: arithmetic
+  meaning: Annual amount divided by 52, rounded to cents.
+- id: hh_size
+  kind: arithmetic
+  meaning: The number of people on the case.
+- id: sum
+  kind: arithmetic
+  meaning: Sum of the facts (scaled where a fact carries a scale), rounded to cents.
+- id: positive
+  kind: arithmetic
+  meaning: True where the summed facts are above zero.
+- id: all_people_any_positive
+  kind: arithmetic
+  meaning: True where every person has at least one of the facts above zero.
+- id: sum_is_zero
+  kind: arithmetic
+  meaning: True where the summed facts are zero.
+- id: sum_positive_and_zero
+  kind: arithmetic
+  meaning: True where the facts sum above zero and the zero facts sum to zero (e.g. unearned income only).
+- id: flag_and_not_flags
+  kind: arithmetic
+  meaning: The first flag set and every other flag clear (e.g. disabled and not blind).
+- id: scope_geoid_in
+  kind: reference-data
+  meaning: True where the case's geography (geoid) is one of, or inside, the listed ones (e.g. New York City's five counties).
+- id: positive_to_constant
+  kind: assumption
+  meaning: The rule's constant where the facts are above zero, else 0. Used to presume that anyone with wages works 30
+    hours a week, a fact the data lacks.
+- id: table_by_hh_size
+  kind: law-in-rule
+  meaning: A standard looked up by household size, with an increment per person beyond max_size and a multiplier (e.g. a
+    need or payment standard table).
+- id: adult_table_plus_per_child
+  kind: law-in-rule
+  meaning: A standard keyed by capped adult count, plus an amount per child beyond the first (e.g. a need standard).
+- id: monthly_rate_plus_flat
+  kind: law-in-rule
+  meaning: An earned-income disregard of rate x monthly income + flat, capped at the income.
+- id: monthly_countable_after_exclusion
+  kind: law-in-rule
+  meaning: Monthly countable income after a rate-plus-flat exclusion.
+- id: monthly_flat_then_rate
+  kind: law-in-rule
+  meaning: Monthly countable income after a flat amount (optionally per earner) and then a rate of the remainder (e.g.
+    CalWORKs' $600 then 50%).
+- id: annual_flat_plus_rate_of_remainder
+  kind: law-in-rule
+  meaning: An annualised deduction of a flat monthly amount per earner plus a rate of the remaining earned income (e.g.
+    Arizona's $90 plus 30%).
+- id: fpl_ratio
+  kind: law-in-rule
+  meaning: Household income as a fraction of the poverty guideline, base + per person x (size - 1), with the guideline
+    values in the rule.
+- id: age_below
+  kind: law-in-rule
+  meaning: Age below the rule's threshold (a program's age of majority).
+- id: age_at_least_or_flags
+  kind: law-in-rule
+  meaning: Age at or above the rule's threshold, or any of the flags (e.g. aged, blind or disabled).
+- id: age_at_least_and_not_flags
+  kind: law-in-rule
+  meaning: Age at or above the rule's threshold and none of the flags.
+- id: any_age_below_or_flags
+  kind: law-in-rule
+  meaning: Anyone below the rule's age threshold, or any of the flags (e.g. a minor child or pregnant member).
+- id: count_age_at_least
+  kind: law-in-rule
+  meaning: The number of people at or above the rule's age threshold, capped.
+- id: count_age_below
+  kind: law-in-rule
+  meaning: The number of people below the rule's age threshold.
+- id: elderly_or_disabled
+  kind: law-in-code
+  meaning: Age 60 or over, or disabled.
+  law: [7 CFR 271.2]
+  values: {elderly_age: 60}
+- id: ssi_couple_countable_income
+  kind: law-in-code
+  meaning: An SSI eligible couple's combined countable income, unearned less the $240 annual general exclusion plus
+    earned less $780 and half the remainder, for this person and the one other aged, blind or disabled adult.
+  law: [42 USC 1382a(b)(2)(A), 42 USC 1382a(b)(4)(A)]
+  values: {general_exclusion_annual: 240, earned_exclusion_annual: 780, earned_remainder_counted: 0.5, aged: 65, adult: 18}
+- id: abd_adult_with_abd_adult_partner
+  kind: law-in-code
+  meaning: This person is an aged (65+), blind or disabled adult and exactly one other such adult lives in the household,
+    treated as an eligible couple because the data has no marital link at this layer (an approximation).
+  law: [42 USC 1382c(a)(1)(A), 42 USC 1382c(b)]
+  values: {aged: 65, adult: 18}

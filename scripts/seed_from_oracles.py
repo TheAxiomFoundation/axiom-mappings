@@ -120,7 +120,42 @@ def build_concepts(ids: dict[str, str], tables: dict[str, list[tuple[str, str]]]
     return concepts
 
 
-def build_inputs(rules: list[dict], ids: dict[str, str]) -> list[dict]:
+def rule_comments(raw: str) -> list[tuple[str, str]]:
+    """(comment before, comment inside) for each rule of populace_input_mapping.yaml, in file order.
+
+    ``yaml.safe_load`` drops comments, and these carry the rationale (citations, triage evidence). A
+    comment at the list's indent (section headers, notes on the next rule) belongs to the rule it
+    precedes; a deeper one sits inside the rule it follows.
+    """
+    out: list[list] = []
+    pending: list[str] = []
+    started = False
+    for line in raw.splitlines():
+        stripped = line.strip()
+        if line.startswith("mappings:"):
+            started = True
+            continue
+        if not started:
+            continue
+        if line.startswith("  - match:"):
+            out.append([pending, [], None])
+            pending = []
+            continue
+        if stripped.startswith("#"):
+            indent = len(line) - len(line.lstrip())
+            text = stripped[1:].removeprefix(" ")
+            if indent <= 2 or not out:
+                pending.append(text)
+            else:
+                out[-1][1].append(text)
+        elif stripped and out and out[-1][1] and out[-1][2] is None:
+            out[-1][2] = stripped  # the line the inside comment sits above, so the export puts it back there
+    if pending:
+        raise SystemExit(f"{len(pending)} comment lines after the last rule")
+    return [("\n".join(before), "\n".join(inside), anchor) for before, inside, anchor in out]
+
+
+def build_inputs(rules: list[dict], ids: dict[str, str], comments: list[tuple[str, str]] | None = None) -> list[dict]:
     """Oracles resolves the first matching rule in file order; that order becomes `priority`."""
     def concept(name: str) -> str:
         if name not in ids:
@@ -134,21 +169,36 @@ def build_inputs(rules: list[dict], ids: dict[str, str]) -> list[dict]:
         if kind == "fact":
             new = {"kind": "concept", "concept": concept(src.pop("name")), **src}
         elif kind == "derived":
-            new = {"kind": "derived", **src}
-            if "from_facts" in new:
-                new["from_concepts"] = [
-                    concept(f) if isinstance(f, str) else {"concept": concept(f["fact"]), **{k: v for k, v in f.items() if k != "fact"}}
-                    for f in new.pop("from_facts")
-                ]
+            new = {"kind": "derived"}
+            for key, value in src.items():  # renamed in place: oracles' key order is kept for the export
+                if key == "from_facts":
+                    new["from_concepts"] = [
+                        concept(f) if isinstance(f, str) else {"concept": concept(f["fact"]), **{k: v for k, v in f.items() if k != "fact"}}
+                        for f in value
+                    ]
+                elif key == "zero_facts":
+                    new["zero_concepts"] = [concept(f) for f in value]
+                else:
+                    new[key] = value
         else:
             new = {"kind": "constant", **src}
-        out.append({
+        row = {
             "id": f"us-in-{i:04d}",
             "priority": i,
             "match": rule["match"],
             "scope": rule.get("scope", "household"),
             "source": new,
-        })
+        }
+        before, inside, anchor = comments[i - 1] if comments else ("", "", None)
+        if before:
+            row["comment"] = before
+        if inside:
+            row["comment_inside"] = inside
+            row["comment_inside_above"] = anchor
+        unknown = set(rule) - {"match", "scope", "source"}
+        if unknown:
+            raise SystemExit(f"rule {i}: fields the seed does not know: {sorted(unknown)}")
+        out.append(row)
     return out
 
 
@@ -223,13 +273,24 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--oracles", default=str(Path.home() / "axiom-oracles"))
     ap.add_argument("--ref", default="origin/main")
+    ap.add_argument("--only", choices=["inputs"], help="rebuild this table only (the others have been edited since)")
     args = ap.parse_args()
     repo = Path(args.oracles)
     commit = subprocess.check_output(["git", "-C", str(repo), "rev-parse", args.ref], text=True).strip()
 
     ids = concept_ids(git_show(repo, commit, "axiom_oracles/core/case.py"))
     tables = runner_tables(git_show(repo, commit, "axiom_oracles/adapters/policyengine/runner.py"))
-    rules = yaml.safe_load(git_show(repo, commit, "axiom_oracles/data/populace_input_mapping.yaml"))["mappings"]
+    populace_raw = git_show(repo, commit, "axiom_oracles/data/populace_input_mapping.yaml")
+    rules = yaml.safe_load(populace_raw)["mappings"]
+    comments = rule_comments(populace_raw)
+    if len(comments) != len(rules):
+        raise SystemExit(f"{len(comments)} rule starts in the text, {len(rules)} rules parsed")
+    if args.only == "inputs":
+        seeded = f"Seeded from axiom-oracles@{commit[:12]} by scripts/seed_from_oracles.py; edit here from now on."
+        dump(DATA / "inputs.yaml", "# Axiom input slot -> concept, constant or derived value. The lowest `priority` among the\n"
+             f"# rules matching a slot wins; the validator reports every slot more than one rule matches.\n# {seeded}",
+             "inputs", build_inputs(rules, ids, comments))
+        return
     registry_raw = git_show(repo, commit, "axiom_oracles/bridges/mappings/us.yaml")
     registry_file = yaml.safe_load(registry_raw)
     registry, prefixes = registry_file["mappings"], registry_file.get("prefixes", [])
@@ -241,7 +302,7 @@ def main() -> None:
          build_concepts(ids, tables))
     dump(DATA / "inputs.yaml", "# Axiom input slot -> concept, constant or derived value. The lowest `priority` among the\n"
          f"# rules matching a slot wins; the validator reports every slot more than one rule matches.\n# {seeded}",
-         "inputs", build_inputs(rules, ids))
+         "inputs", build_inputs(rules, ids, comments))
     outputs, parameters = build_registry(registry)
     attach_comments(outputs, "mappings", blocks, "axiom")
     attach_comments(parameters, "mappings", blocks, "axiom")

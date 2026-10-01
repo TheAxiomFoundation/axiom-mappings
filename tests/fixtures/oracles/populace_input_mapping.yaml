@@ -1,0 +1,1720 @@
+# Populace-to-input mapping table — data, not code.
+#
+# Each entry declares HOW a single input slot in a compiled program gets
+# populated from population facts on a Case (the population is the certified
+# populace-us artifact — axiom-oracles#74). The generic projector
+# (axiom_oracles.adapters.axiom.generic_inputs) reads this table at startup,
+# builds an input mapping, and applies it to every compiled program it runs.
+#
+# Adding a new program comparison no longer requires Python: extend this
+# table with the slot names the new program declares, point each at a
+# population fact (or a constant / derived value), and the generic projector
+# handles the rest. Tracked as the "data, not code" follow-up under #26.
+#
+# Match rules:
+#   match.kind: suffix | exact | substring
+#     suffix    — slot name ends with `match.value` (most common; covers
+#                 both us:... and us-co:... variants of the same input)
+#     exact     — slot name equals `match.value`
+#     substring — `match.value` appears anywhere in slot name
+#
+# Source rules:
+#   source.kind: fact | constant | derived
+#     fact     — read Case fact named `source.name` from the relevant
+#                entity (Person facts for Person-scoped slots,
+#                Case-level for Household/SnapUnit/TaxUnit).
+#                Optional `default` if the fact is missing.
+#     constant — yield `source.value` for every case (e.g. citizenship=True
+#                until ECPS exposes the citizenship column we want)
+#     derived  — apply a named transform to one or more facts:
+#                  transform: monthly       (annual → monthly, ÷12, 2dp)
+#                  transform: weekly        (annual → weekly, ÷52, 2dp)
+#                  transform: hh_size       (len(people))
+#                  transform: elderly_or_disabled  (age ≥ 60 OR disabled)
+#                  transform: positive      (1/True if value > 0 else 0/False)
+#                  transform: positive_to_constant  (constant if value>0)
+#                  transform: all_people_any_positive  (every person has at
+#                              least one positive fact from from_facts)
+#
+# Scope:
+#   scope: person | household
+#     person    — slot evaluated per-person; transforms see the Person facts
+#     household — slot evaluated once per case; transforms see the case
+#                 (with `people` available for hh_size etc.)
+
+mappings:
+  # ---------------------------------------------------------------------
+  # Household-level
+  # ---------------------------------------------------------------------
+
+  - match: { kind: exact, value: household_size }
+    scope: household
+    source:
+      kind: derived
+      transform: hh_size
+
+  - match: { kind: substring, value: employee_wages_received }
+    scope: household
+    source:
+      kind: derived
+      transform: monthly
+      from_facts: [YEARLY_EARNED_INCOME]
+      aggregate: sum_over_people
+
+  - match: { kind: substring, value: snap_gross_monthly_earned_income }
+    scope: household
+    source:
+      kind: derived
+      transform: monthly
+      from_facts:
+        - YEARLY_EARNED_INCOME
+        # SNAP counts self-employment as earned income net of the cost of
+        # producing it (7 CFR 273.9(b)(1)(ii), 273.11(a)). ECPS carries
+        # gross self-employment; 0.6 is the oracle's own modeled netting
+        # (verified against PE snap_earned_income to 4 decimals on the
+        # 2026-07 triage: 39771/66285, 18036/30061). Without this fact the
+        # projection rendered business owners as zero-income households —
+        # the verified root cause of every axiom-side AL SNAP residual.
+        - { fact: SELF_EMPLOYMENT_INCOME, scale: 0.6 }
+      aggregate: sum_over_people
+
+  # Arizona's composition names the same legal concepts in its state-manual
+  # vocabulary (NA/CA chapters) — the name-drift class. Same projections as
+  # the federal-vocabulary SNAP slots above/below.
+  # Arizona applies its expanded (BBCE, 185% FPL) gross income test
+  # statewide (the state's standing SNAP state option; PE models it via
+  # gov/hhs/tanf/non_cash gross=1.85). A statewide-policy fact, not a
+  # household attribute — same pattern as household_lives_in_application_state.
+  # ...and its companion gate: AZ's broad-based categorical eligibility
+  # "considered" status attaches to essentially every budgetary unit (the
+  # TANF-funded non-cash brochure confers it; PE models the same via
+  # is_tanf_non_cash_eligible defaulting eligible). Statewide-policy fact.
+  - match: { kind: substring, value: considered_for_na_expanded_categorical_eligibility }
+    scope: household
+    source: { kind: constant, value: true }
+
+  - match: { kind: substring, value: expanded_gross_income_test_applies }
+    scope: household
+    source: { kind: constant, value: true }
+
+  - match: { kind: substring, value: gross_countable_earned_income }
+    scope: household
+    source:
+      kind: derived
+      transform: monthly
+      from_facts:
+        - YEARLY_EARNED_INCOME
+        - { fact: SELF_EMPLOYMENT_INCOME, scale: 0.6 }
+      aggregate: sum_over_people
+
+  - match: { kind: substring, value: countable_monthly_unearned_income }
+    scope: household
+    source:
+      kind: derived
+      transform: monthly
+      from_facts:
+        - TANF_BENEFITS
+        - SSI_BENEFITS
+        - SOCIAL_SECURITY_BENEFITS
+        - PENSION_INCOME
+        - UNEMPLOYMENT_INSURANCE_INCOME
+      aggregate: sum_over_people
+
+  - match: { kind: substring, value: snap_total_monthly_unearned_income }
+    scope: household
+    source:
+      kind: derived
+      transform: monthly
+      from_facts:
+        - TANF_BENEFITS
+        - SSI_BENEFITS
+        - SOCIAL_SECURITY_BENEFITS
+        - PENSION_INCOME
+        - UNEMPLOYMENT_INSURANCE_INCOME
+        - RENTAL_INCOME
+        - DIVIDEND_INCOME
+        - QUALIFIED_DIVIDEND_INCOME
+        - INTEREST_INCOME
+      aggregate: sum_over_people
+
+  - match: { kind: substring, value: snap_gross_monthly_income }
+    scope: household
+    source:
+      kind: derived
+      transform: monthly
+      # SNAP gross income includes earned + unearned: wages, TANF, SSI/SS,
+      # pensions, UI, rental, dividends, interest. Raw ECPS self-employment
+      # income is not included here because PolicyEngine's SNAP path uses net
+      # self-employment after the SNAP self-employment expense deduction instead.
+      from_facts:
+        - YEARLY_EARNED_INCOME
+        - TANF_BENEFITS
+        - SSI_BENEFITS
+        - SOCIAL_SECURITY_BENEFITS
+        - PENSION_INCOME
+        - UNEMPLOYMENT_INSURANCE_INCOME
+        - RENTAL_INCOME
+        - DIVIDEND_INCOME
+        - QUALIFIED_DIVIDEND_INCOME
+        - INTEREST_INCOME
+      aggregate: sum_over_people
+
+  - match: { kind: substring, value: snap_monthly_household_income }
+    scope: household
+    source:
+      kind: derived
+      transform: monthly
+      from_facts:
+        - YEARLY_EARNED_INCOME
+        - TANF_BENEFITS
+        - SSI_BENEFITS
+        - SOCIAL_SECURITY_BENEFITS
+        - PENSION_INCOME
+        - UNEMPLOYMENT_INSURANCE_INCOME
+        - RENTAL_INCOME
+        - DIVIDEND_INCOME
+        - QUALIFIED_DIVIDEND_INCOME
+        - INTEREST_INCOME
+      aggregate: sum_over_people
+
+  # ---------------------------------------------------------------------
+  # Person-level
+  # ---------------------------------------------------------------------
+
+  - match: { kind: exact, value: member_age }
+    scope: person
+    source: { kind: fact, name: PERSON_AGE, cast: int }
+
+  - match: { kind: substring, value: snap_member_is_elderly_or_disabled }
+    scope: person
+    source:
+      kind: derived
+      transform: elderly_or_disabled
+
+  - match: { kind: substring, value: physically_or_mentally_unfit_for_employment }
+    scope: person
+    source: { kind: fact, name: DISABLED, default: false, cast: bool }
+
+  - match: { kind: substring, value: member_is_pregnant }
+    scope: person
+    source: { kind: fact, name: PREGNANT, default: false, cast: bool }
+
+  - match: { kind: substring, value: member_is_veteran }
+    scope: person
+    source: { kind: fact, name: VETERAN, default: false, cast: bool }
+
+  - match: { kind: substring, value: member_weekly_work_hours }
+    scope: person
+    source:
+      kind: derived
+      transform: positive_to_constant
+      from_facts: [YEARLY_EARNED_INCOME]
+      constant: 30
+
+  - match: { kind: substring, value: member_weekly_wages }
+    scope: person
+    source:
+      kind: derived
+      transform: weekly
+      from_facts: [YEARLY_EARNED_INCOME]
+
+  - match: { kind: substring, value: member_abawd_weekly_work_hours }
+    scope: person
+    source:
+      kind: derived
+      transform: positive_to_constant
+      from_facts: [YEARLY_EARNED_INCOME]
+      constant: 20
+
+  - match: { kind: substring, value: member_abawd_monthly_work_hours }
+    scope: person
+    source:
+      kind: derived
+      transform: positive_to_constant
+      from_facts: [YEARLY_EARNED_INCOME]
+      constant: 80
+
+  - match: { kind: substring, value: enrolled_at_least_half_time }
+    scope: person
+    source: { kind: constant, value: false }
+
+  # `member_is_us_citizen` defaults to True until ECPS exposes a column
+  # we can read. This replicates the legacy CO projection's behaviour
+  # exactly; replace with `{kind: fact, name: IS_US_CITIZEN}` when the
+  # case fact lands.
+  - match: { kind: substring, value: member_is_us_citizen }
+    scope: person
+    source: { kind: constant, value: true }
+
+  # Comparisons filter cases to a single state's FIPS, so every case under
+  # comparison IS a resident of the target state by construction. ECPS
+  # doesn't expose a "lives in application state" column directly.
+  - match: { kind: substring, value: household_lives_in_application_state }
+    scope: household
+    source: { kind: constant, value: true }
+
+  - match: { kind: substring, value: household_in_project_area_solely_for_vacation }
+    scope: household
+    source: { kind: constant, value: false }
+
+  - match: { kind: substring, value: household_contains_individual_participating_in_more_than_one_household_or_project_area }
+    scope: household
+    source: { kind: constant, value: false }
+
+  # ECPS doesn't track household financial resources / countable assets.
+  # Default to 0 so SNAP's resource test passes; revise when ECPS exposes
+  # an assets column.
+  - match: { kind: substring, value: snap_countable_financial_resources }
+    scope: household
+    source: { kind: constant, value: 0 }
+
+  # ECPS annual datasets represent ordinary benefit months, not SNAP initial
+  # issuance months. This keeps 7 CFR 273.10(e)(2)(ii)'s minimum-benefit branch
+  # aligned with PolicyEngine's normal-allotment comparison.
+  - match: { kind: substring, value: household_initial_month }
+    scope: household
+    source: { kind: constant, value: false }
+
+  # Map ECPS housing_cost (annual) into the base shelter-cost input. Program
+  # specs should derive snap_total_allowable_shelter_expenses from this base
+  # amount plus any encoded utility allowances.
+  - match: { kind: substring, value: household_shelter_costs_incurred }
+    scope: household
+    source:
+      kind: derived
+      transform: monthly
+      from_facts: [RENT_PAID]
+
+  # Fallback for compiled programs that still consume the federal shelter
+  # total directly instead of deriving it from household_shelter_costs_incurred.
+  - match: { kind: substring, value: snap_total_allowable_shelter_expenses }
+    scope: household
+    source:
+      kind: derived
+      transform: monthly
+      from_facts: [RENT_PAID]
+
+  # Enhanced CPS does not expose separate utility-expense detail. PolicyEngine's
+  # SNAP baseline assigns the standard heating/cooling utility allowance in
+  # state SNAP runs, so mirror that projection assumption where encoded state
+  # utility rules request the corresponding eligibility inputs.
+  - match: { kind: substring, value: household_incurred_or_anticipated_heating_or_cooling_costs_separate_from_rent_or_mortgage }
+    scope: household
+    source: { kind: constant, value: true }
+
+  - match: { kind: substring, value: household_has_heating_and_cooling_costs_separate_from_rent_or_mortgage }
+    scope: household
+    source: { kind: constant, value: true }
+
+  - match: { kind: substring, value: household_incurs_heating_or_cooling_expenses_separately_from_rent_or_mortgage }
+    scope: household
+    source: { kind: constant, value: true }
+
+  - match: { kind: substring, value: household_in_central_meter_housing_charged_only_for_excess_heating_or_cooling }
+    scope: household
+    source: { kind: constant, value: false }
+
+  - match: { kind: substring, value: household_in_public_housing_unit_with_central_utility_meters_charged_only_for_excess_heating_or_cooling_costs }
+    scope: household
+    source: { kind: constant, value: false }
+
+  - match: { kind: substring, value: household_in_rental_housing_billed_by_landlord_based_on_individual_usage_or_flat_rate_separately_from_rent }
+    scope: household
+    source: { kind: constant, value: false }
+
+  - match: { kind: substring, value: household_entitled_to_heap_or_liheaa_payment }
+    scope: household
+    source: { kind: constant, value: false }
+
+  - match: { kind: substring, value: liheaa_or_similar_energy_assistance_payment_received_or_made_on_household_behalf_in_current_month_or_immediately_preceding_twelve_months }
+    scope: household
+    source: { kind: constant, value: false }
+
+  - match: { kind: substring, value: liheaa_or_similar_energy_assistance_annual_payment_amount }
+    scope: household
+    source: { kind: constant, value: 0 }
+
+  - match: { kind: substring, value: limited_utility_allowance_utility_count }
+    scope: household
+    source: { kind: constant, value: 0 }
+
+  - match: { kind: substring, value: state_agency_mandates_use_of_standard_utility_allowances_under_paragraph_g }
+    scope: household
+    source: { kind: constant, value: false }
+
+  - match: { kind: substring, value: household_billed_separately_for_non_telephone_standard_utility }
+    scope: household
+    source: { kind: constant, value: false }
+
+  - match: { kind: substring, value: household_incurred_or_anticipated_basic_service_cost_for_one_telephone }
+    scope: household
+    source: { kind: constant, value: false }
+
+  - match: { kind: substring, value: household_resides_in_new_york_city }
+    scope: household
+    source:
+      kind: derived
+      transform: scope_geoid_in
+      geoids:
+        - "36005"
+        - "36047"
+        - "36061"
+        - "36081"
+        - "36085"
+
+  - match: { kind: substring, value: household_resides_in_nassau_or_suffolk_county }
+    scope: household
+    source:
+      kind: derived
+      transform: scope_geoid_in
+      geoids:
+        - "36059"
+        - "36103"
+
+  - match: { kind: substring, value: state_agency_rounds_thirty_percent_net_income_up }
+    scope: household
+    source: { kind: constant, value: true }
+
+  # Neutral denominator defaults for optional SNAP branches that ECPS does not
+  # measure directly. These prevent unused zero-numerator branches from
+  # crashing the generic RuleSpec runner; measured income/resource inputs above
+  # still drive the substantive comparison.
+  - match: { kind: substring, value: income_intended_cover_months }
+    scope: household
+    source: { kind: constant, value: 1 }
+
+  - match: { kind: substring, value: educational_income_intended_cover_months }
+    scope: household
+    source: { kind: constant, value: 1 }
+
+  - match: { kind: substring, value: fluctuating_income_intended_cover_months }
+    scope: household
+    source: { kind: constant, value: 1 }
+
+  - match: { kind: substring, value: known_previous_month_count }
+    scope: household
+    source: { kind: constant, value: 1 }
+
+  - match: { kind: substring, value: self_employment_income_period_months }
+    scope: household
+    source: { kind: constant, value: 1 }
+
+  - match: { kind: substring, value: farm_loss_period_months }
+    scope: household
+    source: { kind: constant, value: 1 }
+
+  - match: { kind: substring, value: intended_beneficiary_count }
+    scope: household
+    source: { kind: constant, value: 1 }
+
+  - match: { kind: substring, value: real_property_assessment_percentage_rate }
+    scope: household
+    source: { kind: constant, value: 1 }
+
+  - match: { kind: substring, value: household_size_including_disqualified_members }
+    scope: household
+    source:
+      kind: derived
+      transform: hh_size
+
+  - match: { kind: substring, value: total_people_paying_or_contributing_to_shared_expenses }
+    scope: household
+    source:
+      kind: derived
+      transform: hh_size
+
+  - match: { kind: substring, value: total_people_covered_by_combined_wage_count }
+    scope: household
+    source:
+      kind: derived
+      transform: hh_size
+
+  # CO's encoded 10 CCR 2506-1 categorical branches require basic/expanded
+  # categorical-service facts. ECPS does not expose those service facts, so the
+  # generic projector mirrors the existing CO fixture/legacy adapter baseline:
+  # compare the ordinary non-categorical path unless a future dataset supplies
+  # source-backed BCE/ECE inputs.
+  - match: { kind: substring, value: snap_basic_categorical_eligible }
+    scope: household
+    source: { kind: constant, value: false }
+
+  - match: { kind: substring, value: snap_expanded_categorical_eligible }
+    scope: household
+    source: { kind: constant, value: false }
+
+  # Massachusetts categorical eligibility can be established when all members
+  # receive or are authorized for SSI/EAEDC, TAFDC, or a combination. ECPS
+  # carries SSI and the generic SNAP income path already understands TANF when
+  # a case supplies it; EAEDC is not exposed yet, so this mapping only asserts
+  # the portions actually supported by observed/provided case facts.
+  - match: { kind: substring, value: all_members_receive_or_authorized_for_ssi_or_eaedc }
+    scope: household
+    source:
+      kind: derived
+      transform: all_people_any_positive
+      from_facts:
+        - SSI_BENEFITS
+
+  - match: { kind: substring, value: all_members_receive_or_authorized_for_tafdc }
+    scope: household
+    source:
+      kind: derived
+      transform: all_people_any_positive
+      from_facts:
+        - TANF_BENEFITS
+
+  - match: { kind: substring, value: all_members_receive_or_authorized_for_combination_ssi_eaedc_tafdc }
+    scope: household
+    source:
+      kind: derived
+      transform: all_people_any_positive
+      from_facts:
+        - SSI_BENEFITS
+        - TANF_BENEFITS
+
+  # ---------------------------------------------------------------------
+  # SSI (us/ssi program) — 42 USC 1382 individual slice.
+  #
+  # Person status and income slots come from ECPS facts. The 1382f COLA
+  # chain is fed the announced 2025 in-effect annual amounts plus the 2.8%
+  # 2026 COLA so the encoding computes the 2026 FBR itself. The couple
+  # branch, deeming, resources, self-support plans, and the grandfathered
+  # 1382a(b)(2) state-age payment path are constants (documented divergence
+  # classes on the dashboard).
+  # ---------------------------------------------------------------------
+
+  - match: { kind: suffix, value: individual_age_years }
+    scope: person
+    source: { kind: fact, name: PERSON_AGE, default: 0 }
+
+  - match: { kind: suffix, value: blind_as_determined_under_paragraph_2 }
+    scope: person
+    source: { kind: fact, name: BLIND, default: false }
+
+  - match: { kind: suffix, value: disabled_as_determined_under_paragraph_3 }
+    scope: person
+    source: { kind: fact, name: DISABLED, default: false }
+
+  - match: { kind: suffix, value: individual_or_spouse_satisfies_blind_branch_status_condition }
+    scope: person
+    source: { kind: fact, name: BLIND, default: false }
+
+  - match: { kind: suffix, value: individual_or_spouse_satisfies_disabled_not_blind_branch_status_condition }
+    scope: person
+    source:
+      kind: derived
+      transform: flag_and_not_flags
+      from_facts: [DISABLED, BLIND]
+
+  - match: { kind: suffix, value: individual_or_spouse_has_attained_age_sixty_five_and_is_not_included_under_subparagraph_a_or_b }
+    scope: person
+    source:
+      kind: derived
+      transform: age_at_least_and_not_flags
+      threshold: 65
+      from_facts: [PERSON_AGE, BLIND, DISABLED]
+
+  - match: { kind: suffix, value: annual_income_not_paid_on_basis_of_need }
+    scope: person
+    source:
+      kind: derived
+      transform: sum
+      from_facts:
+        - SOCIAL_SECURITY_BENEFITS
+        - PENSION_INCOME
+        - INTEREST_INCOME
+        - DIVIDEND_INCOME
+        - QUALIFIED_DIVIDEND_INCOME
+        - RENTAL_INCOME
+        - UNEMPLOYMENT_INSURANCE_INCOME
+
+  - match: { kind: suffix, value: earned_income_not_excluded_by_preceding_paragraphs }
+    scope: person
+    source:
+      kind: derived
+      transform: sum
+      from_facts: [YEARLY_EARNED_INCOME, SELF_EMPLOYMENT_INCOME]
+
+  # Citizenship/residency: ECPS lacks the columns; assume citizen residents.
+  - match: { kind: suffix, value: citizen_of_united_states }
+    scope: person
+    source: { kind: constant, value: true }
+  - match: { kind: suffix, value: resident_of_united_states }
+    scope: person
+    source: { kind: constant, value: true }
+  - match: { kind: suffix, value: alien_lawfully_admitted_for_permanent_residence }
+    scope: person
+    source: { kind: constant, value: false }
+  - match: { kind: suffix, value: alien_otherwise_permanently_residing_in_united_states_under_color_of_law }
+    scope: person
+    source: { kind: constant, value: false }
+  - match: { kind: suffix, value: alien_lawfully_present_due_to_section_1182_d_5_application }
+    scope: person
+    source: { kind: constant, value: false }
+  - match: { kind: suffix, value: child_citizen_of_united_states }
+    scope: person
+    source: { kind: constant, value: false }
+  - match: { kind: suffix, value: living_with_parent_member_of_armed_forces_assigned_to_permanent_duty_ashore_outside_united_states }
+    scope: person
+    source: { kind: constant, value: false }
+
+  # Couple branch: two aged/blind/disabled adults in one household are
+  # treated as an SSI eligible couple (ECPS lacks marital linkage here).
+  - match: { kind: suffix, value: individual_has_eligible_spouse }
+    scope: person
+    source: { kind: derived, transform: abd_adult_with_abd_adult_partner }
+  - match: { kind: suffix, value: individual_has_spouse_with_whom_living }
+    scope: person
+    source: { kind: derived, transform: abd_adult_with_abd_adult_partner }
+  - match: { kind: suffix, value: individual_and_spouse_income_not_excluded_pursuant_to_section_1382a_b }
+    scope: person
+    source: { kind: derived, transform: ssi_couple_countable_income }
+
+  # Resources (42 USC 1382b(a) countable resources, net of the statutory
+  # exclusions). The certified populace-us artifact DOES carry SSI countable
+  # resources: PolicyEngine reads them and screens the 1382(a)(1)(B) limit
+  # ($2,000 individual / $3,000 couple), so Axiom must screen the same value.
+  # Projected from PolicyEngine's person-level ssi_countable_resources (see
+  # populace_us.py::_PERSON_NON_WAGE_VARIABLES); defaults to 0 when absent (no
+  # resources -> screen passes), matching PE. The prior { constant: 0 } wiring
+  # left Axiom resource-unconstrained and awarded SSI over the limit
+  # (axiom-oracles#227).
+  - match: { kind: suffix, value: resources_other_than_excluded_pursuant_to_section_1382b_a }
+    scope: person
+    source: { kind: fact, name: SSI_COUNTABLE_RESOURCES, default: 0 }
+
+  # Self-support plans and work expenses: not observable in ECPS.
+  - match: { kind: suffix, value: individual_has_commissioner_approved_plan_for_achieving_self_support }
+    scope: person
+    source: { kind: constant, value: false }
+  - match: { kind: suffix, value: other_income_amount_necessary_for_fulfillment_of_self_support_plan }
+    scope: person
+    source: { kind: constant, value: 0 }
+  - match: { kind: suffix, value: disability_work_expense_amount_necessary_and_within_commissioner_limits }
+    scope: person
+    source: { kind: constant, value: 0 }
+  - match: { kind: suffix, value: expenses_reasonably_attributable_to_earning_income }
+    scope: person
+    source: { kind: constant, value: 0 }
+
+  # Grandfathered 1382a(b)(2) state-age payment exclusion: dead path today.
+  - match: { kind: suffix, value: payment_is_monthly_or_other_periodic }
+    scope: person
+    source: { kind: constant, value: false }
+  - match: { kind: suffix, value: payment_received_by_individual }
+    scope: person
+    source: { kind: constant, value: false }
+  - match: { kind: suffix, value: payment_made_by_state_of_which_receiving_individual_is_resident }
+    scope: person
+    source: { kind: constant, value: false }
+  - match: { kind: suffix, value: payment_program_eligibility_based_solely_on_required_age_and_state_residency }
+    scope: person
+    source: { kind: constant, value: false }
+  - match: { kind: suffix, value: payment_program_eligibility_not_based_on_need }
+    scope: person
+    source: { kind: constant, value: false }
+  - match: { kind: suffix, value: program_established_prior_to_july_first_nineteen_seventy_three }
+    scope: person
+    source: { kind: constant, value: false }
+  - match: { kind: suffix, value: program_established_prior_to_july_first_nineteen_seventy_three_and_subsequently_amended_to_conform_to_state_or_federal_constitutional_standards }
+    scope: person
+    source: { kind: constant, value: false }
+  - match: { kind: suffix, value: individual_first_became_eligible_individual_or_eligible_spouse_on_or_before_september_thirtieth_nineteen_eighty_five }
+    scope: person
+    source: { kind: constant, value: false }
+  - match: { kind: suffix, value: individual_residency_years_under_program_as_in_effect_prior_to_january_first_nineteen_eighty_three }
+    scope: person
+    source: { kind: constant, value: 0 }
+
+  # 1382f COLA chain: announced 2025 in-effect annual amounts (individual
+  # $967/mo = $11,604; couple $1,450/mo = $17,400) and the 2.8% 2026 COLA.
+  # The encoding computes the 2026 amounts including the $12 rounding.
+  # Specific b_1/b_2 slots MUST precede the generic subsection (a) slot:
+  # matching is first-match-wins and the generic name is a suffix of the
+  # b_1/b_2 slot names.
+  - match: { kind: suffix, value: section_1382_b_1_dollar_amount_in_effect_for_month }
+    scope: household
+    source: { kind: constant, value: 11604 }
+  - match: { kind: suffix, value: unrounded_section_1382_b_1_dollar_amount_that_would_have_been_in_effect_for_month_but_for_prior_rounding }
+    scope: household
+    source: { kind: constant, value: 11604 }
+  - match: { kind: suffix, value: section_1382_b_2_dollar_amount_in_effect_for_month }
+    scope: household
+    source: { kind: constant, value: 17400 }
+  - match: { kind: suffix, value: unrounded_section_1382_b_2_dollar_amount_that_would_have_been_in_effect_for_month_but_for_prior_rounding }
+    scope: household
+    source: { kind: constant, value: 17400 }
+  - match: { kind: suffix, value: dollar_amount_in_effect_for_month }
+    scope: household
+    source: { kind: constant, value: 11604 }
+  - match: { kind: suffix, value: unrounded_dollar_amount_that_would_have_been_in_effect_for_month_but_for_prior_rounding }
+    scope: household
+    source: { kind: constant, value: 11604 }
+  - match: { kind: suffix, value: subchapter_ii_benefit_increase_percentage_for_month }
+    scope: household
+    source: { kind: constant, value: 0.028 }
+  - match: { kind: suffix, value: cpi_basis_subchapter_ii_increase_percentage_for_month }
+    scope: household
+    source: { kind: constant, value: 0.028 }
+  - match: { kind: suffix, value: subchapter_ii_increase_was_determined_on_wage_increase_percentage }
+    scope: household
+    source: { kind: constant, value: false }
+
+  # ---------------------------------------------------------------------
+  # NY TANF (us-ny/tanf program) — state plan 2024-2026 slice.
+  #
+  # Income slots are monthly household sums; the demographic gate mirrors
+  # PolicyEngine's ny_tanf_eligible (minor child or pregnant member). The
+  # earned income disregard is applied unconditionally (PolicyEngine's
+  # post-October-2022 semantics), and the resource/work-activity rules are
+  # outside the compared output tree, so their slots take inert constants.
+  # ---------------------------------------------------------------------
+
+  - match: { kind: suffix, value: household_has_minor_or_pregnant_member }
+    scope: household
+    source:
+      kind: derived
+      transform: any_age_below_or_flags
+      threshold: 18
+      from_facts: [PERSON_AGE, PREGNANT]
+
+  - match: { kind: suffix, value: number_of_persons_in_household }
+    scope: household
+    source: { kind: derived, transform: hh_size }
+
+  - match: { kind: exact, value: family_size }
+    scope: household
+    source: { kind: derived, transform: hh_size }
+
+  - match: { kind: suffix, value: monthly_rent_amount_actually_paid }
+    scope: household
+    source:
+      kind: derived
+      transform: monthly
+      from_facts: [RENT_PAID]
+
+  - match: { kind: suffix, value: household_has_verified_rental_obligation }
+    scope: household
+    source:
+      kind: derived
+      transform: positive
+      from_facts: [RENT_PAID]
+
+  - match: { kind: exact, value: unearned_income }
+    scope: household
+    source:
+      kind: derived
+      transform: monthly
+      aggregate: sum_over_people
+      from_facts:
+        - SOCIAL_SECURITY_BENEFITS
+        - PENSION_INCOME
+        - INTEREST_INCOME
+        - DIVIDEND_INCOME
+        - QUALIFIED_DIVIDEND_INCOME
+        - RENTAL_INCOME
+        - UNEMPLOYMENT_INSURANCE_INCOME
+
+  - match: { kind: exact, value: earned_income }
+    scope: household
+    source:
+      kind: derived
+      transform: monthly
+      aggregate: sum_over_people
+      from_facts: [YEARLY_EARNED_INCOME, SELF_EMPLOYMENT_INCOME]
+
+  - match: { kind: suffix, value: gross_earned_and_unearned_income_is_below_poverty_level }
+    scope: household
+    source: { kind: constant, value: true }
+  - match: { kind: suffix, value: working_applicant_eligible_for_public_assistance_without_earned_income_disregard }
+    scope: household
+    source: { kind: constant, value: true }
+  - match: { kind: suffix, value: working_applicant_received_public_assistance_in_one_of_previous_four_months }
+    scope: household
+    source: { kind: constant, value: false }
+
+  # Slots owned by rules outside the compared output tree (resource test,
+  # work-activity disregards, screening sanctions): inert constants.
+  - match: { kind: substring, value: asset_is_ }
+    scope: household
+    source: { kind: constant, value: false }
+  - match: { kind: suffix, value: asset_value }
+    scope: household
+    source: { kind: constant, value: 0 }
+  - match: { kind: suffix, value: asset_equity_value }
+    scope: household
+    source: { kind: constant, value: 0 }
+  - match: { kind: suffix, value: asset_fair_market_value }
+    scope: household
+    source: { kind: constant, value: 0 }
+  - match: { kind: suffix, value: federal_poverty_level }
+    scope: household
+    source: { kind: constant, value: 0 }
+  - match: { kind: suffix, value: months_since_job_entry }
+    scope: person
+    source: { kind: constant, value: 0 }
+  - match: { kind: suffix, value: person_entered_unsubsidized_employment }
+    scope: person
+    source: { kind: constant, value: false }
+  - match: { kind: suffix, value: person_has_previously_used_lifetime_unsubsidized_employment_disregard }
+    scope: person
+    source: { kind: constant, value: false }
+  - match: { kind: suffix, value: person_is_tanf_recipient }
+    scope: person
+    source: { kind: constant, value: false }
+  - match: { kind: suffix, value: resulting_total_income }
+    scope: person
+    source: { kind: constant, value: 0 }
+  - match: { kind: suffix, value: earned_income_is_from_otda_qualified_work_activity_or_training_program }
+    scope: person
+    source: { kind: constant, value: false }
+  - match: { kind: suffix, value: person_failed_to_participate_in_screening_or_assessment_process }
+    scope: person
+    source: { kind: constant, value: false }
+  - match: { kind: suffix, value: treatment_nonparticipation_instance_number }
+    scope: person
+    source: { kind: constant, value: 0 }
+  - match: { kind: suffix, value: unit_has_disabled_member }
+    scope: household
+    source: { kind: constant, value: false }
+  - match: { kind: suffix, value: unit_has_member_age_sixty_or_over }
+    scope: household
+    source: { kind: constant, value: false }
+
+  # ---------------------------------------------------------------------
+  # WA TANF (us-wa/tanf program) — WAC 388-450 / 388-478 slice.
+  # Dependent care, deemed income, and outside-unit allocations are not
+  # observable in ECPS and take inert constants; the demographic gate
+  # entry above (household_has_minor_or_pregnant_member) is shared.
+  # ---------------------------------------------------------------------
+
+  - match: { kind: exact, value: assistance_unit_size }
+    scope: household
+    source: { kind: derived, transform: hh_size }
+  - match: { kind: exact, value: number_of_family_members }
+    scope: household
+    source: { kind: derived, transform: hh_size }
+
+  - match: { kind: exact, value: household_gross_earned_income }
+    scope: household
+    source:
+      kind: derived
+      transform: monthly
+      aggregate: sum_over_people
+      from_facts: [YEARLY_EARNED_INCOME, SELF_EMPLOYMENT_INCOME]
+  - match: { kind: exact, value: cash_assistance_family_gross_earned_income }
+    scope: household
+    source:
+      kind: derived
+      transform: monthly
+      aggregate: sum_over_people
+      from_facts: [YEARLY_EARNED_INCOME, SELF_EMPLOYMENT_INCOME]
+  - match: { kind: exact, value: gross_monthly_income }
+    scope: household
+    source:
+      kind: derived
+      transform: monthly
+      aggregate: sum_over_people
+      from_facts:
+        - YEARLY_EARNED_INCOME
+        - SELF_EMPLOYMENT_INCOME
+        - SOCIAL_SECURITY_BENEFITS
+        - PENSION_INCOME
+        - INTEREST_INCOME
+        - DIVIDEND_INCOME
+        - QUALIFIED_DIVIDEND_INCOME
+        - RENTAL_INCOME
+        - UNEMPLOYMENT_INSURANCE_INCOME
+  - match: { kind: suffix, value: countable_unearned_income_after_exclusions_and_disregards }
+    scope: household
+    source:
+      kind: derived
+      transform: monthly
+      aggregate: sum_over_people
+      from_facts:
+        - SOCIAL_SECURITY_BENEFITS
+        - PENSION_INCOME
+        - INTEREST_INCOME
+        - DIVIDEND_INCOME
+        - QUALIFIED_DIVIDEND_INCOME
+        - RENTAL_INCOME
+        - UNEMPLOYMENT_INSURANCE_INCOME
+
+  - match: { kind: suffix, value: deemed_or_allocated_income_from_financially_responsible_nonmembers }
+    scope: household
+    source: { kind: constant, value: 0 }
+  - match: { kind: suffix, value: income_allocated_to_persons_outside_assistance_unit }
+    scope: household
+    source: { kind: constant, value: 0 }
+  - match: { kind: suffix, value: other_cash_assistance_deductions_allowed_under_wac_388_450_0177_and_388_450_0178 }
+    scope: household
+    source: { kind: constant, value: 0 }
+
+  - match: { kind: suffix, value: care_paid_before_benefit_approval }
+    scope: person
+    source: { kind: constant, value: false }
+  - match: { kind: suffix, value: care_provider_is_not_parent_or_stepparent }
+    scope: person
+    source: { kind: constant, value: false }
+  - match: { kind: suffix, value: dependent_care_amount_paid_prorated_to_eligibility_date }
+    scope: person
+    source: { kind: constant, value: 0 }
+  - match: { kind: suffix, value: expense_verified }
+    scope: person
+    source: { kind: constant, value: false }
+  - match: { kind: suffix, value: hours_worked_per_month }
+    scope: person
+    source: { kind: constant, value: 0 }
+  - match: { kind: suffix, value: recipient_gets_cash_assistance_with_person }
+    scope: person
+    source: { kind: constant, value: false }
+  - match: { kind: suffix, value: recipient_is_dependent_child_under_two_years_of_age }
+    scope: person
+    source: { kind: constant, value: false }
+
+  # ---------------------------------------------------------------------
+  # Medicaid MAGI groups (us/medicaid-magi program) — 42 CFR 435, CO slice.
+  # State-plan standards are constants mirroring PolicyEngine's Colorado
+  # limits (verified by the co-health-thresholds parameter suite). The
+  # SSI-status detail, 1619, medically-needy, and state-supplement slots
+  # belong to transitively imported rules outside the compared rollup.
+  # ---------------------------------------------------------------------
+
+  - match: { kind: exact, value: household_income_as_fraction_of_fpl }
+    scope: household
+    source:
+      kind: derived
+      transform: fpl_ratio
+      fpg_base: 15960
+      fpg_per_person: 5680
+      from_facts:
+        - YEARLY_EARNED_INCOME
+        - SELF_EMPLOYMENT_INCOME
+        - SOCIAL_SECURITY_BENEFITS
+        - PENSION_INCOME
+        - INTEREST_INCOME
+        - DIVIDEND_INCOME
+        - QUALIFIED_DIVIDEND_INCOME
+        - RENTAL_INCOME
+        - UNEMPLOYMENT_INSURANCE_INCOME
+
+  - match: { kind: exact, value: person_age }
+    scope: person
+    source: { kind: fact, name: PERSON_AGE, cast: int }
+  - match: { kind: exact, value: person_is_pregnant }
+    scope: person
+    source: { kind: fact, name: PREGNANT, default: false, cast: bool }
+  - match: { kind: exact, value: person_is_under_age_18 }
+    scope: person
+    source:
+      kind: derived
+      transform: age_below
+      threshold: 18
+      from_facts: [PERSON_AGE]
+  - match: { kind: exact, value: person_is_aged_blind_or_disabled }
+    scope: person
+    source:
+      kind: derived
+      transform: age_at_least_or_flags
+      threshold: 65
+      from_facts: [PERSON_AGE, BLIND, DISABLED]
+
+  - match: { kind: exact, value: person_receives_ssi_benefits }
+    scope: person
+    source: { kind: derived, transform: positive, from_facts: [SSI_BENEFITS] }
+  - match: { kind: exact, value: person_is_receiving_or_deemed_receiving_ssi }
+    scope: person
+    source: { kind: derived, transform: positive, from_facts: [SSI_BENEFITS] }
+  - match: { kind: exact, value: person_is_ssi_beneficiary_or_deemed_ssi_beneficiary }
+    scope: person
+    source: { kind: derived, transform: positive, from_facts: [SSI_BENEFITS] }
+
+  # Colorado state-plan standards (PolicyEngine CO values).
+  - match: { kind: exact, value: state_plan_child_income_standard_fpl_ratio }
+    scope: household
+    source: { kind: constant, value: 1.47 }
+  - match: { kind: exact, value: state_plan_pregnant_women_income_standard_fpl_ratio }
+    scope: household
+    source: { kind: constant, value: 2.0 }
+  - match: { kind: exact, value: state_plan_full_medicaid_applicable_income_limit_fpl_ratio }
+    scope: household
+    source: { kind: constant, value: 2.0 }
+  - match: { kind: exact, value: state_plan_authorized_infant_income_standard_fpl_ratio }
+    scope: household
+    source: { kind: constant, value: 0 }
+  - match: { kind: exact, value: state_plan_age_group_grandfathered_income_standard_fpl_ratio }
+    scope: household
+    source: { kind: constant, value: 0 }
+  - match: { kind: exact, value: state_had_authorizing_legislation_for_higher_infant_income_standard }
+    scope: household
+    source: { kind: constant, value: false }
+
+  # Adult-group blocking and elections: children assumed covered.
+  - match: { kind: exact, value: dependent_child_enrolled_in_minimum_essential_coverage }
+    scope: person
+    source: { kind: constant, value: true }
+  - match: { kind: exact, value: dependent_child_receiving_chip }
+    scope: person
+    source: { kind: constant, value: false }
+  - match: { kind: exact, value: dependent_child_receiving_medicaid }
+    scope: person
+    source: { kind: constant, value: false }
+  - match: { kind: exact, value: person_is_parent_or_caretaker_relative }
+    scope: person
+    source: { kind: constant, value: false }
+  - match: { kind: exact, value: person_lives_with_dependent_child_under_age_threshold }
+    scope: person
+    source: { kind: constant, value: false }
+  - match: { kind: exact, value: state_elected_435_222_higher_age }
+    scope: household
+    source: { kind: constant, value: false }
+  - match: { kind: exact, value: state_elected_435_222_higher_age_as_of_march_23_2010 }
+    scope: household
+    source: { kind: constant, value: false }
+  - match: { kind: exact, value: person_eligible_and_enrolled_for_mandatory_medicaid_under_subpart_b }
+    scope: person
+    source: { kind: constant, value: false }
+  - match: { kind: exact, value: person_entitled_to_or_enrolled_in_medicare_part_a_or_b }
+    scope: person
+    source: { kind: constant, value: false }
+
+  # Transitively imported SSI-status / 1619 / medically-needy / QMB paths:
+  # inert constants (their rules sit outside the compared rollup).
+  - match: { kind: substring, value: "1619" }
+    scope: person
+    source: { kind: constant, value: false }
+  - match: { kind: substring, value: medically_needy }
+    scope: household
+    source: { kind: constant, value: false }
+  - match: { kind: substring, value: spend_down }
+    scope: person
+    source: { kind: constant, value: false }
+  - match: { kind: suffix, value: person_is_eligible_for_state_supplement }
+    scope: person
+    source: { kind: constant, value: false }
+  - match: { kind: suffix, value: person_is_eligible_spouse_of_ssi_beneficiary }
+    scope: person
+    source: { kind: constant, value: false }
+  - match: { kind: suffix, value: person_is_state_supplement_beneficiary }
+    scope: person
+    source: { kind: constant, value: false }
+  - match: { kind: suffix, value: person_is_qualified_medicare_beneficiary_described_in_section_1905_p }
+    scope: person
+    source: { kind: constant, value: false }
+  - match: { kind: suffix, value: person_is_qualified_severely_impaired_individual_defined_in_section_1905_q }
+    scope: person
+    source: { kind: constant, value: false }
+  - match: { kind: suffix, value: person_is_qualified_working_disabled_individual_described_in_section_1905_s }
+    scope: person
+    source: { kind: constant, value: false }
+  - match: { kind: suffix, value: person_receives_ssi_pending_final_blindness_or_disability_determination }
+    scope: person
+    source: { kind: constant, value: false }
+  - match: { kind: suffix, value: person_receives_ssi_under_resource_disposal_agreement_with_social_security_administration }
+    scope: person
+    source: { kind: constant, value: false }
+  - match: { kind: suffix, value: person_was_issued_medicaid_card_for_reference_month_under_more_restrictive_state_plan_criteria }
+    scope: person
+    source: { kind: constant, value: false }
+  - match: { kind: suffix, value: person_would_be_eligible_to_receive_afdc_under_approved_state_plan_if_not_receiving_ssi }
+    scope: person
+    source: { kind: constant, value: false }
+  - match: { kind: suffix, value: section_435_121_allows_other_medicaid_treatment_for_this_person }
+    scope: person
+    source: { kind: constant, value: false }
+  - match: { kind: suffix, value: person_has_income_above_categorically_needy_standards }
+    scope: person
+    source: { kind: constant, value: false }
+  - match: { kind: suffix, value: person_income_is_equal_to_or_below_optional_categorically_needy_standard }
+    scope: person
+    source: { kind: constant, value: false }
+  - match: { kind: substring, value: agency_applies_more_restrictive }
+    scope: household
+    source: { kind: constant, value: false }
+  - match: { kind: suffix, value: agency_limits_disabled_eligibility_to_individuals_age_18_or_older }
+    scope: household
+    source: { kind: constant, value: false }
+  - match: { kind: suffix, value: categorically_needy_income_standard_selected_under_this_section_is_less_than_optional_categorically_needy_standard }
+    scope: household
+    source: { kind: constant, value: false }
+  - match: { kind: substring, value: state_does_not_have_medically_needy_program }
+    scope: household
+    source: { kind: constant, value: false }
+  - match: { kind: substring, value: state_elects_medically_needy_coverage }
+    scope: household
+    source: { kind: constant, value: false }
+  - match: { kind: suffix, value: person_can_spend_down_to_state_selected_living_arrangement_standard }
+    scope: person
+    source: { kind: constant, value: false }
+
+  # ---------------------------------------------------------------------
+  # CO TANF (us-co/tanf program) — Colorado Works basic cash assistance.
+  # Steady-state recipient month: application/redetermination flags off,
+  # disregards mirror the 67% + $90 exclusion PolicyEngine carries.
+  # ---------------------------------------------------------------------
+
+  - match: { kind: suffix, value: number_of_caretakers_in_assistance_unit }
+    scope: household
+    source: { kind: derived, transform: count_age_at_least, threshold: 18, cap: 2 }
+  - match: { kind: suffix, value: number_of_children_in_assistance_unit }
+    scope: household
+    source: { kind: derived, transform: count_age_below, threshold: 18 }
+  - match: { kind: suffix, value: need_standard_for_household_size }
+    scope: household
+    source:
+      kind: derived
+      transform: adult_table_plus_per_child
+      table: { 0: 977, 1: 1065, 2: 1155 }
+      per_child: 67
+
+  - match: { kind: substring, value: gross_earned_income }
+    scope: household
+    source:
+      kind: derived
+      transform: monthly
+      aggregate: sum_over_people
+      from_facts: [YEARLY_EARNED_INCOME, SELF_EMPLOYMENT_INCOME]
+  - match: { kind: substring, value: countable_unearned_income }
+    scope: household
+    source:
+      kind: derived
+      transform: monthly
+      aggregate: sum_over_people
+      from_facts:
+        - SOCIAL_SECURITY_BENEFITS
+        - PENSION_INCOME
+        - INTEREST_INCOME
+        - DIVIDEND_INCOME
+        - QUALIFIED_DIVIDEND_INCOME
+        - RENTAL_INCOME
+        - UNEMPLOYMENT_INSURANCE_INCOME
+  - match: { kind: substring, value: unearned_income_received }
+    scope: household
+    source:
+      kind: derived
+      transform: monthly
+      aggregate: sum_over_people
+      from_facts:
+        - SOCIAL_SECURITY_BENEFITS
+        - PENSION_INCOME
+        - INTEREST_INCOME
+        - DIVIDEND_INCOME
+        - QUALIFIED_DIVIDEND_INCOME
+        - RENTAL_INCOME
+        - UNEMPLOYMENT_INSURANCE_INCOME
+  - match: { kind: substring, value: countable_gross_unearned_income_after_disregards }
+    scope: household
+    source:
+      kind: derived
+      transform: monthly
+      aggregate: sum_over_people
+      from_facts:
+        - SOCIAL_SECURITY_BENEFITS
+        - PENSION_INCOME
+        - INTEREST_INCOME
+        - DIVIDEND_INCOME
+        - QUALIFIED_DIVIDEND_INCOME
+        - RENTAL_INCOME
+        - UNEMPLOYMENT_INSURANCE_INCOME
+
+  - match: { kind: substring, value: earned_income_disregards }
+    scope: household
+    source:
+      kind: derived
+      transform: monthly_rate_plus_flat
+      rate: 0.67
+      flat: 90
+      aggregate: sum_over_people
+      from_facts: [YEARLY_EARNED_INCOME, SELF_EMPLOYMENT_INCOME]
+  - match: { kind: substring, value: countable_gross_earned_income_after_disregards }
+    scope: household
+    source:
+      kind: derived
+      transform: monthly_countable_after_exclusion
+      rate: 0.67
+      flat: 90
+      aggregate: sum_over_people
+      from_facts: [YEARLY_EARNED_INCOME, SELF_EMPLOYMENT_INCOME]
+  - match: { kind: suffix, value: countable_earned_income }
+    scope: household
+    source:
+      kind: derived
+      transform: monthly_countable_after_exclusion
+      rate: 0.67
+      flat: 90
+      aggregate: sum_over_people
+      from_facts: [YEARLY_EARNED_INCOME, SELF_EMPLOYMENT_INCOME]
+  - match: { kind: suffix, value: countable_income_for_basic_cash_assistance }
+    scope: household
+    source:
+      kind: derived
+      transform: monthly
+      aggregate: sum_over_people
+      from_facts:
+        - SOCIAL_SECURITY_BENEFITS
+        - PENSION_INCOME
+        - INTEREST_INCOME
+        - DIVIDEND_INCOME
+        - QUALIFIED_DIVIDEND_INCOME
+        - RENTAL_INCOME
+        - UNEMPLOYMENT_INSURANCE_INCOME
+
+  # Steady-state recipient month.
+  - match: { kind: substring, value: is_application }
+    scope: household
+    source: { kind: constant, value: false }
+  - match: { kind: substring, value: application_month }
+    scope: household
+    source: { kind: constant, value: false }
+  - match: { kind: substring, value: currently_receiving_basic_cash_assistance }
+    scope: household
+    source: { kind: constant, value: true }
+  - match: { kind: substring, value: first_certification_period }
+    scope: household
+    source: { kind: constant, value: false }
+  - match: { kind: substring, value: redetermination_new_certification_period }
+    scope: household
+    source: { kind: constant, value: false }
+  - match: { kind: substring, value: earned_income_is_new_source }
+    scope: household
+    source: { kind: constant, value: false }
+  - match: { kind: suffix, value: assistance_unit_found_ineligible }
+    scope: household
+    source: { kind: constant, value: false }
+  - match: { kind: substring, value: reports_earned_income }
+    scope: household
+    source:
+      kind: derived
+      transform: positive
+      aggregate: sum_over_people
+      from_facts: [YEARLY_EARNED_INCOME, SELF_EMPLOYMENT_INCOME]
+  - match: { kind: suffix, value: certification_period_month_number }
+    scope: household
+    source: { kind: constant, value: 2 }
+  - match: { kind: suffix, value: client_is_pregnant_parent }
+    scope: person
+    source: { kind: fact, name: PREGNANT, default: false, cast: bool }
+  - match: { kind: suffix, value: month_is_not_after_month_in_which_pregnancy_ends }
+    scope: person
+    source: { kind: fact, name: PREGNANT, default: false, cast: bool }
+
+  # ---------------------------------------------------------------------
+  # CA TANF / CalWORKs (us-ca/tanf program) — recipient-month slice.
+  # Region 1 is the seventeen higher-MAP counties (by county FIPS);
+  # exempt units approximated as any-member-receives-SSI.
+  # ---------------------------------------------------------------------
+
+  - match: { kind: suffix, value: persons_on_aid }
+    scope: household
+    source: { kind: derived, transform: hh_size }
+  - match: { kind: suffix, value: assistance_unit_is_exempt }
+    scope: household
+    source:
+      kind: derived
+      transform: positive
+      aggregate: sum_over_people
+      from_facts: [SSI_BENEFITS]
+  - match: { kind: suffix, value: household_in_ca_map_region_1 }
+    scope: household
+    source:
+      kind: derived
+      transform: scope_geoid_in
+      geoids: ["06001","06013","06037","06041","06053","06055","06059","06073","06075","06079","06081","06083","06085","06087","06095","06097","06111"]
+  - match: { kind: suffix, value: ca_countable_earned_income_after_disregard }
+    scope: household
+    source:
+      kind: derived
+      transform: monthly_flat_then_rate
+      flat: 600
+      rate: 0.5
+      aggregate: sum_over_people
+      from_facts: [YEARLY_EARNED_INCOME, SELF_EMPLOYMENT_INCOME]
+  - match: { kind: suffix, value: ca_countable_other_unearned_income }
+    scope: household
+    source:
+      kind: derived
+      transform: monthly
+      aggregate: sum_over_people
+      from_facts: [SOCIAL_SECURITY_BENEFITS, INTEREST_INCOME, DIVIDEND_INCOME,
+        QUALIFIED_DIVIDEND_INCOME]
+
+  # ---------------------------------------------------------------------
+  # MN TANF / MFIP (us-mn/tanf program) — Combined Manual 0022.12.
+  # Standards mirror PolicyEngine's transitional standard (cash + food),
+  # 110% family wage level, and $65-per-earner + 50% disregard.
+  # ---------------------------------------------------------------------
+
+  - match: { kind: suffix, value: transitional_standard_for_corresponding_payment_month }
+    scope: household
+    source:
+      kind: derived
+      transform: table_by_hh_size
+      table: { 1: 678, 2: 1114, 3: 1430, 4: 1715, 5: 1982, 6: 2297, 7: 2500, 8: 2759, 9: 3015, 10: 3265 }
+      per_additional: 248
+      max_size: 10
+  - match: { kind: suffix, value: family_wage_level_for_corresponding_payment_month }
+    scope: household
+    source:
+      kind: derived
+      transform: table_by_hh_size
+      table: { 1: 678, 2: 1114, 3: 1430, 4: 1715, 5: 1982, 6: 2297, 7: 2500, 8: 2759, 9: 3015, 10: 3265 }
+      per_additional: 248
+      max_size: 10
+      multiplier: 1.1
+  - match: { kind: suffix, value: mfip_food_portion_amount_under_section_0020_09 }
+    scope: household
+    source:
+      kind: derived
+      transform: table_by_hh_size
+      table: { 1: 247, 2: 453, 3: 652, 4: 829, 5: 1002, 6: 1224, 7: 1333, 8: 1510, 9: 1688, 10: 1869 }
+      per_additional: 182
+      max_size: 10
+  - match: { kind: suffix, value: net_earned_income_in_budget_month }
+    scope: household
+    source:
+      kind: derived
+      transform: monthly_flat_then_rate
+      flat: 65
+      flat_per_earner: true
+      rate: 0.5
+      aggregate: sum_over_people
+      from_facts: [YEARLY_EARNED_INCOME, SELF_EMPLOYMENT_INCOME]
+  - match: { kind: suffix, value: unearned_income_in_budget_month }
+    scope: household
+    source:
+      kind: derived
+      transform: monthly
+      aggregate: sum_over_people
+      from_facts:
+        - SOCIAL_SECURITY_BENEFITS
+        - PENSION_INCOME
+        - INTEREST_INCOME
+        - DIVIDEND_INCOME
+        - QUALIFIED_DIVIDEND_INCOME
+        - RENTAL_INCOME
+        - UNEMPLOYMENT_INSURANCE_INCOME
+  - match: { kind: suffix, value: unit_receives_no_income_other_than_mfip }
+    scope: household
+    source:
+      kind: derived
+      transform: sum_is_zero
+      aggregate: sum_over_people
+      from_facts:
+        - YEARLY_EARNED_INCOME
+        - SELF_EMPLOYMENT_INCOME
+        - SOCIAL_SECURITY_BENEFITS
+        - PENSION_INCOME
+        - INTEREST_INCOME
+        - DIVIDEND_INCOME
+        - QUALIFIED_DIVIDEND_INCOME
+        - RENTAL_INCOME
+        - UNEMPLOYMENT_INSURANCE_INCOME
+  - match: { kind: suffix, value: unit_receives_unearned_income_only }
+    scope: household
+    source:
+      kind: derived
+      transform: sum_positive_and_zero
+      aggregate: sum_over_people
+      from_facts:
+        - SOCIAL_SECURITY_BENEFITS
+        - PENSION_INCOME
+        - INTEREST_INCOME
+        - DIVIDEND_INCOME
+        - QUALIFIED_DIVIDEND_INCOME
+        - RENTAL_INCOME
+        - UNEMPLOYMENT_INSURANCE_INCOME
+      zero_facts: [YEARLY_EARNED_INCOME, SELF_EMPLOYMENT_INCOME]
+  - match: { kind: suffix, value: unit_has_earned_income_only }
+    scope: household
+    source:
+      kind: derived
+      transform: sum_positive_and_zero
+      aggregate: sum_over_people
+      from_facts: [YEARLY_EARNED_INCOME, SELF_EMPLOYMENT_INCOME]
+      zero_facts:
+        - SOCIAL_SECURITY_BENEFITS
+        - PENSION_INCOME
+        - INTEREST_INCOME
+        - DIVIDEND_INCOME
+        - QUALIFIED_DIVIDEND_INCOME
+        - RENTAL_INCOME
+        - UNEMPLOYMENT_INSURANCE_INCOME
+  # Contextually correct: this branch is only reached after the
+  # earned-only test fails, so "has both" reduces to "has earned income".
+  - match: { kind: suffix, value: unit_has_both_earned_and_unearned_income }
+    scope: household
+    source:
+      kind: derived
+      transform: positive
+      aggregate: sum_over_people
+      from_facts: [YEARLY_EARNED_INCOME, SELF_EMPLOYMENT_INCOME]
+  - match: { kind: suffix, value: unit_is_applicant_case }
+    scope: household
+    source: { kind: constant, value: false }
+  - match: { kind: suffix, value: prorated_benefit_under_section_0022_12_03 }
+    scope: household
+    source: { kind: constant, value: 0 }
+  - match: { kind: suffix, value: recoupment_amount_if_applicable }
+    scope: household
+    source: { kind: constant, value: 0 }
+
+  # ---------------------------------------------------------------------
+  # AZ Cash Assistance (us-az/tanf program) — DES FAA5 needy-family and
+  # payment-standard path. The module budgets in ANNUAL terms (the A1/A2
+  # standard is annual; the bridge divides by 12), so income inputs are
+  # annual sums. The base-year FPL is the 1992 poverty guideline the A1
+  # standard is expressed against; current FPL is the 2026 guideline.
+  # ---------------------------------------------------------------------
+
+  - match: { kind: suffix, value: caretaker_relative_family_earned_income }
+    scope: household
+    source:
+      kind: derived
+      transform: sum
+      aggregate: sum_over_people
+      from_facts: [YEARLY_EARNED_INCOME, SELF_EMPLOYMENT_INCOME]
+  - match: { kind: suffix, value: caretaker_relative_family_unearned_income }
+    scope: household
+    source:
+      kind: derived
+      transform: sum
+      aggregate: sum_over_people
+      from_facts:
+        - SOCIAL_SECURITY_BENEFITS
+        - PENSION_INCOME
+        - INTEREST_INCOME
+        - DIVIDEND_INCOME
+        - QUALIFIED_DIVIDEND_INCOME
+        - RENTAL_INCOME
+        - UNEMPLOYMENT_INSURANCE_INCOME
+  - match: { kind: suffix, value: gross_countable_income }
+    scope: household
+    source:
+      kind: derived
+      transform: sum
+      aggregate: sum_over_people
+      from_facts:
+        - YEARLY_EARNED_INCOME
+        - SELF_EMPLOYMENT_INCOME
+        - SOCIAL_SECURITY_BENEFITS
+        - PENSION_INCOME
+        - INTEREST_INCOME
+        - DIVIDEND_INCOME
+        - QUALIFIED_DIVIDEND_INCOME
+        - RENTAL_INCOME
+        - UNEMPLOYMENT_INSURANCE_INCOME
+  - match: { kind: suffix, value: ca_earned_income_deductions }
+    scope: household
+    source:
+      kind: derived
+      transform: annual_flat_plus_rate_of_remainder
+      flat: 90
+      flat_per_earner: true
+      rate: 0.3
+      aggregate: sum_over_people
+      from_facts: [YEARLY_EARNED_INCOME, SELF_EMPLOYMENT_INCOME]
+  - match: { kind: suffix, value: current_federal_poverty_level_for_caretaker_relative_family_size }
+    scope: household
+    source:
+      kind: derived
+      transform: table_by_hh_size
+      table: { 1: 15960 }
+      per_additional: 5680
+      max_size: 1
+  - match: { kind: suffix, value: federal_poverty_level_for_payment_standard_base_year }
+    scope: household
+    source:
+      kind: derived
+      transform: table_by_hh_size
+      table: { 1: 6810 }
+      per_additional: 2380
+      max_size: 1
+  - match: { kind: suffix, value: budgetary_unit_has_obligation_to_pay_shelter_cost }
+    scope: household
+    source:
+      kind: derived
+      transform: positive
+      from_facts: [RENT_PAID]
+  - match: { kind: suffix, value: caretaker_relative_is_parent_or_nonparent_caretaker_relative_applying_for_self_and_child }
+    scope: household
+    source: { kind: constant, value: true }
+  - match: { kind: suffix, value: all_members_of_caretaker_relative_family_registered_to_case }
+    scope: household
+    source: { kind: constant, value: true }
+  - match: { kind: suffix, value: adult_caretaker_is_nonparent_caretaker_relative_applying_for_child_only }
+    scope: household
+    source: { kind: constant, value: false }
+  - match: { kind: suffix, value: kinship_care_case }
+    scope: household
+    source: { kind: constant, value: false }
+  - match: { kind: suffix, value: kinship_foster_care_case }
+    scope: household
+    source: { kind: constant, value: false }
+  - match: { kind: suffix, value: kinship_foster_care_child_only_case }
+    scope: household
+    source: { kind: constant, value: false }
+  - match: { kind: suffix, value: legal_permanent_guardian_case }
+    scope: household
+    source: { kind: constant, value: false }
+  - match: { kind: suffix, value: tribal_tanf_budgetary_unit_for_which_ca_needy_family_test_is_not_conducted }
+    scope: household
+    source: { kind: constant, value: false }
+  - match: { kind: suffix, value: case_change_has_occurred }
+    scope: household
+    source: { kind: constant, value: false }
+  - match: { kind: suffix, value: budgetary_unit_has_shelter_cost_obligation_but_fails_to_provide_verification }
+    scope: household
+    source: { kind: constant, value: false }
+  - match: { kind: suffix, value: participant_in_military_receives_basic_allowance_for_housing }
+    scope: household
+    source: { kind: constant, value: false }
+  - match: { kind: suffix, value: participant_is_on_lease_and_resides_in_government_subsidized_housing_unit }
+    scope: household
+    source: { kind: constant, value: false }
+  - match: { kind: suffix, value: participant_with_shelter_cost_obligation_is_in_foreclosure_and_mortgage_company_accepts_back_payments }
+    scope: household
+    source: { kind: constant, value: false }
+  - match: { kind: suffix, value: participant_works_in_exchange_for_rent }
+    scope: household
+    source: { kind: constant, value: false }
+  - match: { kind: suffix, value: shelter_costs_paid_by_third_party_for_fewer_than_three_months }
+    scope: household
+    source: { kind: constant, value: false }
+  - match: { kind: suffix, value: regular_benefit_amount }
+    scope: household
+    source: { kind: constant, value: 0 }
+  - match: { kind: suffix, value: supplemental_benefit_amount }
+    scope: household
+    source: { kind: constant, value: 0 }
+
+  # ---------------------------------------------------------------------
+  # KS TANF (us-ks/tanf program) — KEESM 7410 budgetary standards.
+  # The Axiom projection fixes shelter group I and a day-1 full month.
+  # PolicyEngine 1.767.3 instead derives the county group; Douglas, Harvey,
+  # and Johnson ECPS rows resolve to group IV, producing a visible $43
+  # bridge residual at each household size. Keep the projection explicit.
+  # ---------------------------------------------------------------------
+
+  - match: { kind: suffix, value: assistance_plan_person_count }
+    scope: household
+    source: { kind: derived, transform: hh_size }
+  - match: { kind: suffix, value: all_persons_in_home_in_same_assistance_plan }
+    scope: household
+    source: { kind: constant, value: true }
+  - match: { kind: suffix, value: shelter_group_v_applies }
+    scope: household
+    source: { kind: constant, value: false }
+  - match: { kind: suffix, value: shelter_group_i_applies }
+    scope: household
+    source: { kind: constant, value: true }
+  - match: { kind: suffix, value: shelter_group_ii_applies }
+    scope: household
+    source: { kind: constant, value: false }
+  - match: { kind: suffix, value: shelter_group_iii_applies }
+    scope: household
+    source: { kind: constant, value: false }
+  - match: { kind: suffix, value: shelter_group_iv_applies }
+    scope: household
+    source: { kind: constant, value: false }
+  - match: { kind: suffix, value: shared_living_arrangement_with_person_not_in_budget_plan }
+    scope: household
+    source: { kind: constant, value: false }
+  - match: { kind: suffix, value: shared_living_arrangement_is_commercial_bona_fide_landlord_tenant }
+    scope: household
+    source: { kind: constant, value: false }
+  - match: { kind: suffix, value: specialized_living_commercial_board_room_or_room_only_arrangement }
+    scope: household
+    source: { kind: constant, value: false }
+  - match: { kind: suffix, value: only_excluded_person_is_qualifying_ssi_recipient_or_joint_custody_child }
+    scope: household
+    source: { kind: constant, value: false }
+  - match: { kind: suffix, value: application_day_of_month }
+    scope: household
+    source: { kind: constant, value: 1 }
+  - match: { kind: suffix, value: days_in_month }
+    scope: household
+    source: { kind: constant, value: 30 }
+  - match: { kind: suffix, value: assistance_reinstated_after_required_information_or_cooperation_provided_in_month_following_closure }
+    scope: household
+    source: { kind: constant, value: false }
+  - match: { kind: suffix, value: assistance_suspended_and_reinstated_in_month_following_one_month_suspension }
+    scope: household
+    source: { kind: constant, value: false }
+  - match: { kind: suffix, value: cash_application_filed_in_response_to_sanction_notice_with_cooperation_within_45_days_and_received_in_month_following_closure }
+    scope: household
+    source: { kind: constant, value: false }
+  - match: { kind: suffix, value: cash_review_or_application_returned_in_month_following_end_of_review_period }
+    scope: household
+    source: { kind: constant, value: false }
+  - match: { kind: suffix, value: tanf_case_reopened_in_month_following_effective_date_of_closure }
+    scope: household
+    source: { kind: constant, value: false }
+
+  # ---------------------------------------------------------------------
+  # GA TANF (us-ga/tanf program) — DFCS PAMMS 1525/1605/1615/appendix-a slice.
+  # The benefit leaf (1605 block-14) already encodes Steps 11-13:
+  # min(max(standard_of_need - net_countable_income, 0), family_maximum). This
+  # block projects its budgeting free-inputs from ECPS. Gross countable income
+  # is the AU's included earned + unearned income; the 1615 standard $250 work
+  # deduction is projected at household scope as min(monthly AU earned, 250)
+  # (allowable_earned_income_deductions), exact for the 0-/1-earner units that
+  # dominate the caseload. Deemed/allocated non-member income and the
+  # SON-trial-budget applicant path are not observable in ECPS and take inert
+  # constants (steady-state recipient month); the demographic gate
+  # (household_has_minor_or_pregnant_member) is shared above.
+  # ---------------------------------------------------------------------
+
+  # au_size is declared Count in the program spec (integer chart key); it binds to
+  # this AU member count. hh_size returns len(people) as an integer.
+  - match: { kind: exact, value: assistance_unit_member_count }
+    scope: household
+    source: { kind: derived, transform: hh_size }
+
+  - match: { kind: exact, value: assistance_unit_included_income }
+    scope: household
+    source:
+      kind: derived
+      transform: monthly
+      aggregate: sum_over_people
+      from_facts:
+        - YEARLY_EARNED_INCOME
+        - SELF_EMPLOYMENT_INCOME
+        - SOCIAL_SECURITY_BENEFITS
+        - PENSION_INCOME
+        - INTEREST_INCOME
+        - DIVIDEND_INCOME
+        - QUALIFIED_DIVIDEND_INCOME
+        - RENTAL_INCOME
+        - UNEMPLOYMENT_INSURANCE_INCOME
+  - match: { kind: exact, value: income_deemed_from_non_assistance_unit_members }
+    scope: household
+    source: { kind: constant, value: 0 }
+  - match: { kind: exact, value: income_allocated_to_non_assistance_unit_members }
+    scope: household
+    source: { kind: constant, value: 0 }
+
+  - match: { kind: exact, value: son_trial_budget_is_necessary }
+    scope: household
+    source: { kind: constant, value: false }
+
+  # 1605 block-4 net_countable_income = gross_countable - allowable_earned_income_deductions.
+  # PolicyEngine's ga_tanf earned disregard is the PAMMS 1615 standard $250 work
+  # deduction per employed individual (min(earned, 250) each). Projected here at
+  # household scope as min(monthly AU earned income, 250) via monthly_rate_plus_flat
+  # (rate 0, flat 250, capped at the income): exact for the 0- and 1-earner units
+  # that dominate the caseload; a rare multi-earner unit understates the total by
+  # capping at one $250 rather than one per earner (dispositioned).
+  - match: { kind: exact, value: allowable_earned_income_deductions }
+    scope: household
+    source:
+      kind: derived
+      transform: monthly_rate_plus_flat
+      rate: 0
+      flat: 250
+      aggregate: sum_over_people
+      from_facts: [YEARLY_EARNED_INCOME, SELF_EMPLOYMENT_INCOME]
+
+  # ---------------------------------------------------------------------
+  # DE TANF (us-de/tanf program) -- 16 DE Admin. Code 4007/4008 slice.
+  # The 4008 grant leaf reproduces PolicyEngine de_tanf:
+  # min(payment_standard, 0.5 * max(standard_of_need - countable_income, 0)),
+  # gated by the 185%-of-standard-of-need gross-income test and the $90 applicant
+  # net-income test. This block projects its free inputs from ECPS at household
+  # scope. number_people_in_budget reuses assistance_unit_member_count (hh_size)
+  # via the program-spec Count declaration; unearned_income reuses the shared
+  # monthly-unearned projection above; the demographic gate
+  # (household_has_minor_or_pregnant_member) is shared. Deemed income, the
+  # dependent-care deduction, and the $50 child-support disregard are not
+  # observable in ECPS and take the values below (steady-state recipient month).
+  # ---------------------------------------------------------------------
+
+  # Delaware standard of need = 75% of the monthly federal poverty guideline.
+  # PE: spm_unit_fpg (annual, CONTIGUOUS_US 2026: 15,960 + 5,680*(size-1)) / 12
+  # * 0.75 = 997.50 + 355.00*(size-1). Projected here as the exact schedule by
+  # household size, with the constant per-additional-person increment for sizes
+  # beyond the tabulated eight.
+  - match: { kind: exact, value: applicable_tanf_standard_of_need }
+    scope: household
+    source:
+      kind: derived
+      transform: table_by_hh_size
+      max_size: 8
+      per_additional: 355.0
+      table:
+        1: 997.5
+        2: 1352.5
+        3: 1707.5
+        4: 2062.5
+        5: 2417.5
+        6: 2772.5
+        7: 3127.5
+        8: 3482.5
+
+  # PE de_tanf_gross_income = tanf_gross_earned + tanf_gross_unearned (monthly AU
+  # sum, pre-disregard), tested against 185% of the standard of need.
+  - match: { kind: exact, value: gross_income }
+    scope: household
+    source:
+      kind: derived
+      transform: monthly
+      aggregate: sum_over_people
+      from_facts:
+        - YEARLY_EARNED_INCOME
+        - SELF_EMPLOYMENT_INCOME
+        - SOCIAL_SECURITY_BENEFITS
+        - PENSION_INCOME
+        - INTEREST_INCOME
+        - DIVIDEND_INCOME
+        - QUALIFIED_DIVIDEND_INCOME
+        - RENTAL_INCOME
+        - UNEMPLOYMENT_INSURANCE_INCOME
+
+  # PE add(spm_unit, tanf_gross_earned_income): monthly AU earned income.
+  - match: { kind: exact, value: total_wage_earner_earnings }
+    scope: household
+    source:
+      kind: derived
+      transform: monthly
+      aggregate: sum_over_people
+      from_facts: [YEARLY_EARNED_INCOME, SELF_EMPLOYMENT_INCOME]
+
+  # The $90 work + $30 + 1/3 earned-income deduction is applied once at household
+  # scope (wage_earner_count = 1): exact for the 0- and 1-earner units that
+  # dominate the caseload; a rare multi-earner unit understates the deduction by
+  # granting one $90/$30 pass rather than one per earner (dispositioned). For a
+  # zero-earner unit the deduction floors at 0 against zero earnings, so the count
+  # is immaterial there.
+  - match: { kind: exact, value: wage_earner_count }
+    scope: household
+    source: { kind: constant, value: 1 }
+
+  # PE de_tanf benefit always applies the $30 + 1/3 disregard in the grant
+  # computation (de_tanf_countable_earned_income_person), so the applicability
+  # flag is always true here.
+  - match: { kind: exact, value: thirty_plus_one_third_disregard_applies }
+    scope: household
+    source: { kind: constant, value: true }
+
+  # PE de_tanf_dependent_care_deduction caps observed child-care spending by an
+  # age-tiered per-dependent maximum; child care is not observable in the ECPS
+  # slice feeding the composed program and only reduces countable EARNED income,
+  # so it takes 0 for the (predominantly unearned-income) TANF caseload.
+  # (Predates the CHILDCARE_EXPENSES household fact below — candidate for the
+  # same real feed once the DE cap tiers are composed.)
+  - match: { kind: exact, value: child_care_expenses }
+    scope: household
+    source: { kind: constant, value: 0 }
+
+  # AL TANF Appendix N §2 step-2 deduction: child care or care of an
+  # incapacitated adult, deducted from gross earnings after the 20% work
+  # expense. Fed from the populace CHILDCARE_EXPENSES household fact (the
+  # SPM-unit annual childcare_expenses PolicyEngine's own
+  # al_tanf_countable_earned_income reads at MONTH period), so both engines
+  # see the same observed spending. Closes rulespec-us#1184 / the 3
+  # al-tanf-ecps axiom-attributed rows.
+  - match: { kind: exact, value: child_or_incapacitated_adult_care_expenses }
+    scope: household
+    source:
+      kind: derived
+      transform: monthly
+      from_facts: [CHILDCARE_EXPENSES]

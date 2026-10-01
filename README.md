@@ -29,6 +29,7 @@ axiom_mappings/data/taxonomy.yaml        why Axiom and a counterpart disagree (i
 axiom_mappings/data/us/findings.yaml     known disagreements, each recorded once with its cause and issue
 axiom_mappings/data/us/unresolved.yaml   Axiom ids that do not resolve in RuleSpec at the pin (a ratchet)
 axiom_mappings/data/us/renames.yaml      reviewed Axiom id renames, with evidence
+axiom_mappings/data/us/transforms.yaml   what each derived slot rule's transform computes, and the law or assumption it carries
 axiom_mappings/data/us/bindings/<program>.<profile>.yaml  how one consumer profile feeds a program and binds
                           its outputs (cut: live PE simulation, policyengine-axiom; facts: request facts, axiom-api)
 axiom_mappings/schema/finding.schema.json  the classified-disagreement record every consumer emits
@@ -113,6 +114,13 @@ axiom_mappings/           loader (load, rules_for_slot, policyengine_variable, .
   from running the TypeScript. The Python must reproduce them, and axiom-api runs the same file, so one
   grammar keeps one semantics. `programs.yaml` gives Colorado SNAP the family `us/snap` (axiom-api serves
   every state's package through it), so `profiles` compares the two consumers slot by slot.
+- `python -m axiom_mappings export oracles-populace --out <axiom-oracles>/axiom_oracles/data/populace_input_mapping.yaml`
+  writes oracles' populace input table from inputs.yaml (the same entries, every rationale comment kept);
+  the file stays in oracles, where its dispositions cite it. transforms.yaml classifies every transform the
+  table's derived rules use: arithmetic and reference data are fine; `law-in-rule` (tables, rates, age
+  thresholds fed by the rule), `law-in-code` (the SSI couple rule, SNAP's elderly age of 60) and
+  `assumption` (earners presumed to work 30 hours) are law or assumptions outside RuleSpec, and a slot
+  computed by one blocks readiness.
 - `python -m axiom_mappings.export.policyengine_axiom --out <policyengine-axiom>/manifests` writes
   policyengine-axiom's binding manifests from the `cut` bindings (tested equal to the files, types included);
   policyengine-axiom builds its manifests from the map by default (`PE_AXIOM_MANIFESTS=files` reads the
