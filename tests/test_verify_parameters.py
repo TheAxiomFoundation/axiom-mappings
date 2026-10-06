@@ -190,3 +190,6 @@ def test_the_real_map_verifies_end_to_end_and_every_difference_is_filed(real_rep
     assert all(u["reason"].split(":")[0] in ("Axiom", "Mapping", "PolicyEngine") for u in report["unchecked"])
     assert gate(m, report) == []
     assert by_target["gov.irs.credits.ctc.refundable.individual_max"]["verdict"] == "stale-axiom"
+    # result_multiplier: SSI's $780 a year (Axiom) is PolicyEngine's $65 a month x 12, not a difference
+    assert by_target["gov.ssa.ssi.income.exclusions.earned"]["verdict"] == "match"
+    assert by_target["gov.ssa.ssi.income.exclusions.general"]["verdict"] == "match"

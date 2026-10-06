@@ -3,7 +3,8 @@
     python -m axiom_mappings verify parameters --corpus <rulespec-us> [--program P] [--as-of DATE] [--json] [--out F]
 
 Identity comes from the mapping row (the Axiom id, the PolicyEngine path and cell); values are only the
-check. For each PolicyEngine cell, Axiom's history is assembled from every Axiom id mapped to it (one
+check, in PolicyEngine's unit: a row's ``result_multiplier`` (Axiom = PolicyEngine x multiplier, e.g. 12
+for an annual statutory amount against a monthly parameter) is applied before comparing. For each PolicyEngine cell, Axiom's history is assembled from every Axiom id mapped to it (one
 module per fiscal year is common): each version holds from ``effective_from`` to its ``effective_to``,
 or to the next version. PolicyEngine's history is the parameter's ``values_list``. The two step
 functions are compared over every interval either side changes:
@@ -390,6 +391,10 @@ def verify(m: Mappings, corpus_root, system, *, as_of: str | None = None, progra
             if isinstance(versions, str):
                 skip(row, versions)
                 break
+            multiplier = row.get("result_multiplier")
+            if multiplier not in (None, 1):  # the row states Axiom = PolicyEngine x multiplier (e.g. 12: a year's
+                for v in versions:            # amount against a month's); compare in PolicyEngine's unit
+                    v.value = v.value / float(multiplier)
             key = (row["policyengine_parameter"], tuple(selector))
             t = targets.setdefault(key, Target(row["policyengine_parameter"], tuple(selector), row.get("program", "")))
             t.comparison = t.comparison or row.get("comparison")

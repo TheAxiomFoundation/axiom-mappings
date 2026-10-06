@@ -187,32 +187,6 @@ findings:
       stale-axiom: 1
     axiom_ids:
     - us:statutes/26/85#temporary_unemployment_exclusion_adjusted_gross_income_threshold
-- program: ssi
-  variable: gov.ssa.ssi.income.exclusions.earned
-  counterpart: policyengine
-  cause: unclassified
-  kind: parameter
-  note: 'stale-axiom from 1975-01-01: Axiom 780.0 (since 1974-01-01, us:statutes/42/1382a/b/4#annual_earned_income_initial_exclusion_limit),
-    PolicyEngine 65.0 (since 1975-01-01). Hint: ratio 12 (Axiom larger): annual vs monthly?'
-  evidence:
-    report: verify parameters at 36f72ea42 as of 2026-09-30
-    verdicts:
-      stale-axiom: 1
-    axiom_ids:
-    - us:statutes/42/1382a/b/4#annual_earned_income_initial_exclusion_limit
-- program: ssi
-  variable: gov.ssa.ssi.income.exclusions.general
-  counterpart: policyengine
-  cause: unclassified
-  kind: parameter
-  note: 'stale-axiom from 1975-01-01: Axiom 240.0 (since 1974-01-01, us:statutes/42/1382a/b/2#annual_general_income_exclusion_limit),
-    PolicyEngine 20.0 (since 1975-01-01). Hint: ratio 12 (Axiom larger): annual vs monthly?'
-  evidence:
-    report: verify parameters at 36f72ea42 as of 2026-09-30
-    verdicts:
-      stale-axiom: 1
-    axiom_ids:
-    - us:statutes/42/1382a/b/2#annual_general_income_exclusion_limit
 - program: tax
   variable: gov.states.co.tax.income.additions.federal_deductions.exemption[JOINT]
   counterpart: policyengine
@@ -2345,32 +2319,6 @@ findings:
       stale-pe: 1
     axiom_ids:
     - us:statutes/26/24/d#ctc_refundable_phase_in_threshold
-- program: ssi_state_supplement
-  variable: gov.states.mi.mdhhs.ssp.payment.couple[HOUSEHOLD_OF_ANOTHER]
-  counterpart: policyengine
-  cause: unclassified
-  kind: parameter
-  note: 'stale-pe from 2026-01-01: Axiom 6.98 (since 2026-01-01, us-mi:policies/mdhhs/rft/248#household_of_another_couple_state_ssi_payment),
-    PolicyEngine 13.96 (since 2015-01-01).'
-  evidence:
-    report: verify parameters at 36f72ea42 as of 2026-09-30
-    verdicts:
-      stale-pe: 1
-    axiom_ids:
-    - us-mi:policies/mdhhs/rft/248#household_of_another_couple_state_ssi_payment
-- program: ssi_state_supplement
-  variable: gov.states.mi.mdhhs.ssp.payment.couple[INDEPENDENT_LIVING]
-  counterpart: policyengine
-  cause: unclassified
-  kind: parameter
-  note: 'stale-pe from 2026-01-01: Axiom 10.5 (since 2026-01-01, us-mi:policies/mdhhs/rft/248#independent_living_couple_state_ssi_payment),
-    PolicyEngine 21.0 (since 2015-01-01).'
-  evidence:
-    report: verify parameters at 36f72ea42 as of 2026-09-30
-    verdicts:
-      stale-pe: 1
-    axiom_ids:
-    - us-mi:policies/mdhhs/rft/248#independent_living_couple_state_ssi_payment
 - program: snap
   variable: gov.usda.snap.income.deductions.excess_medical_expense.standard[AZ]
   counterpart: policyengine
