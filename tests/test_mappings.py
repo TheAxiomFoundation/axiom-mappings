@@ -150,9 +150,22 @@ def test_findings_are_filed_once_and_looked_up(m):
 
 
 ORACLES = Path.home() / "axiom-oracles"
-# Rows the map gained after it was seeded from oracles, each reviewed (its rationale says why). With
-# renames.yaml, these are the whole difference between the export and the seeded registry.
-ADDED_SINCE_SEED = {"us:statutes/26/24/h#ctc_refundable_per_child_cap_under_subsection_h"}
+# Rows the map gained after it was seeded from oracles, each reviewed (its rationale says why), and the
+# seeded not-comparable rows they replaced. With renames.yaml, these are the whole difference between the
+# export and the seeded registry.
+RECLASSIFIED_SINCE_SEED = {
+    "us-co:statutes/39/39-22-104/1.7/a#individual_estate_trust_income_tax_rate_before_2020",
+    "us-co:statutes/39/39-22-104/1.7/b#individual_estate_trust_income_tax_rate_before_2022",
+    "us-co:statutes/39/39-22-104/3/p/7#ongoing_single_return_deduction_threshold",
+    "us-co:statutes/39/39-22-104/3/p/7#ongoing_joint_return_deduction_threshold",
+}
+ADDED_SINCE_SEED = {
+    "us:statutes/26/24/h#ctc_refundable_per_child_cap_under_subsection_h",
+    "us-co:statutes/39/39-22-104/1.7/a#individual_estate_trust_income_tax_rate_before_2020",
+    "us-co:statutes/39/39-22-104/1.7/b#individual_estate_trust_income_tax_rate_before_2022",
+    "us-co:statutes/39/39-22-104/3/p/7#ongoing_single_return_deduction_threshold",
+    "us-co:statutes/39/39-22-104/3/p/7#ongoing_joint_return_deduction_threshold",
+}
 
 
 @pytest.mark.skipif(not (ORACLES / ".git").exists(), reason="needs a local axiom-oracles clone")
@@ -178,5 +191,7 @@ def test_export_reproduces_the_oracles_registry_it_was_seeded_from(m):
 
     added = [e for e in exported["mappings"] if key(e) in ADDED_SINCE_SEED]
     assert len(added) == len(ADDED_SINCE_SEED)
-    assert norm([e for e in exported["mappings"] if key(e) not in ADDED_SINCE_SEED]) == norm(original["mappings"])
+    assert all(e["mapping_type"] == "parameter_value" for e in added if key(e) in RECLASSIFIED_SINCE_SEED)
+    seeded = [e for e in original["mappings"] if key(e) not in RECLASSIFIED_SINCE_SEED]
+    assert norm([e for e in exported["mappings"] if key(e) not in ADDED_SINCE_SEED]) == norm(seeded)
     assert norm(exported["prefixes"]) == norm(original["prefixes"])

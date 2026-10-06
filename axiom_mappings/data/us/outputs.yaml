@@ -5140,16 +5140,6 @@ outputs:
   comparison: money
   rationale: Same Colorado taxable income base before applying the state rate; PE computes federal taxable
     income plus Colorado additions minus Colorado subtractions, floored at zero.
-- axiom: us-co:statutes/39/39-22-104/1.7/a#individual_estate_trust_income_tax_rate_before_2020
-  program: tax
-  type: not_comparable
-  rationale: This generated output is the statutory 4.63% base rate before applying later TABOR/form-rate
-    reductions; PolicyEngine exposes the final Colorado form rate for each tax year.
-- axiom: us-co:statutes/39/39-22-104/1.7/b#individual_estate_trust_income_tax_rate_before_2022
-  program: tax
-  type: not_comparable
-  rationale: This generated output is the statutory 4.55% base rate before applying later TABOR/form-rate
-    reductions; PolicyEngine exposes the final Colorado form rate for each tax year.
 - axiom: us-co:statutes/39/39-22-104/3/d#state_income_tax_deduction_addition_limit
   program: tax
   type: not_comparable
@@ -5207,22 +5197,6 @@ outputs:
   rationale: This RuleSpec output is the subsection (3)(p.5) initial-window amount and includes the healthy-school-meals
     repeal exception; PolicyEngine exposes a unified federal-deduction addback amount without that repeal
     condition.
-- axiom: us-co:statutes/39/39-22-104/3/p/7#ongoing_single_return_deduction_threshold
-  program: tax
-  type: not_comparable
-  policyengine_parameter: gov.states.co.tax.income.additions.federal_deductions.exemption
-  candidate_priority: P4
-  rationale: This RuleSpec parameter is the 2026 ongoing subsection (3)(p.7) single-return exemption amount;
-    PolicyEngine's federal-deduction exemption table currently retains the prior $12,000 single-filer
-    schedule, so this is an adjacent PE target but not a valid parameter comparison. Tracked in PolicyEngine/policyengine-us#8755.
-- axiom: us-co:statutes/39/39-22-104/3/p/7#ongoing_joint_return_deduction_threshold
-  program: tax
-  type: not_comparable
-  policyengine_parameter: gov.states.co.tax.income.additions.federal_deductions.exemption
-  candidate_priority: P4
-  rationale: This RuleSpec parameter is the 2026 ongoing subsection (3)(p.7) joint-return exemption amount;
-    PolicyEngine's federal-deduction exemption table currently retains the prior $16,000 joint-filer schedule,
-    so this is an adjacent PE target but not a valid parameter comparison. Tracked in PolicyEngine/policyengine-us#8755.
 - axiom: us-co:statutes/39/39-22-104/3/p/7#ongoing_return_deduction_threshold
   program: tax
   type: not_comparable

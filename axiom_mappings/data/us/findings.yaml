@@ -252,64 +252,6 @@ findings:
     axiom_ids:
     - us:statutes/26/85#temporary_unemployment_exclusion_adjusted_gross_income_threshold
 - program: tax
-  variable: gov.states.co.tax.income.additions.federal_deductions.exemption[JOINT]
-  counterpart: policyengine
-  cause: mapping-wrong
-  kind: parameter
-  note: 'stale-axiom from 2026-01-01: Axiom 16000.0 (since 2023-01-01, us-co:statutes/39/39-22-104/3/p/5#joint_return_deduction_threshold),
-    PolicyEngine 2000.0 (since 2026-01-01). Investigated (claude-opus-5-5 (Claude Code session)): Same as the single
-    return: from 2026 C.R.S. 39-22-104(3)(p.7) sets $2,000 for a joint return. RuleSpec encodes (p.7), but the map
-    does not link it, so the comparison carries (p.5)''s $16,000 into 2026.'
-  evidence:
-    report: verify parameters at 36f72ea42 as of 2026-09-30
-    verdicts:
-      match: 2
-      stale-axiom: 1
-    axiom_ids:
-    - us-co:statutes/39/39-22-104/3/p#joint_return_itemized_deduction_threshold
-    - us-co:statutes/39/39-22-104/3/p/5#joint_return_deduction_threshold
-    investigation:
-      investigation: investigations/tax_gov.states.co.tax.income.additions.federal_deductions.exemption_JOINT_
-      model: claude-opus-5-5 (Claude Code session)
-      confidence: 0.8
-      arithmetic:
-        expression: 16000 - 2000
-        equals: 14000
-      citations:
-      - C.R.S. 39-22-104(3)(p.5)(I)(B)
-      - C.R.S. 39-22-104(3)(p.7)(I)
-- program: tax
-  variable: gov.states.co.tax.income.additions.federal_deductions.exemption[SINGLE]
-  counterpart: policyengine
-  cause: mapping-wrong
-  kind: parameter
-  note: 'stale-axiom from 2026-01-01: Axiom 12000.0 (since 2023-01-01, us-co:statutes/39/39-22-104/3/p/5#single_return_deduction_threshold),
-    PolicyEngine 1000.0 (since 2026-01-01). Hint: ratio 12 (Axiom larger): annual vs monthly? Investigated (claude-opus-5-5
-    (Claude Code session)): From 2026, C.R.S. 39-22-104(3)(p.7) sets the add-back exemption at $1,000 for a single
-    return. RuleSpec encodes it (us-co:statutes/39/39-22-104/3/p/7#ongoing_single_return_deduction_threshold, 1000
-    from 2026-01-01), but the map links only (3)(p) and (3)(p.5), so the comparison carries (p.5)''s $12,000 into
-    2026. The ratio-12 hint is a coincidence. Separately, the (p.5) version has no end date although its text limits
-    it to years before 2026.'
-  evidence:
-    report: verify parameters at 36f72ea42 as of 2026-09-30
-    verdicts:
-      match: 2
-      stale-axiom: 1
-    axiom_ids:
-    - us-co:statutes/39/39-22-104/3/p#single_return_itemized_deduction_threshold
-    - us-co:statutes/39/39-22-104/3/p/5#single_return_deduction_threshold
-    investigation:
-      investigation: investigations/tax_gov.states.co.tax.income.additions.federal_deductions.exemption_SINGLE_
-      model: claude-opus-5-5 (Claude Code session)
-      confidence: 0.85
-      arithmetic:
-        expression: '1000'
-        equals: 1000
-      citations:
-      - C.R.S. 39-22-104(3)(p.5)(I)(A)
-      - C.R.S. 39-22-104(3)(p.7)(I)
-      - HB25-1274 Section 18
-- program: tax
   variable: gov.states.co.tax.income.credits.ctc.amount.joint[thresholds][1]
   counterpart: policyengine
   cause: unclassified
@@ -400,34 +342,22 @@ findings:
 - program: tax
   variable: gov.states.co.tax.income.rate
   counterpart: policyengine
-  cause: mapping-wrong
+  cause: unclassified
   kind: parameter
-  note: 'stale-axiom from 2000-01-01: Axiom 0.0475 (since 1999-01-01, us-co:statutes/39/39-22-104/1.5#subsection_1_5_individual_income_tax_rate),
-    PolicyEngine 0.0463 (since 2000-01-01). Investigated (claude-opus-5-5 (Claude Code session)): The map links
-    only 39-22-104(1.5) (4.75% from 1999) and (1.7)(c) (4.4% from 2022). RuleSpec also encodes (1.7)(a), 4.63% from
-    2000, and (1.7)(b), 4.55% from 2020, which the map does not link, so the comparison carries 1999''s rate into
-    2000-2021. PolicyEngine''s 4.63% for 2000 is the (1.7)(a) rate. The remaining differences (4.5% in 2019 and
-    2021, 4.25% in 2024) are TABOR temporary rate reductions under 39-22-627, which need their own check.'
+  note: '39-22-104(1.7)(a) and (b) had been marked not comparable (base rate vs PE''s final rate); an investigation
+    found the histories agree in every non-TABOR year, and they are mapped since 2026-10-06, aligning 1999-2018,
+    2020, 2022-2023 and 2025. Still different: 2019 (4.5%), 2021 (4.5%) and 2024 (4.25%), PolicyEngine''s TABOR
+    temporary rate reductions (C.R.S. 39-22-627); Axiom''s rules give the statutory rate. Not yet investigated.'
   evidence:
     report: verify parameters at 36f72ea42 as of 2026-09-30
     verdicts:
-      match: 3
-      stale-axiom: 5
+      match: 6
+      stale-axiom: 3
     axiom_ids:
-    - us-co:statutes/39/39-22-104/1.7/c#individual_estate_trust_income_tax_rate
     - us-co:statutes/39/39-22-104/1.5#subsection_1_5_individual_income_tax_rate
-    investigation:
-      investigation: investigations/tax_gov.states.co.tax.income.rate
-      model: claude-opus-5-5 (Claude Code session)
-      confidence: 0.8
-      arithmetic:
-        expression: 0.0475 - 0.0463
-        equals: 0.0012
-      citations:
-      - C.R.S. 39-22-104(1.5)
-      - C.R.S. 39-22-104(1.7)(a)
-      - C.R.S. 39-22-104(1.7)(b)
-      - C.R.S. 39-22-627
+    - us-co:statutes/39/39-22-104/1.7/a#individual_estate_trust_income_tax_rate_before_2020
+    - us-co:statutes/39/39-22-104/1.7/b#individual_estate_trust_income_tax_rate_before_2022
+    - us-co:statutes/39/39-22-104/1.7/c#individual_estate_trust_income_tax_rate
 - program: ssi_state_supplement
   variable: gov.states.il.dhs.aabd.payment.grant_amount
   counterpart: policyengine

@@ -6845,3 +6845,37 @@ parameters:
   comparison: money
   rationale: Same eighth upper bound in the 2026 single and married-separate section 601 schedule; PolicyEngine's
     single and separate scales are identical.
+- axiom: us-co:statutes/39/39-22-104/1.7/a#individual_estate_trust_income_tax_rate_before_2020
+  program: tax
+  policyengine_parameter: gov.states.co.tax.income.rate
+  comparison: rate
+  rationale: 'Same Colorado individual income tax flat rate for 2000-2019 (C.R.S. 39-22-104(1.7)(a), 4.63%), stored
+    in PE as the Colorado income-tax rate parameter. Supersedes the earlier not-comparable classification (base
+    rate vs PE''s final TABOR-reduced rate): the histories agree in every non-TABOR year, as for the 1999 and 2022
+    rows; the TABOR years are a finding (Pavel, 2026-10-06).'
+- axiom: us-co:statutes/39/39-22-104/1.7/b#individual_estate_trust_income_tax_rate_before_2022
+  program: tax
+  policyengine_parameter: gov.states.co.tax.income.rate
+  comparison: rate
+  rationale: 'Same Colorado individual income tax flat rate for 2020-2021 (C.R.S. 39-22-104(1.7)(b), 4.55%), stored
+    in PE as the Colorado income-tax rate parameter. Supersedes the earlier not-comparable classification (base
+    rate vs PE''s final TABOR-reduced rate): the histories agree in every non-TABOR year, as for the 1999 and 2022
+    rows; the TABOR years are a finding (Pavel, 2026-10-06).'
+- axiom: us-co:statutes/39/39-22-104/3/p/7#ongoing_single_return_deduction_threshold
+  program: tax
+  policyengine_parameter: gov.states.co.tax.income.additions.federal_deductions.exemption
+  parameter_key: SINGLE
+  unit: USD
+  comparison: money
+  rationale: 'Same Colorado federal deduction add-back exemption for single filers from 2026 under subsection (3)(p.7)
+    ($1,000). Supersedes the earlier not-comparable classification, whose reason (PE kept the prior $12,000 schedule,
+    policyengine-us#8755) no longer holds: PE 1.808.0 has $1,000 for 2026 (Pavel, 2026-10-06).'
+- axiom: us-co:statutes/39/39-22-104/3/p/7#ongoing_joint_return_deduction_threshold
+  program: tax
+  policyengine_parameter: gov.states.co.tax.income.additions.federal_deductions.exemption
+  parameter_key: JOINT
+  unit: USD
+  comparison: money
+  rationale: 'Same Colorado federal deduction add-back exemption for joint filers from 2026 under subsection (3)(p.7)
+    ($2,000). Supersedes the earlier not-comparable classification, whose reason (PE kept the prior $16,000 schedule,
+    policyengine-us#8755) no longer holds: PE 1.808.0 has $2,000 for 2026 (Pavel, 2026-10-06).'
