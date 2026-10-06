@@ -212,13 +212,25 @@ def candidates(index: PEIndex, m: Mappings, module: str, name: str, rule: dict[s
     return ranked[:limit], None
 
 
+def _as_breakdown_cell(index: PEIndex, candidate: dict[str, Any]) -> dict[str, Any]:
+    """Write a breakdown child the way the map does: the node plus ``parameter_key`` (``exemption`` +
+    ``SINGLE``, not ``exemption.SINGLE``), so the row compares as the same cell as its siblings' rows."""
+    path = candidate["policyengine_parameter"]
+    parent, _, key = path.rpartition(".")
+    node = index.objects.get(parent)
+    if "parameter_key_input" in candidate or node is None or not (getattr(node, "metadata", None) or {}).get("breakdown"):
+        return candidate
+    return {**candidate, "policyengine_parameter": parent, "parameter_key": key}
+
+
 def propose(m: Mappings, corpus_root, system, *, modules: str | None = None, as_of: str | None = None,
             limit: int = 3, index: PEIndex | None = None) -> dict[str, Any]:
     as_of = as_of or m.pins.get("verify_as_of")
     corpus = Corpus(corpus_root, m.pins.get("rulespec_us"))
     index = index or PEIndex.build(system)
-    mapped = {r["axiom"] for r in m.parameters if r.get("axiom")}
-    wanted = [mid for mid in corpus.module_ids if mid.startswith("us:") and (modules is None or mid.startswith(modules))]
+    # reviewed already: mapped as a parameter, or classified in outputs.yaml (not comparable included)
+    mapped = {r["axiom"] for r in m.parameters + m.outputs if r.get("axiom")}
+    wanted = [mid for mid in corpus.module_ids if modules is None or mid.startswith(modules)]
     corpus.load(wanted)
     bindings = bound(m, corpus)
     proposals, skipped = [], Counter()
@@ -230,6 +242,7 @@ def propose(m: Mappings, corpus_root, system, *, modules: str | None = None, as_
             if not found:
                 skipped[why] += 1
                 continue
+            found = [_as_breakdown_cell(index, c) for c in found]
             proposals.append({"axiom": f"{module}#{name}", "program": _program(m, found[0]["policyengine_parameter"]),
                               "source": rule.get("source"), "candidates": found, "accept": None,
                               "rationale": "; ".join(found[0]["evidence"]) + "."})

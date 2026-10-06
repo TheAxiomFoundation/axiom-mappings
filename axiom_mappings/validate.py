@@ -123,6 +123,9 @@ def _integrity_findings(m: Mappings) -> list[Finding]:
     if constants:
         out.append(Finding("warning", "undeclared-constants", "inputs",
                            f"{len(constants)} constant rules name no presumption policy"))
+    in_both = {r["axiom"] for r in m.outputs if r.get("axiom")} & {r["axiom"] for r in m.parameters if r.get("axiom")}
+    for v in sorted(in_both):
+        out.append(Finding("error", "classified-twice", v, "in both outputs.yaml and parameters.yaml: keep one decision"))
     for table, rows in (("outputs", m.outputs), ("parameters", m.parameters)):
         for v in _duplicates(r["axiom"] for r in rows):
             out.append(Finding("error", f"duplicate-{table}", v, f"{v} appears more than once in {table}"))

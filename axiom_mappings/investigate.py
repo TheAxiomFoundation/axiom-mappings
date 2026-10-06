@@ -81,10 +81,18 @@ def parameter_evidence(m: Mappings, finding: dict[str, Any], corpus_root, system
               "period": meta.get("period"), "reference": meta.get("reference")}
     except Exception as e:  # the mapping may name something PolicyEngine no longer has
         pe = {"path": path, "error": str(e)}
+    ids = set((result or finding.get("evidence", {})).get("axiom_ids", []))
+    modules = {split_id(i)[0] for i in ids}
+    prior = [{"table": table, **{k: r.get(k) for k in ("axiom", "type", "policyengine_parameter", "parameter_key",
+                                                         "result_multiplier", "rationale") if r.get(k) is not None}}
+             for table, rows in (("outputs", m.outputs), ("parameters", m.parameters)) for r in rows
+             if r.get("axiom") and (r["axiom"] in ids or (split_id(r["axiom"])[0] in modules and table == "outputs")
+                                    or r.get("policyengine_parameter") == path)]
     first = _first_difference(result) if result else None
     window = [s for s in (result or {}).get("segments", []) if not s["projected"]][-8:]
     return {"kind": "parameter", "finding": finding, "verdict": (result or {}).get("verdict"),
             "first_difference": first, "recent_segments": window, "axiom": axiom, "policyengine": pe,
+            "reviewed_rows": prior,  # what reviewers already decided about these ids, their module, and this PE path
             "as_of": report["as_of"], "rulespec_us": report["ref"]}
 
 

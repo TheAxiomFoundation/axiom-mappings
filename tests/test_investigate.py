@@ -17,7 +17,6 @@ from axiom_mappings.propose import write
 from test_mappings import copy_root
 
 VARIABLE = "us-co/snap-fy2026:snap_earned_income_deduction"
-SSI = "ssi:gov.ssa.ssi.income.exclusions.earned"
 
 
 @pytest.fixture(scope="module")
@@ -164,8 +163,10 @@ def test_parameter_evidence_shows_where_the_histories_part(m, tmp_path):
     from axiom_mappings.investigate import evidence
     from axiom_mappings.validate import policyengine_system
 
-    bundle = evidence(m, SSI, RULESPEC, policyengine_system())
+    bundle = evidence(m, "tax:gov.irs.unemployment_compensation.exemption.amount", RULESPEC, policyengine_system())
     first = bundle["first_difference"]
-    assert (first["axiom"], first["pe"]) == (780.0, 65.0) and first["hint"].startswith("ratio 12")
-    assert bundle["axiom"][0]["source"] and bundle["policyengine"]["path"] == "gov.ssa.ssi.income.exclusions.earned"
-    assert check(m, bundle, answer()) == []  # 780 / 12 = 65 reconciles what the evidence shows
+    assert (first["from"], first["axiom"], first["pe"]) == ("2021-01-01", 10200.0, 0.0)  # the 2020-only rule, carried on
+    assert bundle["axiom"][0]["source"] == "26 USC 85(c)(1)"
+    assert bundle["policyengine"]["path"] == "gov.irs.unemployment_compensation.exemption.amount"
+    assert any(r["table"] == "parameters" and r["axiom"].endswith("cap_per_taxpayer_or_spouse") for r in bundle["reviewed_rows"])
+    assert check(m, bundle, answer(cause="axiom-encoding-wrong", expression="10200 - 0", equals=10200)) == []
