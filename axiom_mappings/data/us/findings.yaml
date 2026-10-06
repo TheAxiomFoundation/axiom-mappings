@@ -34,10 +34,13 @@ findings:
 - program: doe_efficiency_rebate
   variable: gov.doe.residential_efficiency_electrification_rebate.cap.low[amounts][0]
   counterpart: policyengine
-  cause: unclassified
+  cause: convention
   kind: parameter
   note: 'stale-axiom from 2023-01-01: Axiom 4000.0 (since 2022-08-16, us:statutes/42/18795/c/2#low_or_moderate_income_measured_payment_amount_for_twenty_percent_reduction),
-    PolicyEngine 200.0 (since 2023-01-01).'
+    PolicyEngine 200.0 (since 2023-01-01). Investigated (claude-opus-5-5 (Claude Code session)): With the row''s
+    result_multiplier (20) applied, the values agree: $4,000 per 20% reduction is $200 per one-percent reduction.
+    The remaining gap is timing: the statute takes effect at enactment (2022-08-16) while PolicyEngine starts the
+    parameter on 2023-01-01, its annual convention, with zero before.'
   evidence:
     report: verify parameters at 36f72ea42 as of 2026-09-30
     verdicts:
@@ -45,6 +48,16 @@ findings:
       stale-axiom: 1
     axiom_ids:
     - us:statutes/42/18795/c/2#low_or_moderate_income_measured_payment_amount_for_twenty_percent_reduction
+    investigation:
+      investigation: investigations/doe_efficiency_rebate_gov.doe.residential_efficiency_electrification_rebate.cap.low_amounts_0_
+      model: claude-opus-5-5 (Claude Code session)
+      confidence: 0.6
+      arithmetic:
+        expression: 4000 / 20
+        equals: 200
+      citations:
+      - 42 USC 18795(c)(2)(C)(iii)(I)
+      - Inflation Reduction Act, Section 50121(c)
 - program: doe_efficiency_rebate
   variable: gov.doe.residential_efficiency_electrification_rebate.cap.low[amounts][1]
   counterpart: policyengine
@@ -62,10 +75,13 @@ findings:
 - program: snap
   variable: gov.hhs.tanf.non_cash.income_limit.gross[AZ]
   counterpart: policyengine
-  cause: unclassified
+  cause: axiom-encoding-wrong
   kind: parameter
   note: 'stale-axiom from 2026-03-01: Axiom 1.85 (since 0001-01-01, us-az:policies/des/faa5/na-categorical-eligibility/expanded-categorical-eligibility#expanded_categorical_eligibility_fpl_limit_rate),
-    PolicyEngine 2.0 (since 2026-03-01).'
+    PolicyEngine 2.0 (since 2026-03-01). Investigated (claude-opus-5-5 (Claude Code session)): The Axiom rule encodes
+    Arizona''s NA expanded categorical eligibility gross limit as 185% of FPL with no date. PolicyEngine cites an
+    Arizona DES note that the limit changed to 200% of FPL from benefit month March 2026, so the RuleSpec source
+    predates the change.'
   evidence:
     report: verify parameters at 36f72ea42 as of 2026-09-30
     verdicts:
@@ -73,6 +89,16 @@ findings:
       stale-axiom: 1
     axiom_ids:
     - us-az:policies/des/faa5/na-categorical-eligibility/expanded-categorical-eligibility#expanded_categorical_eligibility_fpl_limit_rate
+    investigation:
+      investigation: investigations/snap_gov.hhs.tanf.non_cash.income_limit.gross_AZ_
+      model: claude-opus-5-5 (Claude Code session)
+      confidence: 0.7
+      arithmetic:
+        expression: 2.0 - 1.85
+        equals: 0.15
+      citations:
+      - Arizona DES FAA5 NA Categorical Eligibility, Expanded Categorical Eligibility
+      - PolicyEngine gov/hhs/tanf/non_cash/income_limit/gross.yaml (AZ note)
 - program: tax
   variable: gov.irs.credits.ctc.refundable.individual_max
   counterpart: policyengine
@@ -92,10 +118,14 @@ findings:
 - program: tax
   variable: gov.irs.payroll.social_security.cap
   counterpart: policyengine
-  cause: unclassified
+  cause: axiom-encoding-wrong
   kind: parameter
   note: 'stale-axiom from 2025-01-01: Axiom 168600.0 (since 2024-01-01, us:policies/ssa/contribution-and-benefit-base/2024#contribution_and_benefit_base),
-    PolicyEngine 176100.0 (since 2025-01-01).'
+    PolicyEngine 176100.0 (since 2025-01-01). Investigated (claude-opus-5-5 (Claude Code session)): RuleSpec encodes
+    only the 2024 contribution and benefit base ($168,600, us:policies/ssa/contribution-and-benefit-base/2024) as
+    an open-ended version, so it carries 2024''s base into 2025. SSA set the 2025 base at $176,100, which RuleSpec
+    does not encode; the 2026 module derives $184,500 from the wage-index formula but is not mapped here. PolicyEngine''s
+    2025 and 2026 values match SSA.'
   evidence:
     report: verify parameters at 36f72ea42 as of 2026-09-30
     verdicts:
@@ -103,13 +133,27 @@ findings:
       stale-axiom: 2
     axiom_ids:
     - us:policies/ssa/contribution-and-benefit-base/2024#contribution_and_benefit_base
+    investigation:
+      investigation: investigations/tax_gov.irs.payroll.social_security.cap
+      model: claude-opus-5-5 (Claude Code session)
+      confidence: 0.8
+      arithmetic:
+        expression: 176100 - 168600
+        equals: 7500
+      citations:
+      - 42 USC 430(b)
+      - SSA Contribution and Benefit Base table (ssa.gov/oact/cola/cbb.html)
+      - us:policies/ssa/contribution-and-benefit-base/2026 (derivation of $184,500)
 - program: tax
   variable: gov.irs.unemployment_compensation.exemption.amount
   counterpart: policyengine
-  cause: unclassified
+  cause: axiom-encoding-wrong
   kind: parameter
   note: 'stale-axiom from 2021-01-01: Axiom 10200.0 (since 2020-01-01, us:statutes/26/85#temporary_unemployment_exclusion_cap_per_taxpayer_or_spouse),
-    PolicyEngine 0.0 (since 2021-01-01).'
+    PolicyEngine 0.0 (since 2021-01-01). Investigated (claude-opus-5-5 (Claude Code session)): 26 USC 85(c) excludes
+    up to $10,200 of unemployment compensation only for taxable years beginning in 2020 (the module''s own summary
+    says so), but the RuleSpec version starts 2020-01-01 with no end, so Axiom would apply the exclusion in 2021
+    and later. PolicyEngine sets it to zero from 2021.'
   evidence:
     report: verify parameters at 36f72ea42 as of 2026-09-30
     verdicts:
@@ -117,6 +161,15 @@ findings:
       stale-axiom: 1
     axiom_ids:
     - us:statutes/26/85#temporary_unemployment_exclusion_cap_per_taxpayer_or_spouse
+    investigation:
+      investigation: investigations/tax_gov.irs.unemployment_compensation.exemption.amount
+      model: claude-opus-5-5 (Claude Code session)
+      confidence: 0.9
+      arithmetic:
+        expression: 10200 - 0
+        equals: 10200
+      citations:
+      - 26 USC 85(c)(1)
 - program: tax
   variable: gov.irs.unemployment_compensation.exemption.cutoff[HEAD_OF_HOUSEHOLD]
   counterpart: policyengine
@@ -134,10 +187,12 @@ findings:
 - program: tax
   variable: gov.irs.unemployment_compensation.exemption.cutoff[JOINT]
   counterpart: policyengine
-  cause: unclassified
+  cause: axiom-encoding-wrong
   kind: parameter
   note: 'stale-axiom from 2021-01-01: Axiom 150000.0 (since 2020-01-01, us:statutes/26/85#temporary_unemployment_exclusion_adjusted_gross_income_threshold),
-    PolicyEngine 0.0 (since 2021-01-01).'
+    PolicyEngine 0.0 (since 2021-01-01). Investigated (claude-opus-5-5 (Claude Code session)): The $150,000 modified
+    AGI limit in 26 USC 85(c) applies only to taxable years beginning in 2020, but RuleSpec''s version is open-ended
+    from 2020-01-01, so Axiom keeps it after 2020. PolicyEngine sets it to zero from 2021.'
   evidence:
     report: verify parameters at 36f72ea42 as of 2026-09-30
     verdicts:
@@ -145,6 +200,15 @@ findings:
       stale-axiom: 1
     axiom_ids:
     - us:statutes/26/85#temporary_unemployment_exclusion_adjusted_gross_income_threshold
+    investigation:
+      investigation: investigations/tax_gov.irs.unemployment_compensation.exemption.cutoff_JOINT_
+      model: claude-opus-5-5 (Claude Code session)
+      confidence: 0.9
+      arithmetic:
+        expression: 150000 - 0
+        equals: 150000
+      citations:
+      - 26 USC 85(c)(1)
 - program: tax
   variable: gov.irs.unemployment_compensation.exemption.cutoff[SEPARATE]
   counterpart: policyengine
@@ -190,10 +254,12 @@ findings:
 - program: tax
   variable: gov.states.co.tax.income.additions.federal_deductions.exemption[JOINT]
   counterpart: policyengine
-  cause: unclassified
+  cause: mapping-wrong
   kind: parameter
   note: 'stale-axiom from 2026-01-01: Axiom 16000.0 (since 2023-01-01, us-co:statutes/39/39-22-104/3/p/5#joint_return_deduction_threshold),
-    PolicyEngine 2000.0 (since 2026-01-01).'
+    PolicyEngine 2000.0 (since 2026-01-01). Investigated (claude-opus-5-5 (Claude Code session)): Same as the single
+    return: from 2026 C.R.S. 39-22-104(3)(p.7) sets $2,000 for a joint return. RuleSpec encodes (p.7), but the map
+    does not link it, so the comparison carries (p.5)''s $16,000 into 2026.'
   evidence:
     report: verify parameters at 36f72ea42 as of 2026-09-30
     verdicts:
@@ -202,13 +268,28 @@ findings:
     axiom_ids:
     - us-co:statutes/39/39-22-104/3/p#joint_return_itemized_deduction_threshold
     - us-co:statutes/39/39-22-104/3/p/5#joint_return_deduction_threshold
+    investigation:
+      investigation: investigations/tax_gov.states.co.tax.income.additions.federal_deductions.exemption_JOINT_
+      model: claude-opus-5-5 (Claude Code session)
+      confidence: 0.8
+      arithmetic:
+        expression: 16000 - 2000
+        equals: 14000
+      citations:
+      - C.R.S. 39-22-104(3)(p.5)(I)(B)
+      - C.R.S. 39-22-104(3)(p.7)(I)
 - program: tax
   variable: gov.states.co.tax.income.additions.federal_deductions.exemption[SINGLE]
   counterpart: policyengine
-  cause: unclassified
+  cause: mapping-wrong
   kind: parameter
   note: 'stale-axiom from 2026-01-01: Axiom 12000.0 (since 2023-01-01, us-co:statutes/39/39-22-104/3/p/5#single_return_deduction_threshold),
-    PolicyEngine 1000.0 (since 2026-01-01). Hint: ratio 12 (Axiom larger): annual vs monthly?'
+    PolicyEngine 1000.0 (since 2026-01-01). Hint: ratio 12 (Axiom larger): annual vs monthly? Investigated (claude-opus-5-5
+    (Claude Code session)): From 2026, C.R.S. 39-22-104(3)(p.7) sets the add-back exemption at $1,000 for a single
+    return. RuleSpec encodes it (us-co:statutes/39/39-22-104/3/p/7#ongoing_single_return_deduction_threshold, 1000
+    from 2026-01-01), but the map links only (3)(p) and (3)(p.5), so the comparison carries (p.5)''s $12,000 into
+    2026. The ratio-12 hint is a coincidence. Separately, the (p.5) version has no end date although its text limits
+    it to years before 2026.'
   evidence:
     report: verify parameters at 36f72ea42 as of 2026-09-30
     verdicts:
@@ -217,6 +298,17 @@ findings:
     axiom_ids:
     - us-co:statutes/39/39-22-104/3/p#single_return_itemized_deduction_threshold
     - us-co:statutes/39/39-22-104/3/p/5#single_return_deduction_threshold
+    investigation:
+      investigation: investigations/tax_gov.states.co.tax.income.additions.federal_deductions.exemption_SINGLE_
+      model: claude-opus-5-5 (Claude Code session)
+      confidence: 0.85
+      arithmetic:
+        expression: '1000'
+        equals: 1000
+      citations:
+      - C.R.S. 39-22-104(3)(p.5)(I)(A)
+      - C.R.S. 39-22-104(3)(p.7)(I)
+      - HB25-1274 Section 18
 - program: tax
   variable: gov.states.co.tax.income.credits.ctc.amount.joint[thresholds][1]
   counterpart: policyengine
@@ -308,10 +400,14 @@ findings:
 - program: tax
   variable: gov.states.co.tax.income.rate
   counterpart: policyengine
-  cause: unclassified
+  cause: mapping-wrong
   kind: parameter
   note: 'stale-axiom from 2000-01-01: Axiom 0.0475 (since 1999-01-01, us-co:statutes/39/39-22-104/1.5#subsection_1_5_individual_income_tax_rate),
-    PolicyEngine 0.0463 (since 2000-01-01).'
+    PolicyEngine 0.0463 (since 2000-01-01). Investigated (claude-opus-5-5 (Claude Code session)): The map links
+    only 39-22-104(1.5) (4.75% from 1999) and (1.7)(c) (4.4% from 2022). RuleSpec also encodes (1.7)(a), 4.63% from
+    2000, and (1.7)(b), 4.55% from 2020, which the map does not link, so the comparison carries 1999''s rate into
+    2000-2021. PolicyEngine''s 4.63% for 2000 is the (1.7)(a) rate. The remaining differences (4.5% in 2019 and
+    2021, 4.25% in 2024) are TABOR temporary rate reductions under 39-22-627, which need their own check.'
   evidence:
     report: verify parameters at 36f72ea42 as of 2026-09-30
     verdicts:
@@ -320,6 +416,18 @@ findings:
     axiom_ids:
     - us-co:statutes/39/39-22-104/1.7/c#individual_estate_trust_income_tax_rate
     - us-co:statutes/39/39-22-104/1.5#subsection_1_5_individual_income_tax_rate
+    investigation:
+      investigation: investigations/tax_gov.states.co.tax.income.rate
+      model: claude-opus-5-5 (Claude Code session)
+      confidence: 0.8
+      arithmetic:
+        expression: 0.0475 - 0.0463
+        equals: 0.0012
+      citations:
+      - C.R.S. 39-22-104(1.5)
+      - C.R.S. 39-22-104(1.7)(a)
+      - C.R.S. 39-22-104(1.7)(b)
+      - C.R.S. 39-22-627
 - program: ssi_state_supplement
   variable: gov.states.il.dhs.aabd.payment.grant_amount
   counterpart: policyengine
@@ -352,16 +460,28 @@ findings:
 - program: tanf
   variable: gov.states.in.fssa.tanf.income.deductions.eligibility.earned_income_disregard.rate
   counterpart: policyengine
-  cause: unclassified
+  cause: convention
   kind: parameter
   note: 'stale-axiom from 1997-10-01: Axiom 0.3333333333333333 (since 0001-01-01, us-in:policies/dfr/snap-tanf-program-policy-manual/3450-35-05-benefit-calculation#tanf_one_third_earned_income_disregard_rate),
-    PolicyEngine 0.3333 (since 1997-10-01). Hint: differs below 0.0001: a rounded statement of the same rate?'
+    PolicyEngine 0.3333 (since 1997-10-01). Hint: differs below 0.0001: a rounded statement of the same rate? Investigated
+    (claude-opus-5-5 (Claude Code session)): Both encode Indiana''s one-third earned income disregard. RuleSpec
+    states it exactly as 1/3; PolicyEngine stores it rounded to four decimals as 0.3333.'
   evidence:
     report: verify parameters at 36f72ea42 as of 2026-09-30
     verdicts:
       stale-axiom: 1
     axiom_ids:
     - us-in:policies/dfr/snap-tanf-program-policy-manual/3450-35-05-benefit-calculation#tanf_one_third_earned_income_disregard_rate
+    investigation:
+      investigation: investigations/tanf_gov.states.in.fssa.tanf.income.deductions.eligibility.earned_income_disregard.rate
+      model: claude-opus-5-5 (Claude Code session)
+      confidence: 0.85
+      arithmetic:
+        expression: 1 / 3 - 0.3333
+        equals: 3.33333e-05
+      citations:
+      - 470 IAC 10.3-4-4(c)(2)
+      - Indiana DFR Manual 3450.35.05
 - program: ssi_state_supplement
   variable: gov.states.wa.dshs.ssp.amount[MEDICAL_INSTITUTION]
   counterpart: policyengine
