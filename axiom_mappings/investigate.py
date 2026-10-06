@@ -70,7 +70,8 @@ def parameter_evidence(m: Mappings, finding: dict[str, Any], corpus_root, system
     for axiom_id in (result or finding.get("evidence", {})).get("axiom_ids", []):
         module, name = split_id(axiom_id)
         rule = (corpus.rules(module) or {}).get(name) or {}
-        atoms = [a.get("source", {}).get("text") for a in (rule.get("metadata") or {}).get("proof", {}).get("atoms", [])]
+        atoms = [(a.get("source") or {}).get("text") or (a.get("source") or {}).get("excerpt")  # encoders write either
+                 for a in (rule.get("metadata") or {}).get("proof", {}).get("atoms", [])]
         axiom.append({"id": axiom_id, "source": rule.get("source"), "unit": rule.get("unit"), "dtype": rule.get("dtype"),
                       "versions": rule.get("versions"), "proof_text": [a for a in atoms if a],
                       "mapping_rationale": next((r.get("rationale") for r in m.parameters if r.get("axiom") == axiom_id), None)})

@@ -163,10 +163,17 @@ def test_parameter_evidence_shows_where_the_histories_part(m, tmp_path):
     from axiom_mappings.investigate import evidence
     from axiom_mappings.validate import policyengine_system
 
-    bundle = evidence(m, "tax:gov.irs.unemployment_compensation.exemption.amount", RULESPEC, policyengine_system())
+    from axiom_mappings.verify.parameters import verify
+
+    system = policyengine_system()
+    report = verify(m, RULESPEC, system)
+    bundle = evidence(m, "tax:gov.irs.unemployment_compensation.exemption.amount", RULESPEC, system, report)
     first = bundle["first_difference"]
     assert (first["from"], first["axiom"], first["pe"]) == ("2021-01-01", 10200.0, 0.0)  # the 2020-only rule, carried on
     assert bundle["axiom"][0]["source"] == "26 USC 85(c)(1)"
     assert bundle["policyengine"]["path"] == "gov.irs.unemployment_compensation.exemption.amount"
     assert any(r["table"] == "parameters" and r["axiom"].endswith("cap_per_taxpayer_or_spouse") for r in bundle["reviewed_rows"])
     assert check(m, bundle, answer(cause="axiom-encoding-wrong", expression="10200 - 0", equals=10200)) == []
+    # proof atoms quote their source as `text` or `excerpt`; both reach the evidence
+    az = evidence(m, "snap:gov.usda.snap.income.deductions.excess_medical_expense.standard[AZ]", RULESPEC, system, report)
+    assert az["axiom"][0]["proof_text"] == ["The SMD net amount is $145"]
