@@ -6,12 +6,13 @@ The stages already exist as commands. This chains them, writes one report, and
 offers it for review. It is deliberately the dullest part of the pipeline: it
 decides nothing.
 
-    1. detect    what moved since the pins
-    2. identity  do the mapped ids still resolve
-    3. propose   candidates for the rules that arrived, into `proposals/`
-    4. coverage  where every variable stands, and what blocks it
-    5. report    one JSON and one Markdown summary
-    6. pull request, when asked
+    1. detect     what moved since the pins
+    2. identity   do the mapped ids still resolve
+    3. propose    candidates for the rules that arrived, into `proposals/`
+    4. coverage   where every variable stands, and what blocks it
+    5. agreement  do both harnesses tell the same story about each binding
+    6. report     one JSON and one Markdown summary
+    7. pull request, when asked
 
 **It proposes, it never promotes.** `accept` writes a proposal into the map and
 `promote` moves a binding to `on`; both stay human, and promotion still needs
@@ -21,8 +22,10 @@ guards a wrong number optional.
 Two comparisons judge a binding, and they are not the same. axiom-oracles runs
 the Axiom engine against PolicyEngine directly; policyengine-axiom runs it
 inside PolicyEngine. Both should agree, and when they do not the mapping is
-wrong rather than the rule. Neither runs here: each owns its own corpus and
-population, and this cycle reports what they filed.
+wrong rather than the rule. Neither runs here: each owns its own corpus and a
+population of tens of thousands of rows, and a run is an hour. The `agreement`
+stage reads what each filed, joins it to the map and flags the difference no
+one has named; see `agreement.py`.
 """
 
 from __future__ import annotations
@@ -36,6 +39,7 @@ from pathlib import Path
 from typing import Any
 
 from . import ROOT, load
+from .agreement import FLAGGED, VERDICTS, agreement
 from .detect import detect
 from .export.coverage import STAGES, coverage
 from .readiness import readiness
@@ -75,6 +79,42 @@ def _propose(country: str, corpus: str, prefixes: list[str], limit: int) -> list
             "proposal": str(path.relative_to(ROOT.parent)) if path.exists() else None,
         })
     return written
+
+
+def _alignment(report: dict[str, Any]) -> list[str]:
+    """What the two harnesses filed, and what neither has named.
+
+    A missing source is stated, not absorbed: no ledger must never read as
+    "nothing failed".
+    """
+    lines = ["", "## Alignment", ""]
+    missing = [side for side, source in report["sources"].items() if source.get("error")]
+    if missing:
+        for side in missing:
+            lines.append(f"- **{side}: {report['sources'][side]['error']}.** "
+                         "The verdicts below count it as no evidence, not as agreement.")
+        lines.append("")
+    totals = report["totals"]
+    lines.append(f"{totals['bindings']} binding(s), **{totals['flagged']} flagged**. "
+                 f"{totals['dispositions_about_unbound_concepts']} disposition(s) are about "
+                 "concepts no binding names yet.")
+    lines += ["", "| verdict | bindings |", "|---|---|"]
+    lines += [f"| {verdict} | {totals['by_verdict'][verdict]} |" for verdict in VERDICTS
+              if totals["by_verdict"][verdict]]
+    noted = totals["by_verdict"]["noted_in_the_map"]
+    if noted:
+        lines += ["", f"{noted} further binding(s) differ with a note in the map and no second "
+                  "harness confirming it. A note is a claim; a disposition is evidence."]
+    flagged = [row for row in report["bindings"] if row["verdict"] in FLAGGED]
+    if flagged:
+        lines += ["", "| variable | program | status | verdict | inside PE |", "|---|---|---|---|---|"]
+        for row in flagged:
+            pe = row["in_policyengine"] or {}
+            inside = (f"{pe.get('tolerance_failures')} row(s) over tolerance, "
+                      f"max {pe.get('max_abs_diff')}") if pe else "no run"
+            lines.append(f"| `{row['policyengine_variable']}` | `{row['program']}` | "
+                         f"{row['status']} | {row['verdict']} | {inside} |")
+    return lines
 
 
 def _markdown(report: dict[str, Any]) -> str:
@@ -131,6 +171,7 @@ def _markdown(report: dict[str, Any]) -> str:
                      "rule(s) have no mapping and are waiting.")
     else:
         lines.append("None: no rule arrived that the map does not already name.")
+    lines += _alignment(report["agreement"])
     blocked = [v for v in report["coverage"]["variables"] if v["blocked_by"]]
     if blocked:
         lines += ["", "## Blocked", "", "| variable | stage | blocked by |", "|---|---|---|"]
@@ -146,7 +187,8 @@ def _markdown(report: dict[str, Any]) -> str:
 
 
 def run(country: str, corpus: str, ref: str | None, *, limit: int = 3,
-        propose_new: bool = True) -> dict[str, Any]:
+        propose_new: bool = True, ledger: str | None = None,
+        dispositions: str | None = None) -> dict[str, Any]:
     m = load(country)
     found = detect(m, corpus, ref)
     ready = {}
@@ -170,6 +212,7 @@ def run(country: str, corpus: str, ref: str | None, *, limit: int = 3,
         "map_release": m.release,
         "detect": found,
         "coverage": coverage(m, readiness_by_program=ready),
+        "agreement": agreement(m, ledger_path=ledger, dispositions_root=dispositions),
         "proposals": proposals,
         "proposed": propose_new,
         "pin_is_behind": pin_is_behind,
@@ -210,10 +253,13 @@ def main(argv=None) -> int:
     ap.add_argument("--limit", type=int, default=3, help="candidates per proposal")
     ap.add_argument("--no-propose", action="store_true", help="report only; write no proposals")
     ap.add_argument("--out", type=Path, default=Path("reports"), help="directory for the report")
+    ap.add_argument("--ledger", default=None, help="policyengine-axiom's ledger.json")
+    ap.add_argument("--dispositions", default=None, help="axiom-oracles' dispositions directory")
     ap.add_argument("--pr", action="store_true", help="commit, push and open a pull request for review")
     args = ap.parse_args(argv)
 
-    report = run(args.country, args.corpus, args.ref, limit=args.limit, propose_new=not args.no_propose)
+    report = run(args.country, args.corpus, args.ref, limit=args.limit,
+                 propose_new=not args.no_propose, ledger=args.ledger, dispositions=args.dispositions)
     body = _markdown(report)
 
     args.out.mkdir(parents=True, exist_ok=True)

@@ -55,6 +55,22 @@ jobs:
             https://github.com/TheAxiomFoundation/rulespec-us "$RUNNER_TEMP/rulespec-us"
           echo "RULESPEC_US=$RUNNER_TEMP/rulespec-us" >> "$GITHUB_ENV"
 
+      - name: Fetch what the oracles filed
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.HARNESS_READ_TOKEN || secrets.GITHUB_TOKEN }}
+        run: |
+          # The alignment stage reads what a harness filed; it runs neither.
+          #
+          # Only one side is reachable from CI today. axiom-oracles is a
+          # published repo, so its dispositions clone here. policyengine-axiom
+          # is local-only, so its ledger is not fetchable and the in-PE side
+          # reports as absent until that repo is published or the ledger is
+          # uploaded as an artifact. The report states the absence; a missing
+          # ledger is never read as agreement.
+          gh repo clone TheAxiomFoundation/axiom-oracles "$RUNNER_TEMP/axiom-oracles" -- --depth 1 -q \
+            || echo "cannot read axiom-oracles with this token; the report will say so"
+
       - name: Run one pass
         id: pass
         env:
@@ -64,6 +80,10 @@ jobs:
           ARGS=(--corpus "$RULESPEC_US" --out reports)
           if [ -n "${{ inputs.ref }}" ]; then ARGS+=(--ref "${{ inputs.ref }}"); fi
           if [ "${{ inputs.propose }}" = "false" ]; then ARGS+=(--no-propose); fi
+          LEDGER="$RUNNER_TEMP/policyengine-axiom/ledger.json"
+          DISPOSITIONS="$RUNNER_TEMP/axiom-oracles/dispositions"
+          if [ -f "$LEDGER" ]; then ARGS+=(--ledger "$LEDGER"); fi
+          if [ -d "$DISPOSITIONS" ]; then ARGS+=(--dispositions "$DISPOSITIONS"); fi
           .venv/bin/python -m axiom_mappings cycle "${ARGS[@]}" | tee "$RUNNER_TEMP/summary.md"
           cat "$RUNNER_TEMP/summary.md" >> "$GITHUB_STEP_SUMMARY"
 

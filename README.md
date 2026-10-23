@@ -100,6 +100,24 @@ axiom_mappings/           loader (load, rules_for_slot, policyengine_variable, .
   `investigate` extra and Anthropic credentials.
 - **Future years** (`pins.yaml`): Axiom's values through its last encoded date, then PolicyEngine's
   indexing, flagged in provenance.
+- **Work arrives by the pins moving, and a cycle acts on the diff** (`python -m axiom_mappings cycle
+  --corpus <rulespec-us> [--ref SHA] [--pr]`, weekly in `.github/workflows/cycle.yml`). One pass chains
+  `detect` (a two-ref diff: a rule at the checked ref the pinned ref does not have, a mapped id now absent,
+  a new PolicyEngine variable -- not the backlog, which is `export coverage`), `propose`, `export coverage`
+  and `agreement`, and opens a pull request. It proposes; it never accepts and never promotes, because the
+  review that guards a wrong number is not optional. It also refuses to propose past the pin: `propose`
+  reads the corpus at the pin, so a candidate for a newer rule is a mapping `identity` rejects, and the
+  summary names the `pins.yaml` bump instead.
+- **Both harnesses must tell the same story about a binding** (`python -m axiom_mappings agreement`).
+  policyengine-axiom runs the Axiom rule *inside* PolicyEngine and files `ledger.json`; axiom-oracles runs
+  the engine *against* PolicyEngine and files a disposition where they differ. The same rule under two
+  harnesses should not answer twice, so a disagreement is about the mapping, not the rule. Neither harness
+  runs here -- each owns a corpus and a population, and a run is an hour -- so this reads what each filed
+  and joins it to the map. The join is scoped: every state's SNAP suite disputes the same federal concept,
+  so the concept's jurisdiction must share the program's country and a state-scoped suite is evidence only
+  about that state. A difference the map's own `notes` record is reported apart from one nothing names, and
+  an `axiom_encoding_gap` is attributed but, per oracles' own table, not explained. A missing report is
+  stated, never read as agreement.
 
 ## Readiness, releases and findings
 
@@ -145,6 +163,9 @@ uv venv --python 3.13 .venv && uv pip install --python .venv/bin/python -e '.[po
 .venv/bin/python -m axiom_mappings.validate --country us --policyengine --corpus ~/rulespec-us --artifact compiled.json
 .venv/bin/python -m axiom_mappings.identity --corpus ~/rulespec-us --ref origin/main   # drift since the pin
 .venv/bin/python -m axiom_mappings verify parameters --corpus ~/rulespec-us [--program snap] [--file-findings]
+.venv/bin/python -m axiom_mappings export coverage          # where every PE variable stands
+.venv/bin/python -m axiom_mappings agreement               # do both harnesses agree about each binding
+.venv/bin/python -m axiom_mappings cycle --corpus ~/rulespec-us --ref origin/main   # one reviewed pass
 .venv/bin/python -m pytest
 ```
 

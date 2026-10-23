@@ -11,7 +11,7 @@ from pathlib import Path
 import pytest
 
 from axiom_mappings import load
-from axiom_mappings.cycle import _markdown, _module_prefixes, run
+from axiom_mappings.cycle import _alignment, _markdown, _module_prefixes, run
 
 
 def _corpus_root():
@@ -71,6 +71,23 @@ def test_a_pass_writes_nothing_into_the_map(m, report):
     assert after.release == m.release, "a cycle does not change the release"
     assert len(after.outputs) == len(m.outputs)
     assert set(after.bindings) == set(m.bindings)
+
+
+def test_the_pass_reports_what_each_harness_filed(report):
+    """The cycle runs neither harness. It joins what they filed to the map."""
+    a = report["agreement"]
+    assert a["schema"] == "axiom_mappings.agreement.v1"
+    assert set(a["sources"]) == {"in_policyengine", "against_policyengine"}
+    body = _markdown(report)
+    assert "## Alignment" in body
+
+
+def test_a_missing_harness_report_is_stated_not_absorbed(report):
+    """A ledger that is not there must never read as "nothing failed"."""
+    lines = "\n".join(_alignment(report["agreement"]))
+    for side, source in report["agreement"]["sources"].items():
+        if source.get("error"):
+            assert side in lines and "not as agreement" in lines
 
 
 def test_module_prefixes_group_rules_by_area():
