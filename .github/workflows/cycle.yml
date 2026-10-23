@@ -80,10 +80,12 @@ jobs:
           ARGS=(--corpus "$RULESPEC_US" --out reports)
           if [ -n "${{ inputs.ref }}" ]; then ARGS+=(--ref "${{ inputs.ref }}"); fi
           if [ "${{ inputs.propose }}" = "false" ]; then ARGS+=(--no-propose); fi
-          LEDGER="$RUNNER_TEMP/policyengine-axiom/ledger.json"
-          DISPOSITIONS="$RUNNER_TEMP/axiom-oracles/dispositions"
-          if [ -f "$LEDGER" ]; then ARGS+=(--ledger "$LEDGER"); fi
-          if [ -d "$DISPOSITIONS" ]; then ARGS+=(--dispositions "$DISPOSITIONS"); fi
+          # Pass both paths even when a clone did not happen. Omitting one
+          # lets the stage fall back to a sibling checkout, which exists on a
+          # developer's machine and not here, so the report would name a path
+          # nobody chose. Passing it makes the absence explicit and reported.
+          ARGS+=(--ledger "$RUNNER_TEMP/policyengine-axiom/ledger.json")
+          ARGS+=(--dispositions "$RUNNER_TEMP/axiom-oracles/dispositions")
           .venv/bin/python -m axiom_mappings cycle "${ARGS[@]}" | tee "$RUNNER_TEMP/summary.md"
           cat "$RUNNER_TEMP/summary.md" >> "$GITHUB_STEP_SUMMARY"
 
