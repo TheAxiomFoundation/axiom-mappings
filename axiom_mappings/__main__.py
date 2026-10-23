@@ -2,11 +2,13 @@
 
     python -m axiom_mappings validate   ...   schema, integrity, PolicyEngine, RuleSpec, bindings, coverage
     python -m axiom_mappings identity   ...   do the Axiom ids exist at the pinned RuleSpec commit
+    python -m axiom_mappings detect --corpus <rulespec-us> [--ref SHA]   what changed since the pins
     python -m axiom_mappings verify parameters --corpus <rulespec-us> [--program P] [--as-of D] [--json] [--out F]
     python -m axiom_mappings readiness  ...   may a program serve Axiom's answer (D48)
     python -m axiom_mappings profiles   ...   slots the cut and facts profiles bind differently
     python -m axiom_mappings export policyengine-axiom|axiom-api --out DIR
     python -m axiom_mappings export oracles-populace --out FILE
+    python -m axiom_mappings export coverage [--out F] [--stage S] [--blocked]   where every PE variable stands
     python -m axiom_mappings bindings set-status --program ID --variable PE_VAR --status off|shadow|on [--profile cut]
     python -m axiom_mappings propose parameters|outputs --corpus <rulespec-us> [--module PREFIX] [--evaluate]
     python -m axiom_mappings propose slots --program ID --catalog SLOTS.json [--profile cut] [--evaluate]
@@ -156,10 +158,14 @@ def main(argv=None) -> int:
     if command == "export" and rest[:1] == ["axiom-api"]:
         from .export.axiom_api import main as run
         return run(rest[1:])
+    if command == "export" and rest[:1] == ["coverage"]:
+        from .export.coverage import main as run
+        return run(rest[1:])
     if command == "export" and rest[:1] == ["policyengine-axiom"]:
         from .export.policyengine_axiom import main as run
         return run(rest[1:])
-    modules = {"validate": "validate", "identity": "identity", "readiness": "readiness", "profiles": "profiles"}
+    modules = {"validate": "validate", "identity": "identity", "readiness": "readiness", "profiles": "profiles",
+               "detect": "detect"}
     if command in modules:
         module = __import__(f"axiom_mappings.{modules[command]}", fromlist=["main"])
         return module.main(rest)
