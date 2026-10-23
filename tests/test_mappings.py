@@ -34,7 +34,9 @@ def errors(findings):
 def test_seeded_tables_load(m):
     assert len(m.concepts) >= 30 and len(m.inputs) >= 200 and len(m.outputs) >= 3000 and len(m.parameters) >= 700
     assert [r["priority"] for r in m.inputs] == sorted(r["priority"] for r in m.inputs)
-    assert m.pins["policyengine_us"] == "1.808.0"
+    # The guard that a pin moves deliberately. 1.808.0 was deleted from PyPI
+    # (404, only 16 of the 1.x releases survive), so CI could not install it.
+    assert m.pins["policyengine_us"] == "1.824.6"
 
 
 def test_the_committed_data_has_no_errors():
