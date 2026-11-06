@@ -39,9 +39,9 @@ from pathlib import Path
 from typing import Any
 
 from . import ROOT, load
-from .agreement import FLAGGED, VERDICTS, agreement
+from .agreement import FLAGGED, VERDICTS, agreement, read_ledger
 from .detect import detect
-from .export.coverage import STAGES, coverage
+from .export.coverage import DOORS, STAGES, coverage
 from .readiness import readiness
 
 PROPOSALS = ROOT.parent / "proposals"
@@ -145,10 +145,13 @@ def _markdown(report: dict[str, Any]) -> str:
         "",
         "## Coverage",
         "",
-        "| stage | variables |",
-        "|---|---|",
+        "| stage | furthest | " + " | ".join(DOORS) + " |",
+        "|---|---|" + "---|" * len(DOORS),
     ]
-    lines += [f"| {stage} | {cov['by_stage'][stage]} |" for stage in STAGES]
+    lines += [f"| {stage} | {cov['by_stage'][stage]} | "
+              + " | ".join(str(cov['by_door'][door][stage]) for door in DOORS) + " |"
+              for stage in STAGES]
+    lines += [f"| overclaimed | {cov['overclaimed']} | | |"]
     lines += [f"| **blocked** | **{cov['blocked']}** |", "", "## Proposals", ""]
     if report["proposals"]:
         for entry in report["proposals"]:
@@ -197,6 +200,7 @@ def run(country: str, corpus: str, ref: str | None, *, limit: int = 3,
             ready[program] = readiness(m, program, None, None)
         except Exception:  # noqa: BLE001 - readiness it cannot judge is simply unknown
             ready[program] = {}
+    ledger_entries, ledger_source = read_ledger(ledger)
     proposals: list[dict[str, Any]] = []
     new_ids = found["axiom"]["added_and_unmapped"]
     # `propose` reads the corpus at the map's pin, by design: a candidate for a
@@ -211,7 +215,8 @@ def run(country: str, corpus: str, ref: str | None, *, limit: int = 3,
         "ran_at": datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds"),
         "map_release": m.release,
         "detect": found,
-        "coverage": coverage(m, readiness_by_program=ready),
+        "coverage": coverage(m, readiness_by_program=ready, ledger=ledger_entries,
+                             ledger_source=ledger_source),
         "agreement": agreement(m, ledger_path=ledger, dispositions_root=dispositions),
         "proposals": proposals,
         "proposed": propose_new,

@@ -34,7 +34,7 @@ def report():
 def test_the_pass_reports_every_stage(report):
     assert report["schema"] == "axiom_mappings.cycle.v1"
     assert report["detect"]["schema"] == "axiom_mappings.detect.v1"
-    assert report["coverage"]["schema"] == "axiom_mappings.coverage.v1"
+    assert report["coverage"]["schema"] == "axiom_mappings.coverage.v2"
     assert report["map_release"] == report["coverage"]["map_release"]
 
 

@@ -163,7 +163,8 @@ uv venv --python 3.13 .venv && uv pip install --python .venv/bin/python -e '.[po
 .venv/bin/python -m axiom_mappings.validate --country us --policyengine --corpus ~/rulespec-us --artifact compiled.json
 .venv/bin/python -m axiom_mappings.identity --corpus ~/rulespec-us --ref origin/main   # drift since the pin
 .venv/bin/python -m axiom_mappings verify parameters --corpus ~/rulespec-us [--program snap] [--file-findings]
-.venv/bin/python -m axiom_mappings export coverage          # where every PE variable stands
+.venv/bin/python -m axiom_mappings export coverage [--ledger F] [--as-of D]   # where every PE variable stands, per door:
+                                                            # Door 1 `on` needs the ledger's certification inside the window
 .venv/bin/python -m axiom_mappings agreement               # do both harnesses agree about each binding
 .venv/bin/python -m axiom_mappings cycle --corpus ~/rulespec-us --ref origin/main   # one reviewed pass
 .venv/bin/python -m pytest
