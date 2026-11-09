@@ -30,8 +30,89 @@ variables:
       input: age
       default: 40
     notes: PE US default age is 40.
+  is_blind:
+    kind: echo
+    entity: person
+    echo:
+      source: input
+      input: is_blind
+      default: false
+  is_disabled:
+    kind: echo
+    entity: person
+    echo:
+      source: input
+      input: is_disabled
+      default: false
+  is_federal_work_study_participant:
+    kind: echo
+    entity: person
+    echo:
+      source: input
+      input: is_federal_work_study_participant
+      default: false
+  is_incapable_of_self_care:
+    kind: echo
+    entity: person
+    echo:
+      source: input
+      input: is_incapable_of_self_care
+      default: false
+  is_pregnant:
+    kind: echo
+    entity: person
+    echo:
+      source: input
+      input: is_pregnant
+      default: false
+  meets_ssi_disability_criteria:
+    kind: echo
+    entity: person
+    echo:
+      source: input
+      input: meets_ssi_disability_criteria
+      default: false
+  receives_medicaid:
+    kind: echo
+    entity: person
+    echo:
+      source: input
+      input: receives_medicaid
+      default: false
+  was_in_foster_care:
+    kind: echo
+    entity: person
+    echo:
+      source: input
+      input: was_in_foster_care
+      default: false
+  heat_expense_included_in_rent:
+    kind: echo
+    entity: spm_unit
+    echo:
+      source: input
+      input: heat_expense_included_in_rent
+      default: false
+  receives_housing_assistance:
+    kind: echo
+    entity: spm_unit
+    echo:
+      source: input
+      input: receives_housing_assistance
+      default: false
+  is_homeless:
+    kind: echo
+    entity: household
+    echo:
+      source: input
+      input: is_homeless
+      default: false
 evidence:
   golden_cases:
   - client-dq9pluou
   notes:
   - client-dq9pluou requests state_code_str and age as outputs; PE returns CA and 40.
+  - 'Eleven boolean inputs echoed since 2026-11-09 (axiom-api#324, echo-mapping): none has a formula in policyengine-us
+    2.94.7, so PE returns the sent value, or false when the value is null. The PE responses in axiom-api''s goldens
+    (69b262b) agree on all 269 values: 255 sent, 14 null. Not echoed: utilities_included_in_rent (2.94.7 derives it
+    from tenant_pays_utilities), weekly_hours_worked, is_veteran and state_name (formulas).'
