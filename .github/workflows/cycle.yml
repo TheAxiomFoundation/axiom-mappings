@@ -1,0 +1,121 @@
+name: Mapping cycle
+
+# One pass a week, and on demand. It detects what moved, proposes candidates for
+# rules the pin already has, writes the coverage map, and opens a pull request.
+#
+# It proposes; it never accepts and never promotes. `accept` writes a proposal
+# into the map and `promote` moves a binding to `on`, both by hand, and
+# promotion still needs population evidence. The pull request is where a
+# reviewer does that.
+
+on:
+  schedule:
+    # Monday 07:00 UTC, before the week's review.
+    - cron: "0 7 * * 1"
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "rulespec-us commit to check against the pin (default: origin/main)"
+        required: false
+        default: ""
+      propose:
+        description: "write proposals for rules the pin already has"
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  # One pass at a time: two would open competing pull requests from the same
+  # state, and the second would silently lose the first's proposals.
+  group: mapping-cycle
+  cancel-in-progress: false
+
+jobs:
+  cycle:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: astral-sh/setup-uv@v5
+
+      - name: Install
+        run: |
+          uv venv --python 3.13 .venv
+          uv pip install --python .venv/bin/python -e '.[policyengine,test]'
+
+      - name: Fetch rulespec-us
+        run: |
+          # The cycle diffs two refs, so it needs history, not the shallow
+          # single-commit fetch the validate job uses.
+          git clone -q --filter=blob:none --no-checkout \
+            https://github.com/TheAxiomFoundation/rulespec-us "$RUNNER_TEMP/rulespec-us"
+          echo "RULESPEC_US=$RUNNER_TEMP/rulespec-us" >> "$GITHUB_ENV"
+
+      - name: Fetch what the oracles filed
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.HARNESS_READ_TOKEN || secrets.GITHUB_TOKEN }}
+        run: |
+          # The alignment stage reads what a harness filed; it runs neither.
+          #
+          # Only one side is reachable from CI today. axiom-oracles is a
+          # published repo, so its dispositions clone here. policyengine-axiom
+          # is local-only, so its ledger is not fetchable and the in-PE side
+          # reports as absent until that repo is published or the ledger is
+          # uploaded as an artifact. The report states the absence; a missing
+          # ledger is never read as agreement.
+          gh repo clone TheAxiomFoundation/axiom-oracles "$RUNNER_TEMP/axiom-oracles" -- --depth 1 -q \
+            || echo "cannot read axiom-oracles with this token; the report will say so"
+
+      - name: Run one pass
+        id: pass
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -o pipefail
+          ARGS=(--corpus "$RULESPEC_US" --out reports)
+          if [ -n "${{ inputs.ref }}" ]; then ARGS+=(--ref "${{ inputs.ref }}"); fi
+          if [ "${{ inputs.propose }}" = "false" ]; then ARGS+=(--no-propose); fi
+          # Pass both paths even when a clone did not happen. Omitting one
+          # lets the stage fall back to a sibling checkout, which exists on a
+          # developer's machine and not here, so the report would name a path
+          # nobody chose. Passing it makes the absence explicit and reported.
+          ARGS+=(--ledger "$RUNNER_TEMP/policyengine-axiom/ledger.json")
+          ARGS+=(--dispositions "$RUNNER_TEMP/axiom-oracles/dispositions")
+          .venv/bin/python -m axiom_mappings cycle "${ARGS[@]}" | tee "$RUNNER_TEMP/summary.md"
+          cat "$RUNNER_TEMP/summary.md" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Open a pull request for review
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ -z "$(git status --porcelain)" ]; then
+            echo "Nothing changed, so there is nothing to review."
+            exit 0
+          fi
+          git config user.name "axiom-mappings cycle"
+          git config user.email "noreply@github.com"
+          BRANCH="cycle/$(date -u +%Y-%m-%d)"
+          git checkout -b "$BRANCH"
+          git add -A
+          # -m and -F cannot combine, and an indented heredoc body would keep
+          # its spaces and not terminate, so the message is built in a file.
+          {
+            echo "Mapping cycle $(date -u +%Y-%m-%d)"
+            echo
+            echo "One automated pass: what moved since the pins, candidates for the rules"
+            echo "the pin already has, and the coverage map."
+            echo
+            echo "Nothing here is accepted or promoted. Read each proposal, set accept: on"
+            echo "the candidate that is right, then run accept. A binding moves to on only"
+            echo "through promote, on population evidence."
+          } > "$RUNNER_TEMP/commit.txt"
+          git commit -q -F "$RUNNER_TEMP/commit.txt"
+          git push -u origin "$BRANCH"
+          gh pr create --base main --head "$BRANCH" \
+            --title "Mapping cycle $(date -u +%Y-%m-%d)" \
+            --body-file "$RUNNER_TEMP/summary.md"
