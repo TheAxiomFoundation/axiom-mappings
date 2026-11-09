@@ -93,17 +93,18 @@ evidence:
   - 'Dependent-care slots are package-specific (CO: dependent_care_expenses_paid + necessary-for-work gate; CA/NY/AZ:
     snap_allowable_monthly_dependent_care_expenses); PE deducts childcare without a work-necessity question, so
     the gate is presumed true and disclosed.'
-  - 'overrides added 2026-08-24 (#159): partners send PE intermediates as inputs; each maps to a package scalar-rule
-    pin. Local executors apply the pin and name it in the runtime''s warnings; the hosted package path does not
-    apply it (axiom-api#243) and names each one it drops.'
+  - 'overrides added 2026-08-24 (#159): partners send PE intermediates as inputs; each maps to the package fact of
+    that name: a scalar-rule pin, which the package path applies on every executor (axiom-api#243) and names in the
+    runtime''s warnings, or an input slot where the package has one (us-co''s countable earned income). The mapping
+    is not yet faithful to PE for every shape (axiom-api#247).'
 overrides:
   snap_excess_shelter_expense_deduction:
     pin: snap_excess_shelter_deduction_for_net_income
     period: monthly-from-annual
     round: cents
     notes: PE honors a sent shelter-deduction value as an override; pin the packages' scalar rule to match (verified
-      against contract-dq9pluou-parent-child on a local executor, which applies the pin; the hosted package path
-      does not, axiom-api#243).
+      against contract-dq9pluou-parent-child on a local executor; the hosted package path applies the same pin since
+      axiom-api#243).
   snap_earned_income:
     pin: snap_countable_earned_income
     period: monthly-from-annual
