@@ -19,6 +19,13 @@ variables:
     entity: spm_unit
     period: annualize-monthly
     round: cents
+  snap_if_takes_up:
+    symbol: snap_benefit_amount
+    entity: spm_unit
+    period: annualize-monthly
+    round: cents
+    notes: PolicyEngine's snap is snap_if_takes_up for an SPM unit that takes up SNAP (takes_up_snap_if_eligible,
+      default true). The packages model no take-up, so their benefit is snap_if_takes_up at every take-up value.
   snap_gross_income:
     symbol: snap_gross_income
     entity: spm_unit
@@ -120,6 +127,9 @@ evidence:
     snap_total_monthly_unearned_income (gross income). Door 2 replay: contract-cxwdaxfi-single 0 to 3,576,
     parent-child 5,856 to 6,552, couple-child 0 to 9,420; PolicyEngine 3,608, 6,610 and 9,503 (the rest is
     fy2027-cola-projection).'
+  - 'snap_if_takes_up added 2026-11-09 (axiom-api#324): in policyengine-us 2.94.7, snap adds snap_if_takes_up and is
+    defined for takes_up_snap_if_eligible. 2bvOcXtH, 1AR7c1FQ, qSH0K7up and OlO42DIY request it (90 days to
+    2026-11-07). No golden requests it yet.'
 overrides:
   snap_excess_shelter_expense_deduction:
     pin: snap_excess_shelter_deduction_for_net_income
