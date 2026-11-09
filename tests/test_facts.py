@@ -9,7 +9,7 @@ import yaml
 from axiom_mappings import load
 from axiom_mappings.bindings import findings
 from axiom_mappings.export.axiom_api import serving_maps, write
-from axiom_mappings.facts import conformance_cases, derive_unit_input, grammar_errors, run_case, same
+from axiom_mappings.facts import conformance_cases, derive_unit_input, fields, grammar_errors, run_case, same
 from axiom_mappings.readiness import readiness
 
 from test_mappings import copy_root
@@ -50,7 +50,8 @@ def test_python_and_typescript_agree_on_every_conformance_case():
 def test_conformance_covers_the_known_gotchas():
     names = {c["name"] for c in conformance_cases()}
     assert {"monthly-passes-the-annual-value-through", "map-and-map-default", "filing-status-joint-by-marital-unit",
-            "person-only-fields-are-not-unit-facts", "count-of-no-people-is-one"} <= names
+            "person-only-fields-are-not-unit-facts", "count-of-no-people-is-one", "first-sent-intermediate-wins-at-zero",
+            "first-null-intermediate-falls-through", "sum-over-spm-unit-members-only"} <= names
     # the monthly gotcha as a unit test: period monthly does not divide
     household = {"spm_units": {"s": {"x": {"2026": 1200}}}}
     assert derive_unit_input(household, {"from": "x", "period": "monthly"}, "2026") == 1200
@@ -72,6 +73,21 @@ def test_grammar():
     assert grammar_errors({"from": "a", "period": "weekly"}, "x")
     assert grammar_errors({"from": "a", "map_default": 0}, "x")
     assert grammar_errors({"field": "a"}, "x")
+    first = {"first": ["housing_cost", {"sum": ["rent", "mortgage_payments"], "scope": "spm_unit+members"}]}
+    assert grammar_errors({"from": first, "period": "monthly-from-annual", "round": "cents"}, "x") == []
+    assert grammar_errors({"from": {"first": ["housing_cost"]}}, "x")  # one alternative is not a choice
+    assert grammar_errors({"from": {"first": ["a", {"count": "people"}]}}, "x")
+    assert grammar_errors({"from": {"first": ["a", {"sum": ["b"], "scope": "planet"}]}}, "x")
+    assert fields({"from": first}) == ["housing_cost", "rent", "mortgage_payments"]
+
+
+def test_snap_reads_housing_cost_or_its_components(m):
+    """A partner that sends rent and no housing_cost gets the shelter deduction PolicyEngine gives (axiom-api#323)."""
+    spec = m.binding_set("us/snap", "facts").doc["inputs"]["shelter_costs"]
+    renter = {"people": {"a": {"rent": {"2026": 12000}}}, "spm_units": {"s": {"members": ["a"]}}}
+    assert derive_unit_input(renter, spec, "2026") == 1000
+    renter["spm_units"]["s"]["housing_cost"] = {"2026": 6000}
+    assert derive_unit_input(renter, spec, "2026") == 500
 
 
 def facts_root(tmp_path, edit):
@@ -94,6 +110,7 @@ def test_facts_checks(tmp_path):
         doc["inputs"]["member_is_us_citizen"] = {"from": "age"}
         doc["presumptions"]["x"] = {"value": True, "presumption": "because"}
         doc["inputs"]["broken"] = {"from": {"count": "cats"}}
+        doc["inputs"]["first_on_tax_unit"] = {"from": {"first": ["housing_cost", {"sum": ["eitc"], "scope": "spm_unit+members"}]}}
     root = facts_root(tmp_path, edit)
     assert {"spec-grammar", "unknown-presumption", "slot-bound-twice"} <= codes(findings(load("us", root)))
     pytest.importorskip("policyengine_us")
@@ -101,6 +118,9 @@ def test_facts_checks(tmp_path):
 
     found = findings(load("us", root), system=policyengine_system())
     assert {"pe-entity", "unknown-pe-variable"} <= codes(found)
+    assert any(f.code == "pe-entity" and "first_on_tax_unit" in f.where and "eitc" in f.message for f in found)
+    # the shipped binding's components are on the SPM unit or its people, as spm_unit+members reads them
+    assert not any("shelter_costs" in f.where for f in found)
 
 
 def test_target_roots_must_exist_at_the_pin(tmp_path):
