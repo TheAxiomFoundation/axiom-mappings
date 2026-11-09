@@ -145,7 +145,8 @@
       "dependent_care_deduction added 2026-08-23 after the first production triage (axiom-api#169): partner shapes carry childcare expenses PE deducts and Axiom previously ignored.",
       "Dependent-care slots are package-specific (CO: dependent_care_expenses_paid + necessary-for-work gate; CA/NY/AZ: snap_allowable_monthly_dependent_care_expenses); PE deducts childcare without a work-necessity question, so the gate is presumed true and disclosed.",
       "shelter_costs reads housing_cost's components since 2026-11-09 (axiom-api#323): before, a household that sent rent and no housing_cost got no shelter deduction. DQ9PLUoU sends rent without housing_cost in 5,081 of its 12,126 requests (90 days to 2026-11-07). contract-dq9pluou-renter: Door 2 576 before, 2,688 after, PolicyEngine 2,712 (the rest is fy2027-cola-projection).",
-      "overrides added 2026-08-24 (#159): partners send PE intermediates as inputs; each maps to the package fact of that name: a scalar-rule pin, which the package path applies on every executor (axiom-api#243) and names in the runtime's warnings, or an input slot where the package has one (us-co's countable earned income). The mapping is not yet faithful to PE for every shape (axiom-api#247)."
+      "overrides added 2026-08-24 (#159): partners send PE intermediates as inputs; each maps to the package fact of that name: a scalar-rule pin, which the package path applies on every executor (axiom-api#243) and names in the runtime's warnings, or an input slot where the package has one (us-co's countable earned income). Until 2026-11-09 the income pins did not reach the benefit in us-az, us-ca and us-ny (axiom-api#247, next note).",
+      "snap_earned_income and snap_unearned_income retargeted 2026-11-09 (axiom-api#247). They pinned snap_countable_earned_income and snap_countable_unearned_income, which no rule on the benefit path reads in us-az and us-ca, and which the gross income does not read in us-ny. PolicyEngine 2.94.7 adds both to snap_gross_income, which its gross and net income tests read, and its earned income deduction is 20% of snap_earned_income. The packages read snap_gross_monthly_earned_income (gross income and the earned income deduction) and snap_total_monthly_unearned_income (gross income). Door 2 replay: contract-cxwdaxfi-single 0 to 3,576, parent-child 5,856 to 6,552, couple-child 0 to 9,420; PolicyEngine 3,608, 6,610 and 9,503 (the rest is fy2027-cola-projection)."
     ]
   },
   "overrides": {
@@ -156,16 +157,16 @@
       "notes": "PE honors a sent shelter-deduction value as an override; pin the packages' scalar rule to match (verified against contract-dq9pluou-parent-child on a local executor; the hosted package path applies the same pin since axiom-api#243)."
     },
     "snap_earned_income": {
-      "pin": "snap_countable_earned_income",
+      "pin": "snap_gross_monthly_earned_income",
       "period": "monthly-from-annual",
       "round": "cents",
-      "notes": "Partner-sent countable earned income override."
+      "notes": "PE's snap_gross_income adds snap_earned_income, and its earned income deduction is 20% of it. The packages' gross income and earned income deduction read snap_gross_monthly_earned_income, an input slot in us-az, us-ca and us-ny and a pinned scalar rule in us-co (axiom-api#247)."
     },
     "snap_unearned_income": {
-      "pin": "snap_countable_unearned_income",
+      "pin": "snap_total_monthly_unearned_income",
       "period": "monthly-from-annual",
       "round": "cents",
-      "notes": "Partner-sent countable unearned income override."
+      "notes": "PE's snap_gross_income adds snap_unearned_income. The packages' gross income reads snap_total_monthly_unearned_income, an input slot in us-az, us-ca and us-ny and a pinned scalar rule in us-co (axiom-api#247)."
     }
   }
 }
