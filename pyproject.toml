@@ -6,7 +6,7 @@ requires-python = ">=3.11"
 dependencies = ["pyyaml>=6.0", "jsonschema>=4.0"]
 
 [project.optional-dependencies]
-policyengine = ["policyengine-us==1.824.6", "spm-calculator==0.3.1", "policyengine-core==3.33.12"]  # policyengine-us under-declares spm-calculator
+policyengine = ["policyengine-us==2.94.7", "policyengine-core==3.33.1"]  # the household API's pair; 2.x declares spm-calculator itself
 test = ["pytest>=8"]
 investigate = ["anthropic>=1.11"]  # python -m axiom_mappings investigate --live
 

@@ -2383,3 +2383,16 @@ findings:
       match: 1
     axiom_ids:
     - us-az:policies/des/faa5/na-medical-expenses-and-deduction/medical-deduction#standard_medical_deduction_net_amount
+- program: tax
+  variable: gov.irs.deductions.qbi.phase_out.length[SURVIVING_SPOUSE]
+  counterpart: policyengine
+  cause: unclassified
+  kind: parameter
+  note: 'disagree from 2026-01-01: Axiom 150000.0 (since 2026-01-01, us:statutes/26/199A#qbi_phasein_range_joint),
+    PolicyEngine 75000.0 (since 2026-01-01).'
+  evidence:
+    report: verify parameters at 36f72ea42 as of 2026-09-30
+    verdicts:
+      disagree: 1
+    axiom_ids:
+    - us:statutes/26/199A#qbi_phasein_range_joint

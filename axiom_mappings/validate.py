@@ -157,16 +157,33 @@ def policyengine_system():
     return CountryTaxBenefitSystem()
 
 
-def _policyengine_findings(m: Mappings, system) -> list[Finding]:
+# The basis is a pair: policyengine-us 2.94.7 breaks on policyengine-core 3.34.
+PINNED_DISTRIBUTIONS = (("policyengine-us", "policyengine_us"), ("policyengine-core", "policyengine_core"))
+
+
+def _version_findings(m: Mappings) -> list[Finding]:
+    """A warning for each pinned PolicyEngine distribution installed at another version (or not at all)."""
     import importlib.metadata
 
+    out: list[Finding] = []
+    for distribution, key in PINNED_DISTRIBUTIONS:
+        pinned = m.pins.get(key)
+        if not pinned:
+            continue
+        try:
+            installed = importlib.metadata.version(distribution)
+        except importlib.metadata.PackageNotFoundError:
+            installed = None
+        if installed != pinned:
+            out.append(Finding("warning", "policyengine-version", "pins",
+                               f"installed {distribution} {installed}, pinned {pinned}"))
+    return out
+
+
+def _policyengine_findings(m: Mappings, system) -> list[Finding]:
     from policyengine_core.parameters import get_parameter
 
-    out: list[Finding] = []
-    installed = importlib.metadata.version("policyengine-us")
-    pinned = m.pins.get("policyengine_us")
-    if pinned and installed != pinned:
-        out.append(Finding("warning", "policyengine-version", "pins", f"installed {installed}, pinned {pinned}"))
+    out: list[Finding] = _version_findings(m)
     variables = system.variables
 
     for c in m.concepts.values():
