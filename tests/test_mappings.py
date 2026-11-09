@@ -34,9 +34,10 @@ def errors(findings):
 def test_seeded_tables_load(m):
     assert len(m.concepts) >= 30 and len(m.inputs) >= 200 and len(m.outputs) >= 3000 and len(m.parameters) >= 700
     assert [r["priority"] for r in m.inputs] == sorted(r["priority"] for r in m.inputs)
-    # The guard that a pin moves deliberately. 1.808.0 was deleted from PyPI
-    # (404, only 16 of the 1.x releases survive), so CI could not install it.
-    assert m.pins["policyengine_us"] == "1.824.6"
+    # The guard that a pin moves deliberately. The basis is the pair PolicyEngine's
+    # household API runs, where Door 1 serves: 2.94.7 breaks on core 3.34, so core
+    # is pinned with it.
+    assert (m.pins["policyengine_us"], m.pins["policyengine_core"]) == ("2.94.7", "3.33.1")
 
 
 def test_the_committed_data_has_no_errors():
@@ -102,6 +103,18 @@ def test_policyengine_checks_pass_and_flag_unprojected_entity_mismatch(tmp_path)
     root = copy_root(tmp_path)
     edit(root, "outputs", lambda rows: next(r for r in rows if r.get("entity_projection")).pop("entity_projection"))
     assert "pe-entity" in errors(validate("us", root, policyengine=True)[0])
+
+
+def test_both_halves_of_the_policyengine_pair_are_checked(tmp_path):
+    from axiom_mappings.validate import _version_findings
+
+    root = copy_root(tmp_path)
+    pins = yaml.safe_load((root / "pins.yaml").read_text())
+    pins["us"]["policyengine_core"] = "0.0.0"
+    (root / "pins.yaml").write_text(yaml.safe_dump(pins, sort_keys=False))
+    messages = [f.message for f in _version_findings(load("us", root)) if f.code == "policyengine-version"]
+    assert any(message.startswith("installed policyengine-core ") and message.endswith(", pinned 0.0.0")
+               for message in messages)
 
 
 def test_release_is_a_stable_content_hash(m, tmp_path):
