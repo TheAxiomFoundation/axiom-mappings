@@ -5,14 +5,18 @@ period-keyed values), never a simulation. Each input slot names where its value 
 
     from: <field>                        a field of the first unit record carrying it (spm_units,
                                          households, tax_units, families, marital_units), or of each person
-    from: {sum: [fields], scope: S}      summed over people / tax_unit.members, or one unit record
+    from: {sum: [fields], scope: S}      summed over people / tax_unit.members, or one unit record, or
+                                         the first SPM unit's record and its members (spm_unit+members)
+    from: {first: [field | sum, ...]}    the first alternative the household sends a value for the year
+                                         for (sent as null, or only for another year, does not count);
+                                         when it sends none, the last alternative
     from: {count: people | spm_unit.members | tax_unit.members}
     from: {builtin: pe_filing_status | aged_or_blind_count}
     period: annual | monthly-from-annual | monthly     round: cents     map: {value: code}, map_default
 
 The interpreter below is a line-by-line port of axiom-api's ``src/household-compat.ts`` (``annualValue``,
-``pointValue``, ``deriveUnitInput``, ``derivePersonInput``, ``mapValue``, ``builtinValue``,
-``extractFacts``). ``conformance/facts.json`` holds cases whose expected values come from running the
+``pointValue``, ``hasValueFor``, ``sumRecords``, ``alternativeSent``, ``deriveUnitInput``,
+``derivePersonInput``, ``mapValue``, ``builtinValue``, ``extractFacts``). ``conformance/facts.json`` holds cases whose expected values come from running the
 TypeScript; the Python must reproduce them, and axiom-api runs the same file, so the two stay one
 semantics.
 """
@@ -31,13 +35,17 @@ UNIT_GROUPS = ("spm_units", "households", "tax_units", "families", "marital_unit
 PERSON_ONLY_SOURCES = {"age", "is_disabled", "is_blind", "is_pregnant"}
 PERIODS = ("annual", "monthly-from-annual", "monthly")
 ROUNDS = ("none", "cents", "whole-dollar")
-SCOPES = ("people", "tax_unit.members", "spm_unit", "tax_unit", "household")
+SCOPES = ("people", "tax_unit.members", "spm_unit", "tax_unit", "household", "spm_unit+members")
 COUNTS = ("people", "spm_unit.members", "tax_unit.members")
 BUILTINS = ("pe_filing_status", "aged_or_blind_count")
 CONFORMANCE = ROOT / "conformance" / "facts.json"
 
 
 # ------------------------------------------------------------------ grammar
+
+def _is_sum(src: Any) -> bool:
+    return isinstance(src, dict) and set(src) <= {"sum", "scope"} and isinstance(src.get("sum"), list) and bool(src["sum"])
+
 
 def grammar_errors(spec: Any, where: str) -> list[str]:
     if not isinstance(spec, dict) or "from" not in spec:
@@ -49,9 +57,21 @@ def grammar_errors(spec: Any, where: str) -> list[str]:
     src = spec["from"]
     if isinstance(src, str):
         pass
-    elif isinstance(src, dict) and set(src) <= {"sum", "scope"} and isinstance(src.get("sum"), list) and src["sum"]:
+    elif _is_sum(src):
         if src.get("scope", "people") not in SCOPES:
             out.append(f"{where}: sum scope must be one of {SCOPES}")
+    elif isinstance(src, dict) and set(src) == {"first"}:
+        alternatives = src["first"]
+        if not isinstance(alternatives, list) or len(alternatives) < 2:
+            out.append(f"{where}: `first` lists at least two alternatives")
+        else:
+            for i, alternative in enumerate(alternatives):
+                if isinstance(alternative, str):
+                    continue
+                if not _is_sum(alternative):
+                    out.append(f"{where}: first[{i}] is a field or {{sum, scope}}, got {alternative!r}")
+                elif alternative.get("scope", "people") not in SCOPES:
+                    out.append(f"{where}: first[{i}] sum scope must be one of {SCOPES}")
     elif isinstance(src, dict) and set(src) == {"count"}:
         if src["count"] not in COUNTS:
             out.append(f"{where}: count must be one of {COUNTS}")
@@ -59,7 +79,7 @@ def grammar_errors(spec: Any, where: str) -> list[str]:
         if src["builtin"] not in BUILTINS:
             out.append(f"{where}: builtin must be one of {BUILTINS}")
     else:
-        out.append(f"{where}: `from` is a field, {{sum, scope}}, {{count}} or {{builtin}}, got {src!r}")
+        out.append(f"{where}: `from` is a field, {{sum, scope}}, {{first}}, {{count}} or {{builtin}}, got {src!r}")
     if spec.get("period") is not None and spec["period"] not in PERIODS:
         out.append(f"{where}: period must be one of {PERIODS}")
     if spec.get("round") is not None and spec["round"] not in ROUNDS:
@@ -69,14 +89,22 @@ def grammar_errors(spec: Any, where: str) -> list[str]:
     return out
 
 
+def field_scopes(src: Any) -> list[tuple[str, str | None]]:
+    """(PolicyEngine field, sum scope or None) for each field a ``from`` clause reads; every alternative of a ``first``."""
+    if isinstance(src, str):
+        return [(src, None)]
+    if not isinstance(src, dict):
+        return []
+    if "sum" in src:
+        return [(name, src.get("scope", "people")) for name in src["sum"]]
+    if "first" in src:
+        return [pair for alternative in src["first"] for pair in field_scopes(alternative)]
+    return []
+
+
 def fields(spec: dict[str, Any]) -> list[str]:
     """The PolicyEngine fields an input reads."""
-    src = spec["from"]
-    if isinstance(src, str):
-        return [src]
-    if "sum" in src:
-        return list(src["sum"])
-    return []
+    return [name for name, _ in field_scopes(spec["from"])]
 
 
 # ------------------------------------------------------------------ reference interpreter (household-compat.ts)
@@ -123,6 +151,13 @@ def apply_period(annual: float, spec: dict[str, Any]) -> float:
     return _round2(value) if spec.get("round") == "cents" else value
 
 
+def _has_value_for(periods: Any, year: str) -> bool:
+    """A value for the year or one of its months; sent as null means "compute", so it is not a value."""
+    if not isinstance(periods, dict):
+        return False
+    return any((k == year or k.startswith(f"{year}-")) and v is not None for k, v in periods.items())
+
+
 def _first_record_with(household: dict, groups: tuple[str, ...], field: str) -> dict | None:
     fallback = None
     for group in groups:
@@ -161,6 +196,39 @@ def _tax_unit_members(household: dict) -> list[dict]:
     if not isinstance(members, list):
         return list(people.values())
     return [people[m] for m in members if isinstance(m, str) and m in people]
+
+
+def _spm_unit_members(household: dict) -> list[dict]:
+    people = household.get("people") or {}
+    unit = next(iter((household.get("spm_units") or {}).values()), None)
+    members = unit.get("members") if isinstance(unit, dict) else None
+    if not isinstance(members, list):
+        return list(people.values())
+    return [people[m] for m in members if isinstance(m, str) and m in people]
+
+
+def _sum_records(household: dict, source: dict[str, Any]) -> list[dict | None]:
+    """The records a sum reads (sumRecords): people, a unit's members, one unit record, or the first SPM
+    unit's record and its members, where PolicyEngine's ``adds`` finds components on either entity."""
+    scope = source.get("scope", "people")
+    if scope == "people":
+        return list((household.get("people") or {}).values())
+    if scope == "tax_unit.members":
+        return _tax_unit_members(household)
+    if scope == "spm_unit+members":
+        return [next(iter((household.get("spm_units") or {}).values()), None), *_spm_unit_members(household)]
+    group = {"spm_unit": "spm_units", "tax_unit": "tax_units"}.get(scope, "households")
+    return [next(iter((household.get(group) or {}).values()), None)]
+
+
+def _alternative_sent(household: dict, alternative: Any, year: str) -> bool:
+    """A value for the year (alternativeSent): on the record a field is read from, or on any record of a
+    sum's scope. A value for another year does not count; PolicyEngine computes the year's intermediate."""
+    if isinstance(alternative, str):
+        record = _first_record_with(household, UNIT_GROUPS, alternative)
+        return _has_value_for((record or {}).get(alternative), year)
+    return any(_has_value_for((record or {}).get(name), year)
+               for record in _sum_records(household, alternative) for name in alternative["sum"])
 
 
 def _truthy(periods: Any, year: str) -> bool:
@@ -209,6 +277,14 @@ def builtin_value(household: dict, builtin: str, year: str) -> Any:
 def derive_unit_input(household: dict, spec: dict[str, Any], year: str) -> Any:
     source = spec["from"]
     people = list((household.get("people") or {}).values())
+    if isinstance(source, dict) and "first" in source:
+        alternatives = source["first"]
+        chosen = next((a for a in alternatives if _alternative_sent(household, a, year)), None)
+        if chosen is None:
+            if not alternatives:
+                return None
+            chosen = alternatives[-1]
+        return derive_unit_input(household, {**spec, "from": chosen}, year)
     if isinstance(source, str):
         record = _first_record_with(household, UNIT_GROUPS, source)
         periods = record.get(source) if record else None
@@ -227,17 +303,10 @@ def derive_unit_input(household: dict, spec: dict[str, Any], year: str) -> Any:
         unit = next(iter((household.get(group) or {}).values()), None)
         members = [m for m in unit["members"] if isinstance(m, str)] if isinstance(unit, dict) and isinstance(unit.get("members"), list) else None
         return len(members or []) or len(people) or 1
-    scope = source.get("scope", "people")
     annual = 0
-    if scope in ("people", "tax_unit.members"):
-        for person in (_tax_unit_members(household) if scope == "tax_unit.members" else people):
-            for name in source["sum"]:
-                annual += annual_value(person.get(name), year)
-    else:
-        group = {"spm_unit": "spm_units", "tax_unit": "tax_units"}.get(scope, "households")
-        record = next(iter((household.get(group) or {}).values()), None) or {}
+    for record in _sum_records(household, source):
         for name in source["sum"]:
-            annual += annual_value(record.get(name), year)
+            annual += annual_value((record or {}).get(name), year)
     return apply_period(annual, spec)
 
 
@@ -299,8 +368,8 @@ def same(a: Any, b: Any) -> bool:
 
 # ------------------------------------------------------------------ validation
 
-SCOPE_ENTITY = {"people": "person", "tax_unit.members": "person", "spm_unit": "spm_unit", "tax_unit": "tax_unit",
-                "household": "household"}
+SCOPE_ENTITIES = {"people": {"person"}, "tax_unit.members": {"person"}, "spm_unit": {"spm_unit"},
+                  "tax_unit": {"tax_unit"}, "household": {"household"}, "spm_unit+members": {"spm_unit", "person"}}
 
 
 def checks(m, bs, *, system=None, corpus=None) -> list[tuple[str, str, str, str]]:
@@ -330,14 +399,13 @@ def checks(m, bs, *, system=None, corpus=None) -> list[tuple[str, str, str, str]
         for slot, spec in inputs.items():
             if grammar_errors(spec, slot):
                 continue
-            scope = spec["from"].get("scope", "people") if isinstance(spec["from"], dict) and "sum" in spec["from"] else None
-            for name in fields(spec):
+            for name, scope in field_scopes(spec["from"]):
                 v = variables.get(name)
                 at = f"{base} inputs {slot}"
                 if v is None:
                     out.append(("error", "unknown-pe-variable", at, f"no PolicyEngine variable {name}"))
                     continue
-                if scope and v.entity.key != SCOPE_ENTITY[scope]:
+                if scope and v.entity.key not in SCOPE_ENTITIES[scope]:
                     out.append(("error", "pe-entity", at, f"sums {name} over {scope}, but it is on {v.entity.key}"))
         for name, entry in (doc.get("variables") or {}).items():
             v = variables.get(name)
