@@ -7,14 +7,15 @@ period-keyed values), never a simulation. Each input slot names where its value 
                                          households, tax_units, families, marital_units), or of each person
     from: {sum: [fields], scope: S}      summed over people / tax_unit.members, or one unit record, or
                                          the first SPM unit's record and its members (spm_unit+members)
-    from: {first: [field | sum, ...]}    the first alternative the household sends a value for (sent as
-                                         null does not count); when it sends none, the last alternative
+    from: {first: [field | sum, ...]}    the first alternative the household sends a value for the year
+                                         for (sent as null, or only for another year, does not count);
+                                         when it sends none, the last alternative
     from: {count: people | spm_unit.members | tax_unit.members}
     from: {builtin: pe_filing_status | aged_or_blind_count}
     period: annual | monthly-from-annual | monthly     round: cents     map: {value: code}, map_default
 
 The interpreter below is a line-by-line port of axiom-api's ``src/household-compat.ts`` (``annualValue``,
-``pointValue``, ``findUnitValue``, ``hasValueFor``, ``sumRecords``, ``alternativeSent``, ``deriveUnitInput``,
+``pointValue``, ``hasValueFor``, ``sumRecords``, ``alternativeSent``, ``deriveUnitInput``,
 ``derivePersonInput``, ``mapValue``, ``builtinValue``, ``extractFacts``). ``conformance/facts.json`` holds cases whose expected values come from running the
 TypeScript; the Python must reproduce them, and axiom-api runs the same file, so the two stay one
 semantics.
@@ -150,21 +151,6 @@ def apply_period(annual: float, spec: dict[str, Any]) -> float:
     return _round2(value) if spec.get("round") == "cents" else value
 
 
-def find_unit_value(household: dict, name: str, year: str) -> Any:
-    """The value a unit record sends for ``name`` (findUnitValue): None when no record sends one for the year."""
-    for group in UNIT_GROUPS:
-        for record in (household.get(group) or {}).values():
-            if isinstance(record, dict) and name in record:
-                point = point_value(record[name], year)
-                if point is not None:
-                    return point
-                periods = record[name]
-                numeric = isinstance(periods, dict) and any(
-                    k.startswith(year) and _number(v) is not None for k, v in periods.items())
-                return annual_value(periods, year) if numeric else None
-    return None
-
-
 def _has_value_for(periods: Any, year: str) -> bool:
     """A value for the year or one of its months; sent as null means "compute", so it is not a value."""
     if not isinstance(periods, dict):
@@ -236,8 +222,11 @@ def _sum_records(household: dict, source: dict[str, Any]) -> list[dict | None]:
 
 
 def _alternative_sent(household: dict, alternative: Any, year: str) -> bool:
+    """A value for the year (alternativeSent): on the record a field is read from, or on any record of a
+    sum's scope. A value for another year does not count; PolicyEngine computes the year's intermediate."""
     if isinstance(alternative, str):
-        return find_unit_value(household, alternative, year) is not None
+        record = _first_record_with(household, UNIT_GROUPS, alternative)
+        return _has_value_for((record or {}).get(alternative), year)
     return any(_has_value_for((record or {}).get(name), year)
                for record in _sum_records(household, alternative) for name in alternative["sum"])
 

@@ -1476,6 +1476,138 @@
    }
   },
   {
+   "name": "first-intermediate-for-another-year-falls-through",
+   "kind": "unit",
+   "year": "2026",
+   "household": {
+    "people": {
+     "a": {
+      "age": {
+       "2026": 40
+      },
+      "rent": {
+       "2026": 12000
+      }
+     }
+    },
+    "spm_units": {
+     "s": {
+      "members": [
+       "a"
+      ],
+      "housing_cost": {
+       "2025": 2400
+      }
+     }
+    },
+    "tax_units": {
+     "t": {
+      "members": [
+       "a"
+      ]
+     }
+    },
+    "households": {
+     "h": {
+      "members": [
+       "a"
+      ]
+     }
+    }
+   },
+   "inputs": {
+    "shelter_costs": {
+     "from": {
+      "first": [
+       "housing_cost",
+       {
+        "sum": [
+         "rent",
+         "real_estate_taxes",
+         "homeowners_association_fees",
+         "mortgage_payments",
+         "homeowners_insurance"
+        ],
+        "scope": "spm_unit+members"
+       }
+      ]
+     },
+     "period": "monthly-from-annual",
+     "round": "cents"
+    }
+   },
+   "note": "a value for another year is not a value for this one: PolicyEngine computes this year from the components",
+   "expected": {
+    "shelter_costs": 1000
+   }
+  },
+  {
+   "name": "first-intermediate-for-a-month-of-the-year-wins",
+   "kind": "unit",
+   "year": "2026",
+   "household": {
+    "people": {
+     "a": {
+      "age": {
+       "2026": 40
+      },
+      "rent": {
+       "2026": 12000
+      }
+     }
+    },
+    "spm_units": {
+     "s": {
+      "members": [
+       "a"
+      ],
+      "housing_cost": {
+       "2026-01": 200
+      }
+     }
+    },
+    "tax_units": {
+     "t": {
+      "members": [
+       "a"
+      ]
+     }
+    },
+    "households": {
+     "h": {
+      "members": [
+       "a"
+      ]
+     }
+    }
+   },
+   "inputs": {
+    "shelter_costs": {
+     "from": {
+      "first": [
+       "housing_cost",
+       {
+        "sum": [
+         "rent",
+         "real_estate_taxes",
+         "homeowners_association_fees",
+         "mortgage_payments",
+         "homeowners_insurance"
+        ],
+        "scope": "spm_unit+members"
+       }
+      ]
+     },
+     "period": "monthly-from-annual",
+     "round": "cents"
+    }
+   },
+   "note": "a month of the year is a value for the year",
+   "expected": {
+    "shelter_costs": 200
+   }
+  },
+  {
    "name": "first-nothing-sent-reads-the-last-alternative",
    "kind": "unit",
    "year": "2026",

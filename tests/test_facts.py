@@ -88,6 +88,9 @@ def test_snap_reads_housing_cost_or_its_components(m):
     assert derive_unit_input(renter, spec, "2026") == 1000
     renter["spm_units"]["s"]["housing_cost"] = {"2026": 6000}
     assert derive_unit_input(renter, spec, "2026") == 500
+    # A housing_cost for another year is not one for 2026: PolicyEngine adds up 2026's rent.
+    renter["spm_units"]["s"]["housing_cost"] = {"2025": 6000}
+    assert derive_unit_input(renter, spec, "2026") == 1000
 
 
 def facts_root(tmp_path, edit):
