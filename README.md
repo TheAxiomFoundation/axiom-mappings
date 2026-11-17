@@ -142,8 +142,8 @@ axiom_mappings/           loader (load, rules_for_slot, policyengine_variable, .
   from running the TypeScript. The Python must reproduce them, and axiom-api runs the same file, so one
   grammar keeps one semantics. `programs.yaml` gives Colorado SNAP the family `us/snap` (axiom-api serves
   every state's package through it), so `profiles` compares the two consumers slot by slot.
-- `python -m axiom_mappings export oracles-populace --out <axiom-oracles>/axiom_oracles/data/populace_input_mapping.yaml`
-  writes oracles' populace input table from inputs.yaml (the same entries, every rationale comment kept);
+- `python -m axiom_mappings export oracles-microcosm --out <axiom-oracles>/axiom_oracles/data/populace_input_mapping.yaml`
+  writes oracles' Microcosm input table from inputs.yaml (the same entries, every rationale comment kept);
   the file stays in oracles, where its dispositions cite it. transforms.yaml classifies every transform the
   table's derived rules use: arithmetic and reference data are fine; `law-in-rule` (tables, rates, age
   thresholds fed by the rule), `law-in-code` (the SSI couple rule, SNAP's elderly age of 60) and

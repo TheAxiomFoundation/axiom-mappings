@@ -280,9 +280,9 @@ def main() -> None:
 
     ids = concept_ids(git_show(repo, commit, "axiom_oracles/core/case.py"))
     tables = runner_tables(git_show(repo, commit, "axiom_oracles/adapters/policyengine/runner.py"))
-    populace_raw = git_show(repo, commit, "axiom_oracles/data/populace_input_mapping.yaml")
-    rules = yaml.safe_load(populace_raw)["mappings"]
-    comments = rule_comments(populace_raw)
+    microcosm_raw = git_show(repo, commit, "axiom_oracles/data/populace_input_mapping.yaml")
+    rules = yaml.safe_load(microcosm_raw)["mappings"]
+    comments = rule_comments(microcosm_raw)
     if len(comments) != len(rules):
         raise SystemExit(f"{len(comments)} rule starts in the text, {len(rules)} rules parsed")
     if args.only == "inputs":

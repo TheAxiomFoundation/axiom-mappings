@@ -9,7 +9,7 @@
     python -m axiom_mappings readiness  ...   may a program serve Axiom's answer (D48)
     python -m axiom_mappings profiles   ...   slots the cut and facts profiles bind differently
     python -m axiom_mappings export policyengine-axiom|axiom-api --out DIR
-    python -m axiom_mappings export oracles-populace --out FILE
+    python -m axiom_mappings export oracles-microcosm --out FILE
     python -m axiom_mappings export coverage [--out F] [--stage S] [--blocked]   where every PE variable stands
     python -m axiom_mappings bindings set-status --program ID --variable PE_VAR --status off|shadow|on [--profile cut]
     python -m axiom_mappings propose parameters|outputs --corpus <rulespec-us> [--module PREFIX] [--evaluate]
@@ -154,8 +154,8 @@ def main(argv=None) -> int:
         return run(rest)
     if command == "bindings" and rest[:1] == ["set-status"]:
         return bindings_set_status(rest[1:])
-    if command == "export" and rest[:1] == ["oracles-populace"]:
-        from .export.oracles_populace import main as run
+    if command == "export" and rest[:1] in (["oracles-microcosm"], ["oracles-populace"]):  # compat: populace alias, remove after 0.2.0
+        from .export.oracles_microcosm import main as run
         return run(rest[1:])
     if command == "export" and rest[:1] == ["axiom-api"]:
         from .export.axiom_api import main as run
