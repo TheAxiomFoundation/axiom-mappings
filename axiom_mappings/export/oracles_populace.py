@@ -11,3 +11,8 @@ warnings.warn(  # compat: populace alias, remove after 0.2.0
     DeprecationWarning,
     stacklevel=2,
 )
+
+if __name__ == "__main__":
+    import sys
+
+    sys.exit(main())
