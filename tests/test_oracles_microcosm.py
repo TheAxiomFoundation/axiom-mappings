@@ -1,4 +1,4 @@
-"""oracles' populace input table comes from inputs.yaml; transforms that carry law are registered and block."""
+"""oracles' Microcosm input table comes from inputs.yaml; transforms that carry law are registered and block."""
 
 import importlib.util
 import json
@@ -8,7 +8,7 @@ import pytest
 import yaml
 
 from axiom_mappings import ROOT, load
-from axiom_mappings.export.oracles_populace import render
+from axiom_mappings.export.oracles_microcosm import render
 from axiom_mappings.readiness import readiness
 from axiom_mappings.validate import validate
 
@@ -28,7 +28,7 @@ def test_the_export_is_oracles_table_with_every_comment(m):
     original = ORACLES.read_text().split("\nmappings:", 1)[1]
     comments = [line.strip()[1:].strip() for line in original.splitlines() if line.strip().startswith("#")]
     assert len(comments) == 219 and all(c in exported for c in comments if c)
-    assert exported.startswith("# Populace-to-input mapping table: GENERATED from TheAxiomFoundation/axiom-mappings")
+    assert exported.startswith("# Microcosm-to-input mapping table: GENERATED from TheAxiomFoundation/axiom-mappings")
 
 
 def test_seed_attaches_comments_before_and_inside_rules():
@@ -79,3 +79,18 @@ def test_slots_computed_by_harness_law_or_assumptions_block_readiness(m):
 def test_a_compiled_program_without_slots_is_not_coverage(m):
     report = readiness(m, "us/federal-income-tax", {"metadata": {}})
     assert any("lists no input slots" in b for b in report["blockers"])
+
+
+def test_the_old_module_and_command_names_still_work(tmp_path):
+    import importlib
+    import sys
+
+    from axiom_mappings.__main__ import main
+
+    sys.modules.pop("axiom_mappings.export.oracles_populace", None)  # compat: populace alias, remove after 0.2.0
+    with pytest.warns(DeprecationWarning):
+        old = importlib.import_module("axiom_mappings.export.oracles_populace")  # compat: populace alias, remove after 0.2.0
+    assert old.render is render and old.populace_table is old.microcosm_table  # compat: populace alias, remove after 0.2.0
+    out = tmp_path / "table.yaml"
+    assert main(["export", "oracles-populace", "--out", str(out)]) == 0  # compat: populace alias, remove after 0.2.0
+    assert out.read_text().startswith("# Microcosm-to-input mapping table")
